@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+.reference/
+dist/
+build/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

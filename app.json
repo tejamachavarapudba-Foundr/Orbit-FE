@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Startuphouze",
+    "newArchEnabled": true,
+    "slug": "startuphouze",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "startuphouze",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.startuphouze.app"
+    },
+    "android": {
+      "package": "com.startuphouze.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A66C2"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}
