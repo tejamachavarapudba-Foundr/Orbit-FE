@@ -4,7 +4,7 @@ import { AppLogo } from "@/components/brand/AppLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export const AuthHeader = () => (
-  <View className="flex-row items-center justify-between pt-4">
+  <View className="flex-row items-center justify-between py-4">
     <AppLogo />
     <ThemeToggle />
   </View>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TextInput, TextInputProps, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
@@ -11,6 +12,7 @@ type AppTextInputProps = TextInputProps & {
 
 export const AppTextInput = ({ label, error, className = "", ...props }: AppTextInputProps) => {
   const colors = useThemeTokens();
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View className="gap-2">
@@ -20,7 +22,17 @@ export const AppTextInput = ({ label, error, className = "", ...props }: AppText
       <TextInput
         placeholderTextColor={colors.muted}
         selectionColor={colors.primary}
-        className={`h-14 rounded-md border border-border bg-surface px-4 text-base text-text shadow-sm ${className}`}
+        onFocus={(event) => {
+          setIsFocused(true);
+          props.onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setIsFocused(false);
+          props.onBlur?.(event);
+        }}
+        className={`h-9 rounded-md border bg-transparent px-3 text-sm text-text shadow-sm ${
+          isFocused ? "border-ring" : "border-input"
+        } ${error ? "border-danger" : ""} ${className}`}
         {...props}
       />
       {error ? (

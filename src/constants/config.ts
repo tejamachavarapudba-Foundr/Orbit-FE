@@ -19,7 +19,7 @@ const resolveApiBaseUrl = () => {
 };
 
 export const appConfig = {
-  appName: "Startuphouze",
+  appName: "Foundr",
   apiBaseUrl: resolveApiBaseUrl(),
   authRefreshPath:
     process.env.EXPO_PUBLIC_AUTH_REFRESH_PATH ?? "/auth/refresh",
