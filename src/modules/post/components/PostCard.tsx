@@ -1,8 +1,12 @@
 import { memo, useCallback, useMemo, useState } from "react";
-import { Alert, Image, Linking, Pressable, Share, TextInput, View } from "react-native";
+import { Alert, Image, Linking, Pressable, ScrollView, Share, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { CommentsPanel } from "@/modules/comments/components/CommentsPanel";
@@ -10,23 +14,34 @@ import { usePostComments } from "@/modules/comments/hooks";
 import { usePostLikes } from "@/modules/likes/hooks";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { Post, PostCategory } from "@/modules/post/types";
+import { BadgeCategory } from "@/theme/designTokens";
 
 type PostCardProps = {
   post: Post;
 };
 
-const formatCategory = (category: string) =>
-  category
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+const badgeCategories = new Set<BadgeCategory>([
+  "update",
+  "announcement",
+  "milestone",
+  "launch",
+  "hiring",
+  "ad",
+  "question",
+  "funding"
+]);
 
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }).format(new Date(date));
+const formatRelativeTime = (date: string) => {
+  const diffMs = Date.now() - new Date(date).getTime();
+  const minutes = Math.floor(diffMs / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(date));
+};
 
 export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
@@ -44,16 +59,14 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const authorName = isOwnPost ? currentUser?.profile.fullName || "You" : `Member ${post.authorId.slice(0, 8)}`;
   const isDeleting = deletingPostId === post.id;
 
-  const initials = useMemo(
-    () =>
-      authorName
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0).toUpperCase())
-        .join("") || "SH",
-    [authorName]
-  );
+  const categoryLabel = useMemo(() => {
+    const match = postCategoryOptions.find((option) => option.value === post.category);
+    return match?.label ?? post.category;
+  }, [post.category]);
+
+  const categoryBadge = badgeCategories.has(post.category as BadgeCategory)
+    ? (post.category as BadgeCategory)
+    : undefined;
 
   const submitEdit = useCallback(async () => {
     const didSucceed = await updatePost(post.id, {
@@ -76,48 +89,56 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const sharePost = useCallback(async () => {
     const message = [post.content, post.linkUrl].filter(Boolean).join("\n\n");
     await Share.share({
-      title: "Startuphouze post",
-      message: message || "Startuphouze post",
+      title: "Foundr post",
+      message: message || "Foundr post",
       url: post.linkUrl || undefined
     });
   }, [post.content, post.linkUrl]);
 
   return (
-    <View className="rounded-md border border-border bg-surface p-5 shadow-sm">
-      <View className="flex-row items-start gap-3">
-        <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-          <AppText tone="primary" weight="bold">
-            {initials}
+    <Card className="overflow-hidden">
+      <View className="flex-row items-start gap-3 p-4 pb-0">
+        <Avatar name={authorName} imageUrl="" size="md" fallback="mesh" />
+        <View className="min-w-0 flex-1">
+          <View className="flex-row flex-wrap items-center gap-2">
+            <AppText weight="medium">{authorName}</AppText>
+            {categoryBadge ? (
+              <Badge label={categoryLabel} variant="outline" category={categoryBadge} />
+            ) : (
+              <Badge label={categoryLabel} variant="outline" />
+            )}
+          </View>
+          <AppText tone="muted" size="xs" className="mt-0.5">
+            {formatRelativeTime(post.createdAt)}
           </AppText>
         </View>
-        <View className="flex-1">
-          <View className="flex-row items-start gap-2">
-            <View className="flex-1">
-              <AppText weight="bold">{authorName}</AppText>
-              <AppText tone="muted" size="sm">
-                {formatDate(post.createdAt)}
-              </AppText>
-            </View>
-            <View className="rounded-md bg-primary/10 px-3 py-1">
-              <AppText tone="primary" size="sm" weight="medium">
-                {formatCategory(post.category).toLowerCase()}
-              </AppText>
-            </View>
-          </View>
+        {isOwnPost && !isEditing ? (
+          <Pressable
+            accessibilityRole="button"
+            disabled={isDeleting}
+            onPress={confirmDelete}
+            className="h-8 w-8 items-center justify-center rounded-md"
+          >
+            <Feather name="trash-2" size={16} color={colors.muted} />
+          </Pressable>
+        ) : null}
+      </View>
 
-          {isEditing ? (
-            <View className="mt-4">
-              <TextInput
-                value={draftContent}
-                onChangeText={setDraftContent}
-                placeholder="Update your post"
-                placeholderTextColor={colors.muted}
-                selectionColor={colors.primary}
-                multiline
-                textAlignVertical="top"
-                className="min-h-24 rounded-md border border-border bg-background px-4 py-3 text-base text-text"
-              />
-              <View className="mt-3 flex-row flex-wrap gap-y-2">
+      <CardContent className="gap-3 pt-3">
+        {isEditing ? (
+          <View>
+            <TextInput
+              value={draftContent}
+              onChangeText={setDraftContent}
+              placeholder="Update your post"
+              placeholderTextColor={colors.muted}
+              selectionColor={colors.primary}
+              multiline
+              textAlignVertical="top"
+              className="min-h-24 rounded-md border border-input bg-background px-3 py-3 text-sm text-text"
+            />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 max-h-10">
+              <View className="flex-row">
                 {postCategoryOptions.map((option) => {
                   const isActive = draftCategory === option.value;
                   return (
@@ -125,7 +146,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                       key={option.value}
                       accessibilityRole="button"
                       onPress={() => setDraftCategory(option.value)}
-                      className={`mr-2 rounded-md border px-3 py-2 ${
+                      className={`mr-2 h-9 justify-center rounded-md border px-3 ${
                         isActive ? "border-primary bg-primary" : "border-border bg-background"
                       }`}
                     >
@@ -136,85 +157,102 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                   );
                 })}
               </View>
-              <View className="mt-4 flex-row gap-3">
-                <AppButton
-                  label="Save"
-                  loading={isSubmitting}
-                  disabled={!draftContent.trim()}
-                  onPress={() => void submitEdit()}
-                  className="flex-1"
-                />
-                <AppButton label="Cancel" variant="outline" onPress={() => setIsEditing(false)} className="flex-1" />
-              </View>
+            </ScrollView>
+            <View className="mt-4 flex-row gap-3">
+              <AppButton
+                label="Save"
+                loading={isSubmitting}
+                disabled={!draftContent.trim()}
+                onPress={() => void submitEdit()}
+                className="flex-1"
+                size="default"
+              />
+              <AppButton label="Cancel" variant="outline" onPress={() => setIsEditing(false)} className="flex-1" size="default" />
             </View>
-          ) : (
-            <>
-              <AppText className="mt-4 leading-6">{post.content}</AppText>
-              {post.linkUrl ? (
-                <Pressable
-                  accessibilityRole="link"
-                  onPress={() => void Linking.openURL(post.linkUrl)}
-                  className="mt-4 rounded-md border border-border bg-background px-4 py-3"
-                >
-                  <AppText tone="primary" weight="medium">
-                    link  {post.linkUrl}
-                  </AppText>
-                </Pressable>
-              ) : null}
-              {post.imageUrl ? (
-                <Image source={{ uri: post.imageUrl }} className="mt-4 h-64 w-full rounded-md bg-background" resizeMode="cover" />
-              ) : null}
-            </>
-          )}
-        </View>
-      </View>
-
-      {isOwnPost && !isEditing ? (
-        <View className="mt-4 flex-row gap-3 border-t border-border pt-4">
-          <AppButton label="Edit" variant="outline" onPress={() => setIsEditing(true)} className="h-10 flex-1" />
-          <AppButton
-            label="Delete"
-            variant="ghost"
-            loading={isDeleting}
-            onPress={confirmDelete}
-            className="h-10 flex-1"
-          />
-        </View>
-      ) : null}
-
-      {!isEditing ? (
-        <>
-          <View className="mt-4 flex-row items-center gap-7 border-t border-border pt-4">
-            <Pressable
-              accessibilityRole="button"
-              disabled={isMutating}
-              onPress={() => void toggleLike()}
-              className="flex-row items-center gap-2"
-            >
-              <AppText tone={isLikedByMe ? "danger" : "default"} size="xl">
-                {isLikedByMe ? "♥" : "♡"}
-              </AppText>
-              <AppText weight="medium">{likesCount}</AppText>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setShowComments((current) => !current)}
-              className="flex-row items-center gap-2"
-            >
-              <AppText size="xl">○</AppText>
-              <AppText weight="medium">{commentsCount}</AppText>
-            </Pressable>
-
-            <Pressable accessibilityRole="button" onPress={() => void sharePost()} className="flex-row items-center gap-2">
-              <AppText size="xl">↗</AppText>
-              <AppText weight="semibold">Share</AppText>
-            </Pressable>
           </View>
-          {showComments ? <CommentsPanel postId={post.id} /> : null}
-        </>
-      ) : null}
-    </View>
+        ) : (
+          <>
+            <AppText size="sm" className="leading-relaxed">
+              {post.content}
+            </AppText>
+            {post.imageUrl ? (
+              post.mediaType === "video" ? (
+                <View className="max-h-80 w-full overflow-hidden rounded-lg border border-border bg-black">
+                  <AppText tone="muted" size="sm" className="p-4 text-center">
+                    Video: {post.imageUrl}
+                  </AppText>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: post.imageUrl }}
+                  className="max-h-96 w-full rounded-lg border border-border bg-black"
+                  resizeMode="cover"
+                />
+              )
+            ) : null}
+            {post.linkUrl ? (
+              <Pressable
+                accessibilityRole="link"
+                onPress={() => void Linking.openURL(post.linkUrl)}
+                className="flex-row items-center gap-2 rounded-lg border border-border bg-muted-bg p-3"
+              >
+                <Feather name="link" size={16} color={colors.muted} />
+                <AppText size="sm" className="flex-1" numberOfLines={1}>
+                  {post.linkUrl}
+                </AppText>
+              </Pressable>
+            ) : null}
+          </>
+        )}
+
+        {isOwnPost && !isEditing ? (
+          <View className="flex-row gap-2 border-t border-border pt-3">
+            <AppButton label="Edit" variant="outline" size="sm" onPress={() => setIsEditing(true)} className="flex-1" />
+          </View>
+        ) : null}
+
+        {!isEditing ? (
+          <>
+            <View className="flex-row items-center gap-1 border-t border-border pt-2">
+              <Pressable
+                accessibilityRole="button"
+                disabled={isMutating}
+                onPress={() => void toggleLike()}
+                className="flex-row items-center gap-1.5 rounded-md px-2 py-1.5"
+              >
+                <Feather name="heart" size={16} color={isLikedByMe ? "#ef4444" : colors.text} />
+                <AppText size="sm" weight="medium">
+                  {likesCount}
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShowComments((current) => !current)}
+                className="flex-row items-center gap-1.5 rounded-md px-2 py-1.5"
+              >
+                <Feather name="message-circle" size={16} color={colors.text} />
+                <AppText size="sm" weight="medium">
+                  {commentsCount}
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => void sharePost()}
+                className="flex-row items-center gap-1.5 rounded-md px-2 py-1.5"
+              >
+                <Feather name="share-2" size={16} color={colors.text} />
+                <AppText size="sm" weight="medium">
+                  Share
+                </AppText>
+              </Pressable>
+            </View>
+            {showComments ? <CommentsPanel postId={post.id} /> : null}
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 });
 
