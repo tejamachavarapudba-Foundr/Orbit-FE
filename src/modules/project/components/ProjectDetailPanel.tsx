@@ -1,11 +1,15 @@
-import { Pressable, TextInput, View } from "react-native";
+import { Alert, Pressable, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
+import { Card, CardContent } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useProjectDetail } from "@/modules/project/hooks";
+import { iconSize } from "@/theme/designTokens";
 
 const roleOptions = ["co_founder", "software_engineer", "designer", "business_operations"];
 
@@ -36,18 +40,18 @@ export const ProjectDetailPanel = () => {
 
   if (isDetailLoading) {
     return (
-      <View className="mt-5 rounded-md border border-border bg-surface p-5">
+      <Card className="mt-5 p-5">
         <Skeleton className="h-6 w-44" />
         <Skeleton className="mt-4 h-20 w-full" />
-      </View>
+      </Card>
     );
   }
 
   if (detailErrorMessage) {
     return (
-      <View className="mt-5 rounded-md border border-border bg-surface p-5">
+      <Card className="mt-5 p-5">
         <ErrorState message={detailErrorMessage} />
-      </View>
+      </Card>
     );
   }
 
@@ -60,25 +64,34 @@ export const ProjectDetailPanel = () => {
   const isReviewing = reviewingProjectId === selectedProject.id;
 
   return (
-    <View className="mt-5 rounded-md border border-border bg-surface p-5 shadow-sm">
-      <View className="flex-row items-start gap-3">
-        <View className="h-14 w-14 items-center justify-center rounded-md bg-primary">
-          <AppText tone="onPrimary" weight="bold" size="xl">
-            {selectedProject.name.charAt(0).toUpperCase()}
-          </AppText>
+    <Card className="mt-5 overflow-hidden">
+      <View className="h-28 bg-primary/15" />
+      <CardContent className="gap-4 p-4 pt-0">
+        <View className="-mt-10 flex-row items-start gap-3">
+          <View className="h-14 w-14 items-center justify-center rounded-xl border border-border bg-card">
+            <AppText tone="primary" weight="bold" size="xl">
+              {selectedProject.name.charAt(0).toUpperCase()}
+            </AppText>
+          </View>
+          <View className="min-w-0 flex-1 pt-6">
+            <AppText family="display" weight="semibold" size="lg" numberOfLines={1}>
+              {selectedProject.name}
+            </AppText>
+            <AppText tone="muted" size="sm" className="mt-1" numberOfLines={2}>
+              {selectedProject.tagline || selectedProject.stage}
+            </AppText>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close project details"
+            onPress={clearSelectedProject}
+            className="mt-5 h-9 w-9 items-center justify-center rounded-md"
+          >
+            <Feather name="x" size={iconSize.md} color={colors.text} />
+          </Pressable>
         </View>
-        <View className="flex-1">
-          <AppText weight="bold" size="xl">
-            {selectedProject.name}
-          </AppText>
-          <AppText tone="primary" weight="medium" className="mt-1">
-            {selectedProject.tagline || selectedProject.stage}
-          </AppText>
-        </View>
-        <AppButton label="Close" variant="ghost" onPress={clearSelectedProject} className="h-10 px-3" />
-      </View>
 
-      <AppText className="mt-5 leading-6">{selectedProject.description || "No description yet."}</AppText>
+        <AppText className="leading-6">{selectedProject.description || "No description yet."}</AppText>
 
       <View className="mt-5 flex-row gap-3">
         <View className="flex-1 rounded-md bg-background p-3">
@@ -166,23 +179,14 @@ export const ProjectDetailPanel = () => {
           Add review
         </AppText>
         <View className="mt-3 flex-row gap-2">
-          {[1, 2, 3, 4, 5].map((rating) => {
-            const isActive = reviewRating === rating;
-            return (
-              <Pressable
-                key={rating}
-                accessibilityRole="button"
-                onPress={() => setReviewRating(rating)}
-                className={`h-10 w-10 items-center justify-center rounded-md border ${
-                  isActive ? "border-primary bg-primary" : "border-border bg-background"
-                }`}
-              >
-                <AppText tone={isActive ? "onPrimary" : "muted"} weight="bold">
-                  {rating}
-                </AppText>
-              </Pressable>
-            );
-          })}
+          {[1, 2, 3, 4, 5].map((rating) => (
+            <FilterChip
+              key={rating}
+              label={String(rating)}
+              isActive={reviewRating === rating}
+              onPress={() => setReviewRating(rating)}
+            />
+          ))}
         </View>
         <TextInput
           value={reviewComment}
@@ -192,7 +196,7 @@ export const ProjectDetailPanel = () => {
           selectionColor={colors.primary}
           multiline
           textAlignVertical="top"
-          className="mt-3 min-h-20 rounded-md border border-border bg-background px-4 py-3 text-base text-text"
+          className="mt-3 min-h-20 rounded-md border border-input bg-background px-3 py-3 text-sm leading-5 text-text"
         />
         <AppButton
           label="Post review"
@@ -207,21 +211,14 @@ export const ProjectDetailPanel = () => {
         <View className="mt-5 border-t border-border pt-5">
           <AppText weight="bold">Apply to join</AppText>
           <View className="mt-3 flex-row flex-wrap gap-2">
-            {roleOptions.map((role) => {
-              const isActive = applicationRole === role;
-              return (
-                <Pressable
-                  key={role}
-                  accessibilityRole="button"
-                  onPress={() => setApplicationRole(role)}
-                  className={`rounded-md border px-3 py-2 ${isActive ? "border-primary bg-primary" : "border-border bg-background"}`}
-                >
-                  <AppText tone={isActive ? "onPrimary" : "muted"} size="sm" weight="medium">
-                    {role.replace(/_/g, " ")}
-                  </AppText>
-                </Pressable>
-              );
-            })}
+            {roleOptions.map((role) => (
+              <FilterChip
+                key={role}
+                label={role.replace(/_/g, " ")}
+                isActive={applicationRole === role}
+                onPress={() => setApplicationRole(role)}
+              />
+            ))}
           </View>
           <TextInput
             value={applicationMessage}
@@ -231,7 +228,7 @@ export const ProjectDetailPanel = () => {
             selectionColor={colors.primary}
             multiline
             textAlignVertical="top"
-            className="mt-3 min-h-20 rounded-md border border-border bg-background px-4 py-3 text-base text-text"
+            className="mt-3 min-h-20 rounded-md border border-input bg-background px-3 py-3 text-sm leading-5 text-text"
           />
           <AppButton
             label="Send application"
@@ -242,6 +239,7 @@ export const ProjectDetailPanel = () => {
           />
         </View>
       ) : null}
-    </View>
+      </CardContent>
+    </Card>
   );
 };

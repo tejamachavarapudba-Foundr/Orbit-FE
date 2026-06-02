@@ -1,11 +1,13 @@
 import { useCallback } from "react";
-import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
+import { FlatList, ListRenderItem, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { FilterChip } from "@/components/ui/FilterChip";
 import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
@@ -13,6 +15,7 @@ import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { ProjectDetailPanel } from "@/modules/project/components/ProjectDetailPanel";
 import { projectStageOptions, projectTypeOptions, useProjectDetail, useProjects } from "@/modules/project/hooks";
 import { Project } from "@/modules/project/types";
+import { iconSize } from "@/theme/designTokens";
 
 export const ProjectsScreen = () => {
   const colors = useThemeTokens();
@@ -34,7 +37,7 @@ export const ProjectsScreen = () => {
 
   const renderProject = useCallback<ListRenderItem<Project>>(
     ({ item }) => (
-      <View className="w-full max-w-3xl self-center">
+      <View className="w-full max-w-2xl self-center">
         <ProjectCard project={item} onPress={(id) => void selectProject(id)} />
       </View>
     ),
@@ -50,76 +53,61 @@ export const ProjectsScreen = () => {
         renderItem={renderProject}
         refreshing={isRefreshing}
         onRefresh={() => void refreshProjects()}
-        contentContainerStyle={{ gap: 16, paddingHorizontal: 20, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
         ListHeaderComponent={
-          <View className="w-full max-w-3xl self-center pt-8">
-            <View className="flex-row items-center gap-3">
-              <AppText size="2xl" weight="bold">
-                Projects
+          <View className="w-full max-w-2xl self-center pb-2 pt-4">
+            <View className="mb-5 border-b border-border pb-5">
+              <AppText family="display" size="2xl" weight="bold" className="tracking-tight">
+                Projects & startups
               </AppText>
-            </View>
-            <AppText tone="muted" className="mt-2 leading-6">
-              Explore startups, join teams, and publish what you are building.
-            </AppText>
+              <AppText tone="muted" size="sm" className="mt-2 leading-5">
+                Discover what the community is building. Share your own to find collaborators, hires, and investors.
+              </AppText>
 
-            <View className="mt-6 rounded-md border border-border bg-surface px-4 shadow-sm">
-              <TextInput
-                value={filters.query}
-                onChangeText={setQuery}
-                placeholder="Search projects, tech stack, location..."
-                placeholderTextColor={colors.muted}
-                selectionColor={colors.primary}
-                className="h-12 text-base text-text"
-              />
-            </View>
+              <View className="relative mt-5">
+                <View className="pointer-events-none absolute left-3 top-3.5 z-10">
+                  <Feather name="search" size={iconSize.md} color={colors.muted} />
+                </View>
+                <TextInput
+                  value={filters.query}
+                  onChangeText={setQuery}
+                  placeholder="Search projects, tech, industry..."
+                  placeholderTextColor={colors.muted}
+                  selectionColor={colors.primary}
+                  className="h-11 rounded-md border border-input bg-background pl-10 pr-3 text-sm text-text"
+                />
+              </View>
 
-            <View className="mt-5 rounded-md bg-border/40 p-1">
-              <View className="flex-row flex-wrap gap-2">
-                {projectStageOptions.map((option) => {
-                  const isActive = filters.stage === option.value;
-                  return (
-                    <Pressable
-                      key={option.value}
-                      accessibilityRole="button"
-                      onPress={() => setStage(option.value)}
-                      className={`rounded-md px-4 py-2 ${isActive ? "bg-surface shadow-sm" : "bg-transparent"}`}
-                    >
-                      <AppText tone={isActive ? "default" : "muted"} weight="medium">
-                        {option.label}
-                      </AppText>
-                    </Pressable>
-                  );
-                })}
+              <View className="mt-4 flex-row flex-wrap gap-2">
+                {projectStageOptions.map((option) => (
+                  <FilterChip
+                    key={option.value}
+                    label={option.label}
+                    isActive={filters.stage === option.value}
+                    onPress={() => setStage(option.value)}
+                  />
+                ))}
+              </View>
+
+              <View className="mt-2 flex-row flex-wrap gap-2">
+                {projectTypeOptions.map((option) => (
+                  <FilterChip
+                    key={option.label}
+                    label={option.label}
+                    isActive={filters.projectType === option.value}
+                    onPress={() => setProjectType(option.value)}
+                  />
+                ))}
               </View>
             </View>
 
-            <View className="mt-3 flex-row flex-wrap gap-2">
-              {projectTypeOptions.map((option) => {
-                const isActive = filters.projectType === option.value;
-                return (
-                  <Pressable
-                    key={option.value}
-                    accessibilityRole="button"
-                    onPress={() => setProjectType(option.value)}
-                    className={`rounded-md border px-4 py-2 ${isActive ? "border-primary bg-primary" : "border-border bg-surface"}`}
-                  >
-                    <AppText tone={isActive ? "onPrimary" : "muted"} weight="medium">
-                      {option.label}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View className="mt-6">
-              <ProjectComposer />
-            </View>
+            <ProjectComposer />
 
             <ProjectDetailPanel />
 
             {trendingStartups.length > 0 ? (
               <View className="mt-6">
-                <AppText weight="bold" size="lg">
+                <AppText weight="semibold" size="sm">
                   Trending startups
                 </AppText>
                 <FlatList
@@ -138,7 +126,7 @@ export const ProjectsScreen = () => {
             ) : null}
 
             {totalCount > 0 ? (
-              <AppText tone="muted" size="sm" className="mt-5">
+              <AppText tone="muted" size="xs" className="mb-2 mt-5">
                 Showing {totalCount} projects
               </AppText>
             ) : null}
@@ -146,16 +134,16 @@ export const ProjectsScreen = () => {
         }
         ListEmptyComponent={
           isLoading ? (
-            <View className="w-full max-w-3xl self-center">
+            <View className="w-full max-w-2xl self-center">
               <UserSkeletonList />
             </View>
           ) : errorMessage ? (
-            <View className="w-full max-w-3xl self-center">
+            <View className="w-full max-w-2xl self-center">
               <ErrorState message={errorMessage} onRetry={() => void loadProjects()} />
             </View>
           ) : (
-            <View className="w-full max-w-3xl self-center">
-              <EmptyState title="No projects found" message="Try a different filter or create the first project." />
+            <View className="w-full max-w-2xl self-center">
+              <EmptyState title="No projects match" message="Try a different filter or create the first project." />
             </View>
           )
         }

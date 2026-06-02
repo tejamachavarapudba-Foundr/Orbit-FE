@@ -27,19 +27,19 @@ const variantTextClass: Record<BadgeVariant, string> = {
 };
 
 export const Badge = ({ label, variant = "outline", category, className = "" }: BadgeProps) => {
-  const categoryClass = category ? categoryBadgeClass[category] : "";
-  const categoryTextClass = category ? categoryBadgeTextClass[category] : "";
-  const useCategory = Boolean(category);
+  if (category) {
+    return (
+      <View className={`rounded-md border px-2.5 py-0.5 ${categoryBadgeClass[category]} ${className}`}>
+        <AppText size="xs" weight="semibold" className={categoryBadgeTextClass[category]}>
+          {label}
+        </AppText>
+      </View>
+    );
+  }
 
   return (
-    <View
-      className={`rounded-md border px-2.5 py-0.5 ${useCategory ? categoryClass : variantClass[variant]} ${className}`}
-    >
-      <AppText
-        size="xs"
-        weight="semibold"
-        className={useCategory ? categoryTextClass : variantTextClass[variant]}
-      >
+    <View className={`rounded-md border px-2.5 py-0.5 ${variantClass[variant]} ${className}`}>
+      <AppText size="xs" weight="semibold" className={variantTextClass[variant]}>
         {label}
       </AppText>
     </View>

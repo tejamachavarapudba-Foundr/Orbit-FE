@@ -3,7 +3,8 @@ import { View } from "react-native";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
-import { UserAvatar } from "@/modules/user/components/UserAvatar";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Avatar } from "@/components/ui/Avatar";
 import { UserSummary } from "@/modules/user/types";
 
 type StartChatCardProps = {
@@ -16,16 +17,18 @@ export const StartChatCard = memo(({ user, isCreating, onStart }: StartChatCardP
   const profile = user.profile;
 
   return (
-    <View className="mr-3 w-64 rounded-md border border-border bg-surface p-4 shadow-sm">
-      <UserAvatar name={profile.fullName} imageUrl={profile.avatarUrl} />
-      <AppText weight="bold" className="mt-3">
-        {profile.fullName || "Startuphouze member"}
-      </AppText>
-      <AppText tone="muted" size="sm" className="mt-1">
-        {profile.headline || profile.role || "Member"}
-      </AppText>
-      <AppButton label="Start chat" loading={isCreating} onPress={() => onStart(user)} className="mt-4 h-10" />
-    </View>
+    <Card className="mr-3 w-56">
+      <CardContent className="gap-2 p-4">
+        <Avatar name={profile.fullName} imageUrl={profile.avatarUrl ?? ""} size="md" fallback="mesh" />
+        <AppText weight="medium" numberOfLines={1}>
+          {profile.fullName || "Foundr member"}
+        </AppText>
+        <AppText tone="muted" size="xs" numberOfLines={2}>
+          {profile.headline || profile.role || "Member"}
+        </AppText>
+        <AppButton label="Start chat" loading={isCreating} onPress={() => onStart(user)} size="sm" className="mt-2" />
+      </CardContent>
+    </Card>
   );
 });
 

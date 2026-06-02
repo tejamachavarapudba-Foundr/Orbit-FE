@@ -1,4 +1,4 @@
-export type PostCategory = "update" | "announcement" | "milestone" | "launch" | "hiring" | "ad" | "question" | "funding";
+export type PostCategory = "Update" | "Announcement" | "Milestone" | "Launch" | "Hiring" | "Service" | "Marketing" | "Other" | "Advertisement" | "Query" | "Funding";
 
 export type PostMediaType = "image" | "video" | "link" | "none";
 

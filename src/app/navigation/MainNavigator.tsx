@@ -1,9 +1,10 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 import { MainTabParamList } from "@/app/navigation/types";
+import { EventsTabScreen } from "@/app/screens/EventsTabScreen";
 import { HomeScreen } from "@/app/screens/HomeScreen";
-import { PlaceholderTabScreen } from "@/app/screens/PlaceholderTabScreen";
-import { AppText } from "@/components/ui/AppText";
+import { JobsTabScreen } from "@/app/screens/JobsTabScreen";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { AdminScreen } from "@/modules/admin/screens/AdminScreen";
 import { ChatsScreen } from "@/modules/chat/screens/ChatsScreen";
@@ -12,25 +13,26 @@ import { ProjectsScreen } from "@/modules/project/screens/ProjectsScreen";
 import { SearchScreen } from "@/modules/search/screens/SearchScreen";
 import { DiscoverScreen } from "@/modules/user/screens/DiscoverScreen";
 import { NetworkScreen } from "@/modules/user/screens/NetworkScreen";
+import { iconSize } from "@/theme/designTokens";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const JobsScreen = () => (
-  <PlaceholderTabScreen title="Jobs" message="Jobs APIs can be connected when you share the job module endpoints." />
-);
-
-const EventsScreen = () => (
-  <PlaceholderTabScreen title="Events" message="Events APIs can be connected when you share the events module endpoints." />
-);
-
-const tabIcon = (icon: string) => {
-  const Icon = ({ color }: { focused: boolean; color: string; size: number }) => (
-    <AppText style={{ color }} size="xl">
-      {icon}
-    </AppText>
-  );
-  return Icon;
+type TabIconProps = {
+  focused: boolean;
+  color: string;
+  size: number;
 };
+
+const tabIcon =
+  (featherName: keyof typeof Feather.glyphMap) =>
+  ({ color, size }: TabIconProps) => (
+    <Feather name={featherName} size={size ?? iconSize.lg} color={color} />
+  );
+
+/** Feather has no rocket glyph; Ionicons matches Lovable tab reference. */
+const projectsTabIcon = ({ color, size }: TabIconProps) => (
+  <Ionicons name="rocket-outline" size={size ?? iconSize.lg} color={color} />
+);
 
 export const MainNavigator = () => {
   const colors = useThemeTokens();
@@ -51,11 +53,11 @@ export const MainNavigator = () => {
         }
       }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Feed", tabBarIcon: tabIcon("F") }} />
-      <Tab.Screen name="Messages" component={ChatsScreen} options={{ tabBarIcon: tabIcon("M") }} />
-      <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: tabIcon("P") }} />
-      <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("J") }} />
-      <Tab.Screen name="Events" component={EventsScreen} options={{ tabBarIcon: tabIcon("E") }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Feed", tabBarIcon: tabIcon("home") }} />
+      <Tab.Screen name="Messages" component={ChatsScreen} options={{ tabBarIcon: tabIcon("message-square") }} />
+      <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />
+      <Tab.Screen name="Jobs" component={JobsTabScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
+      <Tab.Screen name="Events" component={EventsTabScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
       <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="Admin" component={AdminScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="Discover" component={DiscoverScreen} options={{ tabBarButton: () => null }} />

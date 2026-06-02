@@ -1,10 +1,10 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
 import { Chat } from "@/modules/chat/types";
 import { AuthProfile } from "@/modules/auth/types";
-import { UserAvatar } from "@/modules/user/components/UserAvatar";
+import { Avatar } from "@/components/ui/Avatar";
 
 type ChatRowProps = {
   chat: Chat;
@@ -15,37 +15,47 @@ type ChatRowProps = {
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat(undefined, {
     month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
+    day: "numeric"
   }).format(new Date(date));
 
+const getPreview = (chat: Chat) => {
+  const messages = chat.messages?.filter((message) => message.content?.trim()) ?? [];
+  if (messages.length === 0) {
+    return "Start the conversation...";
+  }
+
+  const latest = [...messages].sort((left, right) => {
+    const leftTime = left.createdAt ? new Date(left.createdAt).getTime() : 0;
+    const rightTime = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+    return rightTime - leftTime;
+  })[0];
+
+  return latest?.content?.trim() || "Start the conversation...";
+};
+
 export const ChatRow = memo(({ chat, participant, onPress }: ChatRowProps) => {
-  const name = participant?.fullName || "Startuphouze member";
-  const headline = participant?.headline || participant?.role || "Conversation";
+  const name = participant?.fullName || "Foundr member";
+  const preview = useMemo(() => getPreview(chat), [chat]);
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={() => onPress(chat.id)}
-      className="rounded-md border border-border bg-surface p-4 shadow-sm"
+      className="mb-2 overflow-hidden rounded-xl border border-border bg-card px-4 py-4 active:bg-muted-bg"
     >
-      <View className="flex-row gap-3">
-        <UserAvatar name={name} imageUrl={participant?.avatarUrl ?? ""} />
-        <View className="flex-1">
-          <View className="flex-row items-start gap-3">
-            <AppText weight="bold" size="lg" className="flex-1 leading-6">
+      <View className="flex-row items-center gap-3">
+        <Avatar name={name} imageUrl={participant?.avatarUrl ?? ""} size="md" fallback="mesh" />
+        <View className="min-w-0 flex-1">
+          <View className="flex-row items-baseline justify-between gap-2">
+            <AppText weight="medium" numberOfLines={1} className="flex-1">
               {name}
             </AppText>
-            <AppText tone="muted" size="xs" className="mt-1 text-right">
+            <AppText tone="muted" size="xs">
               {formatDate(chat.lastMessageAt)}
             </AppText>
           </View>
-          <AppText tone="primary" size="sm" weight="medium" className="mt-1">
-            {headline}
-          </AppText>
-          <AppText tone="muted" size="sm" className="mt-3">
-            {chat.messages?.length ? `${chat.messages.length} messages` : "No messages yet"}
+          <AppText tone="muted" size="sm" numberOfLines={1} className="mt-1">
+            {preview}
           </AppText>
         </View>
       </View>

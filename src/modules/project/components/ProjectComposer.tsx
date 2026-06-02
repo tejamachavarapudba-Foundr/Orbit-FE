@@ -3,6 +3,7 @@ import { TextInput, View } from "react-native";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useProjectForm } from "@/modules/project/hooks";
 
@@ -11,13 +12,18 @@ export const ProjectComposer = () => {
   const { values, setField, submit, isSubmitting, canSubmit } = useProjectForm();
 
   return (
-    <View className="rounded-md border border-border bg-surface p-5 shadow-sm">
-      <AppText weight="bold" size="lg">
-        New project
-      </AppText>
-      <View className="mt-4 gap-3">
+    <Card className="mt-2">
+      <CardContent className="gap-4 p-4">
+        <AppText family="display" weight="semibold" size="lg">
+          New project
+        </AppText>
+        <AppText tone="muted" size="sm">
+          Share your startup with the Foundr community.
+        </AppText>
+
         <AppTextInput label="Project name" value={values.name} onChangeText={(value) => setField("name", value)} />
         <AppTextInput label="Tagline" value={values.tagline} onChangeText={(value) => setField("tagline", value)} />
+
         <View className="gap-2">
           <AppText size="sm" weight="medium">
             Description
@@ -30,9 +36,10 @@ export const ProjectComposer = () => {
             selectionColor={colors.primary}
             multiline
             textAlignVertical="top"
-            className="min-h-24 rounded-md border border-border bg-background px-4 py-3 text-base text-text"
+            className="min-h-24 rounded-md border border-input bg-background px-3 py-3 text-sm leading-5 text-text"
           />
         </View>
+
         <View className="flex-row gap-3">
           <AppTextInput
             label="Type"
@@ -47,6 +54,7 @@ export const ProjectComposer = () => {
             className="flex-1"
           />
         </View>
+
         <AppTextInput label="Location" value={values.location} onChangeText={(value) => setField("location", value)} />
         <AppTextInput
           label="Website"
@@ -67,14 +75,15 @@ export const ProjectComposer = () => {
           onChangeText={(value) => setField("lookingForText", value)}
           placeholder="engineer, designer"
         />
-      </View>
-      <AppButton
-        label="Create project"
-        loading={isSubmitting}
-        disabled={!canSubmit}
-        onPress={() => void submit()}
-        className="mt-4"
-      />
-    </View>
+
+        <AppButton
+          label="Create project"
+          loading={isSubmitting}
+          disabled={!canSubmit}
+          onPress={() => void submit()}
+          className="mt-1"
+        />
+      </CardContent>
+    </Card>
   );
 };

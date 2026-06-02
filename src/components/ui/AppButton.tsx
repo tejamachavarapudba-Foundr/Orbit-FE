@@ -50,6 +50,8 @@ const labelSize: Record<ButtonSize, "xs" | "sm" | "base"> = {
   icon: "sm"
 };
 
+const basePressableClass = "flex-row items-center justify-center gap-2 rounded-md border";
+
 export const AppButton = ({
   label,
   loading = false,
@@ -59,6 +61,7 @@ export const AppButton = ({
   rightIcon,
   disabled,
   className = "",
+  style,
   ...props
 }: AppButtonProps) => {
   const colors = useThemeTokens();
@@ -68,14 +71,20 @@ export const AppButton = ({
   const spinnerColor =
     variant === "primary" || variant === "destructive" ? colors.onPrimary : colors.primary;
 
+  const pressableClassName = [basePressableClass, variantClass[variant], sizeClass[size], className]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <Pressable
       accessibilityRole="button"
       disabled={isDisabled}
-      className={`flex-row items-center justify-center gap-2 rounded-md border ${variantClass[variant]} ${sizeClass[size]} ${
-        isDisabled ? "opacity-50" : "opacity-100"
-      } ${className}`}
-      style={getShadowStyle(shadowPreset)}
+      className={pressableClassName}
+      style={(state) => [
+        getShadowStyle(shadowPreset),
+        isDisabled ? { opacity: 0.5 } : undefined,
+        typeof style === "function" ? style(state) : style
+      ]}
       {...props}
     >
       {loading ? (
@@ -84,14 +93,15 @@ export const AppButton = ({
         <>
           {leftIcon}
           {!isIconOnly ? (
-            <AppText
-              weight="medium"
-              size={labelSize[size]}
-              tone={labelTone[variant]}
-              className={variant === "link" ? "underline" : ""}
-            >
-              {label}
-            </AppText>
+            variant === "link" ? (
+              <AppText weight="medium" size={labelSize[size]} tone={labelTone[variant]} className="underline">
+                {label}
+              </AppText>
+            ) : (
+              <AppText weight="medium" size={labelSize[size]} tone={labelTone[variant]}>
+                {label}
+              </AppText>
+            )
           ) : null}
           {rightIcon}
         </>

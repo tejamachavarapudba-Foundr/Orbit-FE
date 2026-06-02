@@ -1,39 +1,19 @@
-import { useCallback, useState } from "react";
-import { Image, Pressable, ScrollView, TextInput, View } from "react-native";
+import { useState } from "react";
+import { Image, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { postCategoryOptions, usePostComposer } from "@/modules/post/hooks";
-import { PostCategory, PostMediaType } from "@/modules/post/types";
+import { PostMediaType } from "@/modules/post/types";
 
 export const PostComposer = () => {
   const colors = useThemeTokens();
   const { values, isSubmitting, setField, submit, canSubmit } = usePostComposer();
   const [showExtras, setShowExtras] = useState(false);
-
-  const renderCategory = useCallback(
-    (option: { label: string; value: PostCategory }) => {
-      const isActive = values.category === option.value;
-      return (
-        <Pressable
-          key={option.value}
-          accessibilityRole="button"
-          onPress={() => setField("category", option.value)}
-          className={`mr-2 h-9 justify-center rounded-md border px-3 ${
-            isActive ? "border-primary bg-primary" : "border-border bg-background"
-          }`}
-        >
-          <AppText tone={isActive ? "onPrimary" : "muted"} size="sm" weight="medium">
-            {option.label}
-          </AppText>
-        </Pressable>
-      );
-    },
-    [setField, values.category]
-  );
 
   const clearMedia = () => {
     setField("imageUrl", "");
@@ -41,18 +21,18 @@ export const PostComposer = () => {
   };
 
   return (
-    <Card className="mb-6">
-      <CardContent className="gap-3 p-4">
+    <Card className="mb-5">
+      <CardContent className="gap-4 p-4">
         <TextInput
           value={values.content}
           onChangeText={(value) => setField("content", value)}
-          placeholder="Share an update, milestone, ad, or announcement…"
+          placeholder="Share an update, milestone, ad, or announcement..."
           placeholderTextColor={colors.muted}
           selectionColor={colors.primary}
           multiline
           textAlignVertical="top"
           maxLength={5000}
-          className="min-h-20 text-base text-text"
+          className="min-h-[88px] rounded-md border border-input bg-background px-3 py-3 text-base leading-6 text-text"
         />
 
         {values.imageUrl.trim() ? (
@@ -65,7 +45,7 @@ export const PostComposer = () => {
             <Pressable
               accessibilityRole="button"
               onPress={clearMedia}
-              className="absolute right-2 top-2 h-7 w-7 items-center justify-center rounded-md bg-secondary"
+              className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-md border border-border bg-card"
             >
               <Feather name="x" size={16} color={colors.text} />
             </Pressable>
@@ -110,11 +90,19 @@ export const PostComposer = () => {
           </View>
         ) : null}
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-10">
-          <View className="flex-row pr-2">{postCategoryOptions.map(renderCategory)}</View>
-        </ScrollView>
+        <View>
+          <AppText tone="muted" size="xs" weight="medium" className="mb-2">
+            Category
+          </AppText>
+          <CategoryDropdown
+            value={values.category}
+            options={postCategoryOptions}
+            onChange={(value) => setField("category", value)}
+            accessibilityLabel="Select post category"
+          />
+        </View>
 
-        <View className="flex-row flex-wrap items-center gap-1">
+        <View className="flex-row flex-wrap items-center gap-2 border-t border-border pt-3">
           <AppButton
             label="Photo"
             variant="ghost"

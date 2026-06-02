@@ -5,14 +5,17 @@ import { usePostStore } from "@/modules/post/store";
 import { CreatePostPayload, PostCategory, PostFormValues, PostMediaType } from "@/modules/post/types";
 
 export const postCategoryOptions: { label: string; value: PostCategory }[] = [
-  { label: "Update", value: "update" },
-  { label: "Announcement", value: "announcement" },
-  { label: "Milestone", value: "milestone" },
-  { label: "Launch", value: "launch" },
-  { label: "Hiring", value: "hiring" },
-  { label: "Ad", value: "ad" },
-  { label: "Question", value: "question" },
-  { label: "Funding", value: "funding" }
+  { label: "Update", value: "Update" },
+  { label: "Announcement", value: "Announcement" },
+  { label: "Milestone", value: "Milestone" },
+  { label: "Launch", value: "Launch" },
+  { label: "Hiring", value: "Hiring" },
+  { label: "Advertisement", value: "Advertisement" },
+  { label: "Query", value: "Query" },
+  { label: "Service", value: "Service" },
+  { label: "Marketing", value: "Marketing" },
+  { label: "Other", value: "Other" }, 
+  { label: "Funding", value: "Funding" }
 ];
 
 export const postFilterOptions: { label: string; value: PostCategory | "all" }[] = [
@@ -31,7 +34,7 @@ const pageSize = 10;
 
 const initialForm: PostFormValues = {
   content: "",
-  category: "update",
+  category: "Update",
   linkUrl: "",
   imageUrl: "",
   mediaType: "none"
