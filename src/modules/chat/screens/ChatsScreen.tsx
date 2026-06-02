@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { FlatList, ListRenderItem, View } from "react-native";
+import { FlatList, ListRenderItem, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -45,32 +45,59 @@ export const ChatsScreen = () => {
     [getParticipant, selectChat]
   );
 
-  const renderStartableUser = useCallback<ListRenderItem<UserSummary>>(
-    ({ item }) => <StartChatCard user={item} isCreating={isCreating} onStart={(user) => void startChat(user)} />,
-    [isCreating, startChat]
-  );
-
   const selectedParticipant = selectedChat
     ? getParticipant(selectedChat) ??
       startableUsers.find((user) => user.profile.id === getOtherParticipantId(selectedChat, currentUserId))?.profile
     : undefined;
 
+  const listHeader = (
+    <View className="w-full max-w-2xl self-center pb-2 pt-4">
+      <View className="mb-1 flex-row items-center gap-2">
+        <Feather name="message-square" size={iconSize.lg} color={colors.primary} />
+        <AppText family="display" size="2xl" weight="bold" className="tracking-tight">
+          Messages
+        </AppText>
+      </View>
+
+      {startableUsers.length > 0 ? (
+        <View className="mt-5">
+          <AppText weight="semibold" size="sm">
+            Start a chat
+          </AppText>
+          <AppText tone="muted" size="xs" className="mt-1">
+            You can message people you follow or who follow you.
+          </AppText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+            <View className="flex-row">
+              {startableUsers.map((user) => (
+                <StartChatCard
+                  key={user.id}
+                  user={user}
+                  isCreating={isCreating}
+                  onStart={(target) => void startChat(target)}
+                />
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      ) : null}
+    </View>
+  );
+
   return (
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
       {selectedChat ? (
-        <View className="flex-1 px-4 pb-8 pt-4">
-          <View className="w-full max-w-2xl self-center">
-            <ChatDetailPanel
-              chat={selectedChat}
-              participant={selectedParticipant}
-              isLoading={isDetailLoading}
-              errorMessage={detailErrorMessage}
-              deletingChatId={deletingChatId}
-              onClose={clearSelectedChat}
-              onDelete={(id) => void deleteChat(id)}
-            />
-          </View>
+        <View className="flex-1">
+          <ChatDetailPanel
+            chat={selectedChat}
+            participant={selectedParticipant}
+            isLoading={isDetailLoading}
+            errorMessage={detailErrorMessage}
+            deletingChatId={deletingChatId}
+            onClose={clearSelectedChat}
+            onDelete={(id) => void deleteChat(id)}
+          />
         </View>
       ) : (
         <FlatList
@@ -79,43 +106,11 @@ export const ChatsScreen = () => {
           renderItem={renderChat}
           refreshing={isRefreshing}
           onRefresh={() => void refreshChats()}
-          contentContainerStyle={{ gap: 0, paddingHorizontal: 16, paddingBottom: 32 }}
-          ListHeaderComponent={
-            <View className="w-full max-w-2xl self-center pb-4 pt-4">
-              <View className="mb-1 flex-row items-center gap-2">
-                <Feather name="message-square" size={iconSize.lg} color={colors.primary} />
-                <AppText family="display" size="2xl" weight="bold" className="tracking-tight">
-                  Messages
-                </AppText>
-              </View>
-              <AppText tone="muted" size="sm" className="mt-1 leading-5">
-                Start a chat from a profile or project page, or pick someone below.
-              </AppText>
-
-              {startableUsers.length > 0 ? (
-                <View className="mt-6">
-                  <AppText weight="semibold" size="sm">
-                    Start a chat
-                  </AppText>
-                  <FlatList
-                    data={startableUsers}
-                    horizontal
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderStartableUser}
-                    showsHorizontalScrollIndicator={false}
-                    className="mt-3"
-                  />
-                </View>
-              ) : null}
-
-              <AppText weight="semibold" size="sm" className="mt-6 mb-3">
-                Conversations
-              </AppText>
-            </View>
-          }
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+          ListHeaderComponent={listHeader}
           ListEmptyComponent={
             isLoading ? (
-              <View className="w-full max-w-2xl self-center px-0">
+              <View className="w-full max-w-2xl self-center">
                 <UserSkeletonList />
               </View>
             ) : errorMessage ? (
@@ -131,7 +126,7 @@ export const ChatsScreen = () => {
                       No conversations yet
                     </AppText>
                     <AppText tone="muted" size="sm" className="mt-1 text-center leading-5">
-                      Start a chat from anyone&apos;s profile or a project page.
+                      Follow members on Network, then start a chat here.
                     </AppText>
                   </View>
                 </Card>

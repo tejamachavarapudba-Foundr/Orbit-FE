@@ -13,9 +13,10 @@ type ChatRowProps = {
 };
 
 const formatDate = (date: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric"
+  new Intl.DateTimeFormat("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric"
   }).format(new Date(date));
 
 const getPreview = (chat: Chat) => {
@@ -41,12 +42,12 @@ export const ChatRow = memo(({ chat, participant, onPress }: ChatRowProps) => {
     <Pressable
       accessibilityRole="button"
       onPress={() => onPress(chat.id)}
-      className="mb-2 overflow-hidden rounded-xl border border-border bg-card px-4 py-4 active:bg-muted-bg"
+      className="mb-3 overflow-hidden rounded-xl border border-border bg-card px-4 py-4 active:bg-muted-bg"
     >
       <View className="flex-row items-center gap-3">
         <Avatar name={name} imageUrl={participant?.avatarUrl ?? ""} size="md" fallback="mesh" />
         <View className="min-w-0 flex-1">
-          <View className="flex-row items-baseline justify-between gap-2">
+          <View className="flex-row items-start justify-between gap-2">
             <AppText weight="medium" numberOfLines={1} className="flex-1">
               {name}
             </AppText>

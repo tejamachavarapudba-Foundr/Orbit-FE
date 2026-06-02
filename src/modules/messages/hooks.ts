@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuthStore } from "@/modules/auth/store";
+import { Message } from "@/modules/messages/types";
 import { useMessageStore } from "@/modules/messages/store";
+
+/** Stable fallback — never use `?? []` inline in Zustand selectors (new ref every render → infinite loop). */
+const EMPTY_MESSAGES: Message[] = [];
 
 export const useConversationMessages = (conversationId: string) => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
-  const messages = useMessageStore((state) => state.messagesByConversationId[conversationId] ?? []);
+  const messages = useMessageStore((state) => state.messagesByConversationId[conversationId] ?? EMPTY_MESSAGES);
   const isLoading = useMessageStore((state) => state.isLoadingByConversationId[conversationId] ?? false);
   const isSending = useMessageStore((state) => state.isSendingByConversationId[conversationId] ?? false);
   const deletingMessageId = useMessageStore((state) => state.deletingMessageId);
@@ -16,23 +20,27 @@ export const useConversationMessages = (conversationId: string) => {
   const markRead = useMessageStore((state) => state.markRead);
   const deleteMessage = useMessageStore((state) => state.deleteMessage);
   const [draft, setDraft] = useState("");
+  const markedReadIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (messages.length === 0 && !isLoading) {
-      void loadMessages(conversationId);
+    markedReadIdsRef.current = new Set();
+    void loadMessages(conversationId);
+  }, [conversationId, loadMessages]);
+
+  useEffect(() => {
+    if (isLoading || !currentUserId) {
+      return;
     }
-  }, [conversationId, isLoading, loadMessages, messages.length]);
 
-  const unreadIncomingMessages = useMemo(
-    () => messages.filter((message) => message.senderId !== currentUserId && !message.readAt),
-    [currentUserId, messages]
-  );
+    for (const message of messages) {
+      if (message.senderId === currentUserId || message.readAt || markedReadIdsRef.current.has(message.id)) {
+        continue;
+      }
 
-  useEffect(() => {
-    unreadIncomingMessages.forEach((message) => {
+      markedReadIdsRef.current.add(message.id);
       void markRead(message.id, conversationId);
-    });
-  }, [conversationId, markRead, unreadIncomingMessages]);
+    }
+  }, [conversationId, currentUserId, isLoading, markRead, messages]);
 
   const submit = useCallback(async () => {
     const content = draft.trim();
@@ -54,6 +62,8 @@ export const useConversationMessages = (conversationId: string) => {
     [conversationId, deleteMessage]
   );
 
+  const reload = useCallback(() => loadMessages(conversationId), [conversationId, loadMessages]);
+
   return {
     currentUserId,
     messages,
@@ -66,6 +76,6 @@ export const useConversationMessages = (conversationId: string) => {
     setDraft,
     submit,
     deleteMessage: remove,
-    reload: () => loadMessages(conversationId)
+    reload
   };
 };

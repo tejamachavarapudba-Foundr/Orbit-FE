@@ -78,7 +78,17 @@ export const useMessageStore = create<MessageState>((set) => ({
     }
   },
   markRead: async (messageId, conversationId) => {
-    set({ readingMessageId: messageId });
+    const optimisticReadAt = new Date().toISOString();
+
+    set((state) => ({
+      readingMessageId: messageId,
+      messagesByConversationId: {
+        ...state.messagesByConversationId,
+        [conversationId]: (state.messagesByConversationId[conversationId] ?? []).map((item) =>
+          item.id === messageId ? { ...item, readAt: optimisticReadAt } : item
+        )
+      }
+    }));
 
     try {
       const message = await messagesApi.markRead(messageId);
