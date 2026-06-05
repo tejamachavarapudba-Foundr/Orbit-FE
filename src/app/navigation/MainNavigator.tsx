@@ -4,7 +4,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { MainTabParamList } from "@/app/navigation/types";
 import { EventsTabScreen } from "@/app/screens/EventsTabScreen";
 import { HomeScreen } from "@/app/screens/HomeScreen";
-import { JobsTabScreen } from "@/app/screens/JobsTabScreen";
+import { JobsScreen } from "@/modules/jobs/screens/JobsScreen";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { AdminScreen } from "@/modules/admin/screens/AdminScreen";
 import { ChatsScreen } from "@/modules/chat/screens/ChatsScreen";
@@ -56,7 +56,7 @@ export const MainNavigator = () => {
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Feed", tabBarIcon: tabIcon("home") }} />
       <Tab.Screen name="Messages" component={ChatsScreen} options={{ tabBarIcon: tabIcon("message-square") }} />
       <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />
-      <Tab.Screen name="Jobs" component={JobsTabScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
+      <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
       <Tab.Screen name="Events" component={EventsTabScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
       <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="Admin" component={AdminScreen} options={{ tabBarButton: () => null }} />
