@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather, Ionicons } from "@expo/vector-icons";
 
 import { MainTabParamList } from "@/app/navigation/types";
-import { EventsTabScreen } from "@/app/screens/EventsTabScreen";
+import { EventsScreen } from "@/modules/events/screens/EventsScreen";
 import { HomeScreen } from "@/app/screens/HomeScreen";
 import { JobsScreen } from "@/modules/jobs/screens/JobsScreen";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
@@ -57,7 +57,7 @@ export const MainNavigator = () => {
       <Tab.Screen name="Messages" component={ChatsScreen} options={{ tabBarIcon: tabIcon("message-square") }} />
       <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />
       <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
-      <Tab.Screen name="Events" component={EventsTabScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
+      <Tab.Screen name="Events" component={EventsScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
       <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="Admin" component={AdminScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="Discover" component={DiscoverScreen} options={{ tabBarButton: () => null }} />
