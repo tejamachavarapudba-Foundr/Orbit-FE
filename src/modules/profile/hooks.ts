@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 
+import { normalizeMemberRole } from "@/constants/memberRoles";
 import { AuthProfile } from "@/modules/auth/types";
 import { useAuthStore } from "@/modules/auth/store";
+import { calculateProfileCompletion } from "@/modules/profile/completion";
+import { emptyRoleProfile, RoleProfileData } from "@/modules/profile/schemas";
 import { UpdateProfilePayload } from "@/modules/profile/types";
 import { useProfileStore } from "@/modules/profile/store";
 import { useToastStore } from "@/store/toastStore";
@@ -19,6 +22,7 @@ type ProfileFormValues = {
   lookingFor: string;
   openToConnect: boolean;
   avatarUrl: string;
+  roleProfile: RoleProfileData | null;
 };
 
 const toCsv = (values: string[]) => values.join(", ");
@@ -40,22 +44,49 @@ const fromProfile = (profile: AuthProfile | undefined): ProfileFormValues => ({
   skills: toCsv(profile?.skills ?? []),
   lookingFor: toCsv(profile?.lookingFor ?? []),
   openToConnect: profile?.openToConnect ?? true,
-  avatarUrl: profile?.avatarUrl ?? ""
+  avatarUrl: profile?.avatarUrl ?? "",
+  roleProfile: profile?.roleProfile ?? null
 });
 
-const toPayload = (values: ProfileFormValues): UpdateProfilePayload => ({
-  fullName: values.fullName.trim(),
-  headline: values.headline.trim(),
-  bio: values.bio.trim(),
-  role: values.role.trim() || "other",
-  location: values.location.trim(),
-  company: values.company.trim(),
-  website: values.website.trim(),
-  linkedinUrl: values.linkedinUrl.trim(),
-  skills: fromCsv(values.skills),
-  lookingFor: fromCsv(values.lookingFor),
-  openToConnect: values.openToConnect
-});
+const toPayload = (values: ProfileFormValues): UpdateProfilePayload => {
+  const memberRole = normalizeMemberRole(values.role.trim() || "other");
+  const draftProfile: AuthProfile = {
+    id: "",
+    fullName: values.fullName.trim(),
+    headline: values.headline.trim(),
+    bio: values.bio.trim(),
+    role: values.role.trim() || "other",
+    location: values.location.trim(),
+    company: values.company.trim(),
+    website: values.website.trim(),
+    linkedinUrl: values.linkedinUrl.trim(),
+    skills: fromCsv(values.skills),
+    lookingFor: fromCsv(values.lookingFor),
+    openToConnect: values.openToConnect,
+    avatarUrl: values.avatarUrl.trim(),
+    onboardingGoals: fromCsv(values.lookingFor),
+    roleProfile: values.roleProfile,
+    createdAt: "",
+    updatedAt: ""
+  };
+
+  return {
+    fullName: values.fullName.trim(),
+    headline: values.headline.trim(),
+    bio: values.bio.trim(),
+    role: values.role.trim() || "other",
+    location: values.location.trim(),
+    company: values.company.trim(),
+    website: values.website.trim(),
+    linkedinUrl: values.linkedinUrl.trim(),
+    skills: fromCsv(values.skills),
+    lookingFor: fromCsv(values.lookingFor),
+    openToConnect: values.openToConnect,
+    onboardingGoals: fromCsv(values.lookingFor),
+    roleProfile: values.roleProfile,
+    profileCompletion: memberRole ? calculateProfileCompletion(draftProfile, memberRole) : 0
+  };
+};
 
 export const useProfileForm = () => {
   const profile = useAuthStore((state) => state.user?.profile);
@@ -71,6 +102,21 @@ export const useProfileForm = () => {
   const setValue = useCallback(<K extends keyof ProfileFormValues>(key: K, value: ProfileFormValues[K]) => {
     setValues((current) => ({ ...current, [key]: value }));
   }, []);
+
+  const setRoleProfile = useCallback((roleProfile: RoleProfileData) => {
+    setValues((current) => ({ ...current, roleProfile }));
+  }, []);
+
+  const ensureRoleProfile = useCallback(() => {
+    const memberRole = normalizeMemberRole(values.role);
+    if (!memberRole) {
+      return;
+    }
+    if (values.roleProfile?.role === memberRole) {
+      return;
+    }
+    setRoleProfile({ role: memberRole, data: emptyRoleProfile(memberRole) } as RoleProfileData);
+  }, [setRoleProfile, values.role, values.roleProfile]);
 
   const submit = useCallback(async () => {
     const updated = await updateProfile(toPayload(values));
@@ -96,8 +142,49 @@ export const useProfileForm = () => {
     return true;
   }, [showToast, updateAuthProfile, updateAvatar, values.avatarUrl]);
 
+  const memberRole = normalizeMemberRole(values.role);
+  const profileCompletion = memberRole
+    ? calculateProfileCompletion(
+        {
+          ...values,
+          id: profile?.id ?? "",
+          skills: fromCsv(values.skills),
+          lookingFor: fromCsv(values.lookingFor),
+          createdAt: profile?.createdAt ?? "",
+          updatedAt: profile?.updatedAt ?? "",
+          onboardingGoals: fromCsv(values.lookingFor),
+          roleProfile: values.roleProfile
+        },
+        memberRole
+      )
+    : 0;
+
   return useMemo(
-    () => ({ values, errorMessage, isSaving, isAvatarSaving, setValue, submit, submitAvatar }),
-    [errorMessage, isAvatarSaving, isSaving, setValue, submit, submitAvatar, values]
+    () => ({
+      values,
+      memberRole,
+      profileCompletion,
+      errorMessage,
+      isSaving,
+      isAvatarSaving,
+      setValue,
+      setRoleProfile,
+      ensureRoleProfile,
+      submit,
+      submitAvatar
+    }),
+    [
+      ensureRoleProfile,
+      errorMessage,
+      isAvatarSaving,
+      isSaving,
+      memberRole,
+      profileCompletion,
+      setRoleProfile,
+      setValue,
+      submit,
+      submitAvatar,
+      values
+    ]
   );
 };

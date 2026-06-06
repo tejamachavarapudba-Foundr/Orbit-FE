@@ -20,7 +20,15 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+export type OnboardingStackParamList = {
+  OnboardingWelcome: undefined;
+  OnboardingGoals: undefined;
+  OnboardingQuickProfile: undefined;
+  OnboardingMatch: undefined;
+};
+
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
+  Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
 };

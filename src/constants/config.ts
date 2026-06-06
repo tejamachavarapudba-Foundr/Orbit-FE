@@ -15,7 +15,7 @@ const resolveApiBaseUrl = () => {
     return `http://${window.location.hostname}:3000/api`;
   }
 
-  return "http://192.168.29.184:3000/api";
+  return "http://192.168.1.7:3000/api";
 };
 
 export const appConfig = {

@@ -6,6 +6,8 @@ export type AuthUser = {
   profile: AuthProfile;
 };
 
+import { RoleProfileData } from "@/modules/profile/schemas";
+
 export type AuthProfile = {
   id: string;
   fullName: string;
@@ -20,6 +22,10 @@ export type AuthProfile = {
   lookingFor: string[];
   openToConnect: boolean;
   avatarUrl: string;
+  onboardingCompleted?: boolean;
+  onboardingGoals?: string[];
+  profileCompletion?: number;
+  roleProfile?: RoleProfileData | null;
   createdAt: string;
   updatedAt: string;
 };

@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/app/navigation/types";
 import { AuthNavigator } from "@/app/navigation/AuthNavigator";
 import { MainNavigator } from "@/app/navigation/MainNavigator";
+import { OnboardingNavigator } from "@/app/navigation/OnboardingNavigator";
+import { needsOnboarding } from "@/modules/profile/needsOnboarding";
 import { Toast } from "@/components/feedback/Toast";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -18,6 +20,8 @@ export const RootNavigator = () => {
   const isAuthHydrated = useAuthStore((state) => state.isHydrated);
   const isThemeHydrated = useThemeStore((state) => state.isHydrated);
   const isAuthenticated = useAuthStore((state) => state.status === "authenticated");
+  const profile = useAuthStore((state) => state.user?.profile);
+  const showOnboarding = isAuthenticated && needsOnboarding(profile);
 
   const navigationTheme: Theme = {
     dark: useThemeStore.getState().resolvedScheme === "dark",
@@ -51,10 +55,12 @@ export const RootNavigator = () => {
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <Stack.Screen name="Main" component={MainNavigator} />
-        ) : (
+        {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
+        ) : showOnboarding ? (
+          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
+        ) : (
+          <Stack.Screen name="Main" component={MainNavigator} />
         )}
       </Stack.Navigator>
       <Toast />
