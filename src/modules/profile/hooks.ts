@@ -1,14 +1,14 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { normalizeMemberRole } from "@/constants/memberRoles";
 import { AuthProfile } from "@/modules/auth/types";
 import { useAuthStore } from "@/modules/auth/store";
 import { calculateProfileCompletion } from "@/modules/profile/completion";
-import { emptyRoleProfile, RoleProfileData } from "@/modules/profile/schemas";
+import { normalizeAuthProfile } from "@/modules/profile/normalizeProfile";
+import { emptyRoleProfile, RoleProfileData, toRoleProfileData } from "@/modules/profile/schemas";
 import { UpdateProfilePayload } from "@/modules/profile/types";
 import { useProfileStore } from "@/modules/profile/store";
 import { useToastStore } from "@/store/toastStore";
-import { useEffect } from "react";
 
 type ProfileFormValues = {
   fullName: string;
@@ -33,21 +33,25 @@ const fromCsv = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
-const fromProfile = (profile: AuthProfile | undefined): ProfileFormValues => ({
-  fullName: profile?.fullName ?? "",
-  headline: profile?.headline ?? "",
-  bio: profile?.bio ?? "",
-  role: profile?.role ?? "other",
-  location: profile?.location ?? "",
-  company: profile?.company ?? "",
-  website: profile?.website ?? "",
-  linkedinUrl: profile?.linkedinUrl ?? "",
-  skills: toCsv(profile?.skills ?? []),
-  lookingFor: toCsv(profile?.lookingFor ?? []),
-  openToConnect: profile?.openToConnect ?? true,
-  avatarUrl: profile?.avatarUrl ?? "",
-  roleProfile: profile?.roleProfile ?? null
-});
+const fromProfile = (profile: AuthProfile | undefined): ProfileFormValues => {
+  const normalized = profile ? normalizeAuthProfile(profile) : undefined;
+
+  return {
+    fullName: normalized?.fullName ?? "",
+    headline: normalized?.headline ?? "",
+    bio: normalized?.bio ?? "",
+    role: normalized?.role ?? "other",
+    location: normalized?.location ?? "",
+    company: normalized?.company ?? "",
+    website: normalized?.website ?? "",
+    linkedinUrl: normalized?.linkedinUrl ?? "",
+    skills: toCsv(normalized?.skills ?? []),
+    lookingFor: toCsv(normalized?.lookingFor ?? []),
+    openToConnect: normalized?.openToConnect ?? true,
+    avatarUrl: normalized?.avatarUrl ?? "",
+    roleProfile: normalized?.roleProfile ?? null
+  };
+};
 
 const toPayload = (values: ProfileFormValues): UpdateProfilePayload => {
   const memberRole = normalizeMemberRole(values.role.trim() || "other");
@@ -100,13 +104,10 @@ export const useProfileForm = () => {
   const showToast = useToastStore((state) => state.show);
   const [values, setValues] = useState<ProfileFormValues>(() => fromProfile(profile));
   useEffect(() => {
-    if (!profile) return;
-  
-    console.log(
-      "PROFILE HYDRATED",
-      JSON.stringify(profile, null, 2)
-    );
-  
+    if (!profile) {
+      return;
+    }
+
     setValues(fromProfile(profile));
   }, [profile]);
 
@@ -126,34 +127,31 @@ export const useProfileForm = () => {
     if (values.roleProfile?.role === memberRole) {
       return;
     }
-    setRoleProfile({ role: memberRole, data: emptyRoleProfile(memberRole) } as RoleProfileData);
-  }, [setRoleProfile, values.role, values.roleProfile]);
+
+    const hydrated = profile ? normalizeAuthProfile(profile).roleProfile : null;
+    if (hydrated?.role === memberRole) {
+      setRoleProfile(hydrated);
+      return;
+    }
+
+    setRoleProfile(toRoleProfileData(memberRole, emptyRoleProfile(memberRole)));
+  }, [profile, setRoleProfile, values.role, values.roleProfile]);
 
   const submit = useCallback(async () => {
-    console.log(
-  "SAVE PAYLOAD",
-  JSON.stringify(toPayload(values), null, 2)
-);
+    const payload = toPayload(values);
+    const updated = await updateProfile(payload);
 
-const updated = await updateProfile(toPayload(values));
+    if (!updated) {
+      return false;
+    }
 
-console.log(
-  "SAVE RESPONSE",
-  JSON.stringify(updated, null, 2)
-);
+    const normalized = normalizeAuthProfile({
+      ...updated,
+      roleProfile: updated.roleProfile ?? payload.roleProfile ?? null
+    });
 
-if (!updated) {
-  console.log("SAVE FAILED");
-  return false;
-}
-
-updateAuthProfile(updated);
-setValues(fromProfile(updated));
-
-console.log(
-  "FORM AFTER SAVE",
-  JSON.stringify(updated, null, 2)
-);
+    updateAuthProfile(normalized);
+    setValues(fromProfile(normalized));
     showToast({ type: "success", title: "Profile saved", message: "Your profile is up to date." });
     return true;
   }, [showToast, updateAuthProfile, updateProfile, values]);

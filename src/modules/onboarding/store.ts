@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
-import { OnboardingMemberRole } from "@/constants/memberRoles";
+import { normalizeMemberRole, OnboardingMemberRole } from "@/constants/memberRoles";
+import { normalizeAuthProfile } from "@/modules/profile/normalizeProfile";
 import { onboardingApi } from "@/modules/onboarding/api";
 import { buildProfilePatchFromOnboarding } from "@/modules/onboarding/buildProfilePatch";
 import { CompleteOnboardingPayload, OnboardingDraft, OnboardingStep, QuickProfileValues } from "@/modules/onboarding/types";
@@ -83,15 +84,17 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       };
     }),
   hydrateFromProfile: () => {
-    const profile = useAuthStore.getState().user?.profile;
-    if (!profile) {
+    const rawProfile = useAuthStore.getState().user?.profile;
+    if (!rawProfile) {
       return;
     }
+
+    const profile = normalizeAuthProfile(rawProfile);
 
     set({
       draft: {
         step: "welcome",
-        memberRole: (profile.role as OnboardingMemberRole) ?? null,
+        memberRole: normalizeMemberRole(profile.role),
         goals: profile.onboardingGoals ?? profile.lookingFor ?? [],
         quickProfile: {
           fullName: profile.fullName,
