@@ -14,10 +14,8 @@ export const OnboardingGoalsScreen = ({ navigation }: Props) => {
   const { goalTitle, goalOptions, draft, canContinueGoals, isSubmitting, toggleGoal, saveProgress } = useOnboarding();
 
   const continueNext = async () => {
-    const saved = await saveProgress();
-    if (saved) {
-      navigation.navigate("OnboardingQuickProfile");
-    }
+    console.log("Goals Continue");
+    navigation.navigate("OnboardingQuickProfile");
   };
 
   return (

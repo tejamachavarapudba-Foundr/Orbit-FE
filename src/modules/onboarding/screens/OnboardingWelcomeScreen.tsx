@@ -14,10 +14,8 @@ export const OnboardingWelcomeScreen = ({ navigation }: Props) => {
   const { roles, draft, canContinueWelcome, isSubmitting, setMemberRole, saveProgress } = useOnboarding();
 
   const continueNext = async () => {
-    const saved = await saveProgress();
-    if (saved) {
-      navigation.navigate("OnboardingGoals");
-    }
+    console.log("Continue clicked");
+    navigation.navigate("OnboardingGoals");
   };
 
   return (

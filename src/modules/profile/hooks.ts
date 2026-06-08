@@ -8,6 +8,7 @@ import { emptyRoleProfile, RoleProfileData } from "@/modules/profile/schemas";
 import { UpdateProfilePayload } from "@/modules/profile/types";
 import { useProfileStore } from "@/modules/profile/store";
 import { useToastStore } from "@/store/toastStore";
+import { useEffect } from "react";
 
 type ProfileFormValues = {
   fullName: string;
@@ -98,6 +99,16 @@ export const useProfileForm = () => {
   const errorMessage = useProfileStore((state) => state.errorMessage);
   const showToast = useToastStore((state) => state.show);
   const [values, setValues] = useState<ProfileFormValues>(() => fromProfile(profile));
+  useEffect(() => {
+    if (!profile) return;
+  
+    console.log(
+      "PROFILE HYDRATED",
+      JSON.stringify(profile, null, 2)
+    );
+  
+    setValues(fromProfile(profile));
+  }, [profile]);
 
   const setValue = useCallback(<K extends keyof ProfileFormValues>(key: K, value: ProfileFormValues[K]) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -119,13 +130,30 @@ export const useProfileForm = () => {
   }, [setRoleProfile, values.role, values.roleProfile]);
 
   const submit = useCallback(async () => {
-    const updated = await updateProfile(toPayload(values));
-    if (!updated) {
-      return false;
-    }
+    console.log(
+  "SAVE PAYLOAD",
+  JSON.stringify(toPayload(values), null, 2)
+);
 
-    updateAuthProfile(updated);
-    setValues(fromProfile(updated));
+const updated = await updateProfile(toPayload(values));
+
+console.log(
+  "SAVE RESPONSE",
+  JSON.stringify(updated, null, 2)
+);
+
+if (!updated) {
+  console.log("SAVE FAILED");
+  return false;
+}
+
+updateAuthProfile(updated);
+setValues(fromProfile(updated));
+
+console.log(
+  "FORM AFTER SAVE",
+  JSON.stringify(updated, null, 2)
+);
     showToast({ type: "success", title: "Profile saved", message: "Your profile is up to date." });
     return true;
   }, [showToast, updateAuthProfile, updateProfile, values]);

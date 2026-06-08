@@ -66,12 +66,27 @@ export const getQuickProfileValue = (
   return quickProfile.roleFields[key] ?? "";
 };
 
-export const isQuickProfileValid = (role: OnboardingMemberRole, quickProfile: Parameters<typeof getQuickProfileValue>[1]) => {
+export const isQuickProfileValid = (
+  role: OnboardingMemberRole,
+  quickProfile: Parameters<typeof getQuickProfileValue>[1]
+) => {
   const fields = QUICK_PROFILE_FIELDS[role];
+
+  if (!fields || !Array.isArray(fields)) {
+    return false;
+  }
+
   return fields.every((field) => {
     if (!field.required) {
       return true;
     }
-    return Boolean(getQuickProfileValue(fields, quickProfile, field.key).trim());
+
+    const value = getQuickProfileValue(
+      fields,
+      quickProfile,
+      field.key
+    );
+
+    return Boolean(value?.trim?.());
   });
 };

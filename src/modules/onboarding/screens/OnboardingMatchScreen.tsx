@@ -18,9 +18,7 @@ export const OnboardingMatchScreen = (_props: Props) => {
   const { draft, isSubmitting, completeOnboarding } = useOnboarding();
   const profile = useAuthStore((state) => state.user?.profile);
   const completion = calculateProfileCompletion(profile, draft.memberRole);
-  const { matches, isLoading } = useMatchRecommendations(
-    draft.memberRole ? { memberRole: draft.memberRole, goals: draft.goals } : null
-  );
+  const { matches, isLoading } = useMatchRecommendations(null);
 
   const finish = async () => {
     await completeOnboarding();

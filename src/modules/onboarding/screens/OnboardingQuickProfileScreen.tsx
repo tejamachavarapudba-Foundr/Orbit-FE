@@ -17,11 +17,9 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
   const roleLabel = draft.memberRole ? ROLE_LABEL[draft.memberRole] : "your";
 
   const continueNext = async () => {
-    const saved = await saveProgress();
-    if (saved) {
-      navigation.navigate("OnboardingMatch");
-    }
-  };
+  console.log("Quick Profile Continue");
+  navigation.navigate("OnboardingMatch");
+};
 
   return (
     <AppScreen>
