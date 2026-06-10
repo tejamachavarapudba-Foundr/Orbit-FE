@@ -16,16 +16,21 @@ export const linking: LinkingOptions<RootStackParamList> = {
       },
       Main: {
         screens: {
-          Home: "home",
-          Messages: "messages",
-          Projects: "projects",
-          Jobs: "jobs",
-          Events: "events",
-          Search: "search",
-          Admin: "admin",
-          Discover: "discover",
-          Network: "network",
-          Profile: "profile"
+          Tabs: {
+            screens: {
+              Home: "home",
+              Messages: "messages",
+              Projects: "projects",
+              Jobs: "jobs",
+              Events: "events",
+              Search: "search",
+              Admin: "admin",
+              Discover: "discover",
+              Network: "network",
+              Profile: "profile"
+            }
+          },
+          UserProfile: "user/:userId"
         }
       }
     }

@@ -65,7 +65,7 @@ export const ChatsScreen = () => {
             Start a chat
           </AppText>
           <AppText tone="muted" size="xs" className="mt-1">
-            You can message people you follow or who follow you.
+            You can message people you are connected with.
           </AppText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
             <View className="flex-row">

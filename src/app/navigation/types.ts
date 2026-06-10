@@ -20,6 +20,11 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+export type MainStackParamList = {
+  Tabs: undefined;
+  UserProfile: { userId: string };
+};
+
 export type OnboardingStackParamList = {
   OnboardingWelcome: undefined;
   OnboardingGoals: undefined;
@@ -30,5 +35,5 @@ export type OnboardingStackParamList = {
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
-  Main: NavigatorScreenParams<MainTabParamList>;
+  Main: NavigatorScreenParams<MainStackParamList>;
 };

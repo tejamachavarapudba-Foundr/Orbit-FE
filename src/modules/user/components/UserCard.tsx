@@ -2,7 +2,8 @@ import { memo } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
-import { FollowButton } from "@/modules/follows/components/FollowButton";
+import { ConnectButton } from "@/modules/connections/components/ConnectButton";
+import { ConnectionCountLabel } from "@/modules/connections/components/ConnectionCountLabel";
 import { UserAvatar } from "@/modules/user/components/UserAvatar";
 import { UserSummary } from "@/modules/user/types";
 
@@ -44,6 +45,7 @@ export const UserCard = memo(({ user, onPress, showFollowButton = false }: UserC
             <AppText tone="primary" size="sm" weight="medium">
               {profile.headline.trim() || formatRole(profile.role)}
             </AppText>
+            <ConnectionCountLabel userId={profile.id} className="mt-1" />
             <View className="mt-4 gap-1">
               {company ? (
                 <AppText tone="muted" size="sm">
@@ -66,7 +68,7 @@ export const UserCard = memo(({ user, onPress, showFollowButton = false }: UserC
           </View>
         </View>
       </Pressable>
-      {showFollowButton ? <FollowButton profile={profile} compact /> : null}
+      {showFollowButton ? <ConnectButton profile={profile} compact /> : null}
     </View>
   );
 });

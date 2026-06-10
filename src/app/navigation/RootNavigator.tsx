@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { RootStackParamList } from "@/app/navigation/types";
 import { AuthNavigator } from "@/app/navigation/AuthNavigator";
-import { MainNavigator } from "@/app/navigation/MainNavigator";
+import { MainStackNavigator } from "@/app/navigation/MainStackNavigator";
 import { OnboardingNavigator } from "@/app/navigation/OnboardingNavigator";
 import { needsOnboarding } from "@/modules/profile/needsOnboarding";
 import { Toast } from "@/components/feedback/Toast";
@@ -60,7 +60,7 @@ export const RootNavigator = () => {
         ) : showOnboarding ? (
           <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
-          <Stack.Screen name="Main" component={MainNavigator} />
+          <Stack.Screen name="Main" component={MainStackNavigator} />
         )}
       </Stack.Navigator>
       <Toast />

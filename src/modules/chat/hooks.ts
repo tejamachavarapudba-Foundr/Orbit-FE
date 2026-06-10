@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useAuthStore } from "@/modules/auth/store";
 import { Chat } from "@/modules/chat/types";
 import { useChatStore } from "@/modules/chat/store";
+import { useConnectionsStore } from "@/modules/connections/store";
 import { useFollowStore } from "@/modules/follows/store";
 import { useUserStore } from "@/modules/user/store";
 import { UserSummary } from "@/modules/user/types";
@@ -34,6 +35,9 @@ export const useChats = () => {
   const following = useFollowStore((state) => state.following);
   const isLoadingNetwork = useFollowStore((state) => state.isLoadingNetwork);
   const loadNetwork = useFollowStore((state) => state.loadNetwork);
+  const connectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
+  const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
+  const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
 
   useEffect(() => {
     if (chats.length === 0 && !isLoading) {
@@ -53,15 +57,22 @@ export const useChats = () => {
     }
   }, [currentUserId, followers.length, following.length, isLoadingNetwork, loadNetwork]);
 
+  useEffect(() => {
+    if (currentUserId) {
+      void loadConnectedProfiles(currentUserId);
+      void loadIncomingRequests();
+    }
+  }, [currentUserId, loadConnectedProfiles, loadIncomingRequests]);
+
   const profilesById = useMemo(() => {
     const map = Object.fromEntries(users.map((user) => [user.profile.id, user.profile]));
 
-    for (const profile of [...followers, ...following]) {
+    for (const profile of [...followers, ...following, ...connectedProfiles]) {
       map[profile.id] = profile;
     }
 
     return map;
-  }, [followers, following, users]);
+  }, [connectedProfiles, followers, following, users]);
 
   const chatParticipantIds = useMemo(
     () => new Set(chats.map((chat) => getOtherParticipantId(chat, currentUserId))),
@@ -70,10 +81,11 @@ export const useChats = () => {
 
   const networkUserIds = useMemo(() => {
     const ids = new Set<string>();
+    connectedProfiles.forEach((profile) => ids.add(profile.id));
     followers.forEach((profile) => ids.add(profile.id));
     following.forEach((profile) => ids.add(profile.id));
     return ids;
-  }, [followers, following]);
+  }, [connectedProfiles, followers, following]);
 
   const startableUsers = useMemo(() => {
     const seen = new Set<string>();
@@ -104,15 +116,17 @@ export const useChats = () => {
     [currentUserId, profilesById]
   );
 
+  const isConnected = useConnectionsStore((state) => state.isConnected);
+
   const startChat = useCallback(
     (user: UserSummary) => {
-      if (!networkUserIds.has(user.profile.id)) {
+      if (!isConnected(user.profile.id) && !networkUserIds.has(user.profile.id)) {
         return Promise.resolve(false);
       }
 
       return createChat(user.profile.id);
     },
-    [createChat, networkUserIds]
+    [createChat, isConnected, networkUserIds]
   );
 
   return {
