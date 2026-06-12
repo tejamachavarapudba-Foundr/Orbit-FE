@@ -3,6 +3,7 @@ import { Pressable, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
+import { useRoute } from "@react-navigation/native";
 
 import { MainTabParamList } from "@/app/navigation/types";
 import { AppLogo } from "@/components/brand/AppLogo";
@@ -31,6 +32,14 @@ const profileMenuItems: ProfileMenuItem[] = [
 export const AppHeader = () => {
   const colors = useThemeTokens();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
+  const route = useRoute();
+
+  const showBackButton = [
+    "Discover",
+    "Network",
+    "Profile",
+    "UserProfile",
+  ].includes(route.name as string);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -55,8 +64,25 @@ export const AppHeader = () => {
 
   return (
     <View className="relative z-50 border-b border-border bg-surface px-5 py-4">
-      <View className="flex-row items-center justify-between">
-        <AppLogo />
+      <View className="flex-row items-center justify-between"> 
+        {showBackButton ? (
+          <Pressable
+          onPress={() => navigation.goBack()}
+          className="flex-row items-center gap-2"
+        >
+          <Feather
+            name="arrow-left"
+            size={20}
+            color={colors.text}
+          />
+        
+          <AppText weight="semibold">
+            Back
+          </AppText>
+        </Pressable>
+        ) : (
+          <AppLogo />
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Open profile menu"

@@ -59,7 +59,7 @@ export const ProjectDetailPanel = () => {
     return null;
   }
 
-  const isOwner = currentUserId === selectedProject.ownerId;
+  const isFounder = currentUserId === selectedProject.ownerId;
   const isApplying = applyingProjectId === selectedProject.id;
   const isReviewing = reviewingProjectId === selectedProject.id;
 
@@ -133,7 +133,7 @@ export const ProjectDetailPanel = () => {
       </View>
 
       <AppText weight="bold" className="mt-5">
-        Owner
+        Founder
       </AppText>
       <AppText tone="muted" size="sm" className="mt-2">
         {selectedProject.owner.fullName || "Startuphouze member"} {selectedProject.owner.headline ? `| ${selectedProject.owner.headline}` : ""}
@@ -207,7 +207,7 @@ export const ProjectDetailPanel = () => {
         />
       </View>
 
-      {!isOwner ? (
+      {!isFounder ? (
         <View className="mt-5 border-t border-border pt-5">
           <AppText weight="bold">Apply to join</AppText>
           <View className="mt-3 flex-row flex-wrap gap-2">

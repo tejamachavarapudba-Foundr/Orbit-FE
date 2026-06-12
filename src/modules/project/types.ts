@@ -2,7 +2,7 @@ import { AuthProfile } from "@/modules/auth/types";
 
 export type Project = {
   id: string;
-  ownerId: string;
+  FounderId: string;
   name: string;
   tagline: string;
   description: string;
@@ -62,7 +62,7 @@ export type StartupMember = {
 };
 
 export type StartupDetail = Project & {
-  owner: AuthProfile;
+  founder: AuthProfile;
   applications: ProjectApplication[];
   posts: unknown[];
   reviews: ProjectReview[];

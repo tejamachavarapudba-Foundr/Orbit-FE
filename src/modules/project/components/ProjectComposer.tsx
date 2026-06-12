@@ -1,3 +1,4 @@
+import { useState } from "react"; // 🔥 Added useState hook
 import { TextInput, View } from "react-native";
 
 import { AppButton } from "@/components/ui/AppButton";
@@ -9,14 +10,45 @@ import { useProjectForm } from "@/modules/project/hooks";
 
 export const ProjectComposer = () => {
   const colors = useThemeTokens();
+  const [isExpanded, setIsExpanded] = useState(false); // 🔥 State to track visibility
   const { values, setField, submit, isSubmitting, canSubmit } = useProjectForm();
 
+  // Handle clean submission and collapse form back down
+  const handleCreate = async () => {
+    await submit();
+    setIsExpanded(false); 
+  };
+
+  // 1. Initial State: Show only the "+ New project" button
+  if (!isExpanded) {
+    return (
+      <View className="mt-2 px-1">
+        <AppButton 
+          label="+ New project" 
+          className="bg-blue-600 self-start px-6"  // Assumed variant based on typical design tokens
+          onPress={() => setIsExpanded(true)} 
+        />
+      </View>
+    );
+  }
+
+  // 2. Expanded State: Show full creation form
   return (
     <Card className="mt-2">
       <CardContent className="gap-4 p-4">
-        <AppText family="display" weight="semibold" size="lg">
-          New project
-        </AppText>
+        <View className="flex-row justify-between items-center">
+          <AppText family="display" weight="semibold" size="lg">
+            New project
+          </AppText>
+          {/* Optional: Add a cancel button to close the form without saving */}
+          <AppButton 
+            label="Cancel" 
+            variant="ghost" 
+            size="sm"
+            onPress={() => setIsExpanded(false)} 
+          />
+        </View>
+        
         <AppText tone="muted" size="sm">
           Share your startup with the Foundr community.
         </AppText>
@@ -80,7 +112,7 @@ export const ProjectComposer = () => {
           label="Create project"
           loading={isSubmitting}
           disabled={!canSubmit}
-          onPress={() => void submit()}
+          onPress={() => void handleCreate()}
           className="mt-1"
         />
       </CardContent>

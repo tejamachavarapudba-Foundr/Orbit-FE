@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Alert, ScrollView, Switch, View } from "react-native";
 
+import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
@@ -59,6 +60,7 @@ export const ProfileScreen = () => {
 
   return (
     <AppScreen>
+      <AppHeader />
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <AppText size="2xl" weight="bold" className="mt-6">
           Profile

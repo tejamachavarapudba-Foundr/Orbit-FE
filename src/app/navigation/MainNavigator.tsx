@@ -25,13 +25,20 @@ type TabIconProps = {
 
 const tabIcon =
   (featherName: keyof typeof Feather.glyphMap) =>
-  ({ color, size }: TabIconProps) => (
-    <Feather name={featherName} size={size ?? iconSize.lg} color={color} />
+  ({ color }: TabIconProps) => (
+    <Feather
+      name={featherName}
+      size={24}
+      color={color}
+    />
   );
 
-/** Feather has no rocket glyph; Ionicons matches Lovable tab reference. */
-const projectsTabIcon = ({ color, size }: TabIconProps) => (
-  <Ionicons name="rocket-outline" size={size ?? iconSize.lg} color={color} />
+const projectsTabIcon = ({ color }: TabIconProps) => (
+  <Ionicons
+    name="rocket-outline"
+    size={24}
+    color={color}
+  />
 );
 
 export const MainNavigator = () => {
@@ -39,30 +46,49 @@ export const MainNavigator = () => {
 
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600"
-        }
-      }}
-    >
+    screenOptions={{
+      headerShown: false,
+
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.muted,
+
+    tabBarHideOnKeyboard: true,
+
+    tabBarStyle: {
+      backgroundColor: colors.surface,
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+
+      height: 80,
+      paddingTop: 8,
+      paddingBottom: 10,
+    },
+
+    tabBarItemStyle: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    tabBarIconStyle: {
+      marginTop: 4,
+    },
+
+    tabBarLabelStyle: {
+      fontSize: 11,
+      marginTop: 2,
+      marginBottom: 4,
+      fontWeight: "500",
+    },
+
+    tabBarAllowFontScaling: false,
+  }}
+>
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Feed", tabBarIcon: tabIcon("home") }} />
       <Tab.Screen name="Messages" component={ChatsScreen} options={{ tabBarIcon: tabIcon("message-square") }} />
       <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />
       <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
       <Tab.Screen name="Events" component={EventsScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarButton: () => null }} />
-      <Tab.Screen name="Admin" component={AdminScreen} options={{ tabBarButton: () => null }} />
-      <Tab.Screen name="Discover" component={DiscoverScreen} options={{ tabBarButton: () => null }} />
-      <Tab.Screen name="Network" component={NetworkScreen} options={{ tabBarButton: () => null }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarButton: () => null }} />
     </Tab.Navigator>
   );
 };

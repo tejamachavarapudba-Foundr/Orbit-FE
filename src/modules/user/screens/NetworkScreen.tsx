@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { FlatList, ListRenderItem, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -92,6 +93,8 @@ export const NetworkScreen = () => {
 
   return (
     <AppScreen withHorizontalPadding={false}>
+      <AppHeader />
+
       <FlatList
         data={profiles}
         keyExtractor={keyExtractor}

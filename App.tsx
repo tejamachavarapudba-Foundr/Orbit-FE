@@ -30,6 +30,7 @@ export default function App() {
   const bootstrapAuth = useAuthStore((state) => state.bootstrap);
   const bootstrapTheme = useThemeStore((state) => state.bootstrap);
   const colorScheme = useThemeStore((state) => state.resolvedScheme);
+  
 
   const [manropeLoaded] = useManropeFonts({
     Manrope_400Regular,

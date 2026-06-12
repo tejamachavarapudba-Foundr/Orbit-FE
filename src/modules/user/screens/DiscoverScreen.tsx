@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -12,6 +13,7 @@ import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
 import { useDiscoverUsers, userRoleFilters } from "@/modules/user/hooks";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { UserRole, UserSummary } from "@/modules/user/types";
+
 
 export const DiscoverScreen = () => {
   const colors = useThemeTokens();
@@ -62,6 +64,8 @@ export const DiscoverScreen = () => {
 
   return (
     <AppScreen withHorizontalPadding={false}>
+      <AppHeader />
+      
       <FlatList
         data={users}
         keyExtractor={keyExtractor}

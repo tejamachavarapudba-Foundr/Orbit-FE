@@ -1,16 +1,17 @@
 import { useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-import { MainStackParamList } from "@/app/navigation/types";
 
 export const useOpenUserProfile = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+  const navigation = useNavigation<any>();
 
   return useCallback(
     (userId: string) => {
-      const stackNavigation = navigation.getParent<NativeStackNavigationProp<MainStackParamList>>() ?? navigation;
-      stackNavigation.navigate("UserProfile", { userId });
+      navigation.navigate("Main", {
+        screen: "UserProfile",
+        params: {
+          userId,
+        },
+      });
     },
     [navigation]
   );
