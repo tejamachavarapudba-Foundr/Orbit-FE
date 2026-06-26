@@ -39,6 +39,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
   isLoadingRequests: false,
   isMutatingByUserId: {},
   errorMessage: null,
+
   loadIncomingRequests: async () => {
     set({ isLoadingRequests: true, errorMessage: null });
 
@@ -51,11 +52,10 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
           ...state.statusByUserId,
           ...Object.fromEntries(
             incomingRequests
-              // 🌟 FIX: Safe casing lookup & absolute fallback for target requester fields
               .filter((request) => request.status?.toLowerCase() === "pending")
               .map((request) => {
                 const requesterId = request.requesterId || request.requester?.id;
-                return [requesterId, "pending_incoming" as ConnectionStatus];
+                return [requesterId, "incoming_pending" as ConnectionStatus];
               })
           )
         },
@@ -73,6 +73,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       set({ isLoadingRequests: false, errorMessage: appError.message });
     }
   },
+
   loadConnectedProfiles: async (userId) => {
     try {
       const connectedProfiles = await connectionsApi.getConnectedProfiles(userId);
@@ -87,6 +88,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       // keep existing state
     }
   },
+
   fetchStatus: async (userId) => {
     if (get().statusByUserId[userId] !== undefined && get().isMutatingByUserId[userId]) {
       return;
@@ -95,9 +97,9 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
     try {
       const response = await connectionsApi.getStatus(userId);
       set((state) => ({
-        statusByUserId: { ...state.statusByUserId, [userId]: response.status },
+        statusByUserId: { ...state.statusByUserId, [userId]: response.status as ConnectionStatus },
         requestIdByUserId: response.requestId
-          ? { ...state.requestIdByUserId, [userId]: response.requestId }
+          ? { ...state.requestIdByUserId, [userId]: String(response.requestId) }
           : state.requestIdByUserId,
         noteByUserId: response.note ? { ...state.noteByUserId, [userId]: response.note } : state.noteByUserId
       }));
@@ -107,6 +109,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       }));
     }
   },
+
   fetchCount: async (userId) => {
     try {
       const count = await connectionsApi.getConnectionCount(userId);
@@ -119,6 +122,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       }));
     }
   },
+
   sendRequest: async (recipient, note) => {
     set((state) => ({
       isMutatingByUserId: { ...state.isMutatingByUserId, [recipient.id]: true },
@@ -128,8 +132,8 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
     try {
       const request = await connectionsApi.sendRequest({ recipientId: recipient.id, note: note.trim() });
       set((state) => ({
-        statusByUserId: { ...state.statusByUserId, [recipient.id]: "pending_outgoing" },
-        requestIdByUserId: { ...state.requestIdByUserId, [recipient.id]: request.id },
+        statusByUserId: { ...state.statusByUserId, [recipient.id]: "outgoing_pending" },
+        requestIdByUserId: { ...state.requestIdByUserId, [recipient.id]: String(request.id) },
         noteByUserId: { ...state.noteByUserId, [recipient.id]: note.trim() },
         isMutatingByUserId: { ...state.isMutatingByUserId, [recipient.id]: false }
       }));
@@ -149,6 +153,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       return false;
     }
   },
+
   acceptRequest: async (request) => {
     set((state) => ({
       isMutatingByUserId: { ...state.isMutatingByUserId, [request.requesterId]: true }
@@ -165,6 +170,7 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       }
 
       set((state) => ({
+        // Clear from current array map to synchronize all visual layouts instantly
         incomingRequests: state.incomingRequests.filter((item) => item.id !== request.id),
         statusByUserId: { ...state.statusByUserId, [request.requesterId]: "connected" },
         connectedProfiles: requester
@@ -193,10 +199,12 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       return false;
     }
   },
+
   declineRequest: async (request) => {
     try {
       await connectionsApi.declineRequest(request.id);
       set((state) => ({
+        // Clear from current array map to synchronize all visual layouts instantly
         incomingRequests: state.incomingRequests.filter((item) => item.id !== request.id),
         statusByUserId: { ...state.statusByUserId, [request.requesterId]: "none" },
         requestIdByUserId: Object.fromEntries(
@@ -210,22 +218,46 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
       return false;
     }
   },
+
   cancelOutgoing: async (userId) => {
     const requestId = get().requestIdByUserId[userId];
     if (!requestId) {
       return false;
     }
 
+    set((state) => ({
+      isMutatingByUserId: { ...state.isMutatingByUserId, [userId]: true }
+    }));
+
     try {
       await connectionsApi.cancelRequest(requestId);
+      
       set((state) => ({
         statusByUserId: { ...state.statusByUserId, [userId]: "none" },
-        requestIdByUserId: Object.fromEntries(Object.entries(state.requestIdByUserId).filter(([id]) => id !== userId))
+        isMutatingByUserId: { ...state.isMutatingByUserId, [userId]: false },
+        requestIdByUserId: Object.fromEntries(
+          Object.entries(state.requestIdByUserId).filter(([id]) => id !== userId)
+        ),
+        noteByUserId: Object.fromEntries(
+          Object.entries(state.noteByUserId).filter(([id]) => id !== userId)
+        )
       }));
+
+      useToastStore.getState().show({
+        type: "success",
+        title: "Request cancelled",
+        message: "Your connection invitation was successfully retracted."
+      });
       return true;
-    } catch {
+    } catch (error) {
+      const appError = toAppError(error);
+      set((state) => ({
+        isMutatingByUserId: { ...state.isMutatingByUserId, [userId]: false }
+      }));
+      useToastStore.getState().show({ type: "error", title: "Cancellation failed", message: appError.message });
       return false;
     }
   },
+
   isConnected: (userId) => get().statusByUserId[userId] === "connected"
 }));

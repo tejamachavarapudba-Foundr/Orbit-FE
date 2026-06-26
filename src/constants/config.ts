@@ -15,12 +15,13 @@ const resolveApiBaseUrl = () => {
     return `http://${window.location.hostname}:3000/api`;
   }
 
-  return "http://192.168.1.10:3000/api";
+  return "http://192.168.1.3:3000/api";
 };
 
 export const appConfig = {
   appName: "Foundr",
   apiBaseUrl: resolveApiBaseUrl(),
+  //apiBaseUrl: "https://startuphuz.vercel.app/api",
   authRefreshPath:
     process.env.EXPO_PUBLIC_AUTH_REFRESH_PATH ?? "/auth/refresh",
   authTokenKey: "startuphouze.auth.tokens",

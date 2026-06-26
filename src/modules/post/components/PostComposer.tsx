@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Image, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-
+import * as ImagePicker from "expo-image-picker";
+import { useUploadMedia } from "@/modules/media/hooks";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -14,11 +15,61 @@ export const PostComposer = () => {
   const colors = useThemeTokens();
   const { values, isSubmitting, setField, submit, canSubmit } = usePostComposer();
   const [showExtras, setShowExtras] = useState(false);
-
+  const uploadMedia = useUploadMedia();
   const clearMedia = () => {
     setField("imageUrl", "");
     setField("mediaType", "none" as PostMediaType);
   };
+  
+  const handlePickPhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+  
+    if (result.canceled) {
+      return;
+    }
+  
+    try {
+      const upload = await uploadMedia.mutateAsync({
+        uri: result.assets[0].uri,
+        kind: "post",
+      });
+  
+      console.log("UPLOAD RESPONSE:", upload);
+      console.log("CURRENT IMAGE URL:", values.imageUrl);
+      setField("imageUrl", result.assets[0].uri);
+      console.log("LOCAL URI:", result.assets[0].uri);
+      setField("mediaType", "image" as PostMediaType);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handlePickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["videos"],
+      quality: 0.8,
+    });
+  
+    if (result.canceled) return;
+  
+    try {
+      const upload = await uploadMedia.mutateAsync({
+        uri: result.assets[0].uri,
+        kind: "post",
+      });
+  
+      setField("imageUrl", upload.url);
+      setField("mediaType", "video" as PostMediaType);
+    } catch (error) {
+      console.error("Video upload failed:", error);
+    }
+  };
+  
+  console.log("CURRENT IMAGE URL:", values.imageUrl);
 
   return (
     <Card className="mb-5">
@@ -35,13 +86,19 @@ export const PostComposer = () => {
           className="min-h-[88px] rounded-md border border-input bg-background px-3 py-3 text-base leading-6 text-text"
         />
 
-        {values.imageUrl.trim() ? (
-          <View className="relative">
+        {values.imageUrl ? (
+          <View className="relative border border-red-500 p-2">
+            <AppText>IMAGE FOUND</AppText>
+
             <Image
               source={{ uri: values.imageUrl }}
-              className="max-h-72 w-full rounded-lg border border-border bg-black"
+              style={{
+                width: 300,
+               height: 200,
+              }}
               resizeMode="cover"
             />
+
             <Pressable
               accessibilityRole="button"
               onPress={clearMedia}
@@ -108,20 +165,16 @@ export const PostComposer = () => {
             variant="ghost"
             size="sm"
             leftIcon={<Feather name="image" size={14} color={colors.muted} />}
-            onPress={() => {
-              setField("mediaType", "image" as PostMediaType);
-              setShowExtras(true);
-            }}
+            onPress={() => void handlePickPhoto()
+            }
           />
           <AppButton
             label="Video"
             variant="ghost"
             size="sm"
             leftIcon={<Feather name="video" size={14} color={colors.muted} />}
-            onPress={() => {
-              setField("mediaType", "video" as PostMediaType);
-              setShowExtras(true);
-            }}
+            onPress={() => void handlePickVideo()
+            }
           />
           <AppButton
             label={showExtras ? "Hide URL" : "Add URL"}

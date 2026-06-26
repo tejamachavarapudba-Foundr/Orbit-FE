@@ -90,7 +90,7 @@ export const EventComposer = () => {
           <View className="flex-1">
             <AppText weight="bold">Host an event</AppText>
             <AppText tone="muted" size="sm" className="mt-1">
-              Founders, co-founders and investors can create meetups.
+              A space where anyone can host.
             </AppText>
           </View>
           <AppButton label="New event" onPress={() => setIsExpanded(true)} className="h-10 px-4" />

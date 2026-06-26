@@ -1,6 +1,9 @@
 import { Alert, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { Linking } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
+import { useAuthStore } from "@/modules/auth/store";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -15,6 +18,10 @@ const roleOptions = ["co_founder", "software_engineer", "designer", "business_op
 
 export const ProjectDetailPanel = () => {
   const colors = useThemeTokens();
+  const user = useAuthStore(
+    (state) => state.user
+  );
+  const navigation = useNavigation<any>();
   const {
     currentUserId,
     selectedProject,
@@ -58,8 +65,11 @@ export const ProjectDetailPanel = () => {
   if (!selectedProject) {
     return null;
   }
-
+  
+  
   const isFounder = currentUserId === selectedProject.ownerId;
+  const isInvestor =  user?.profile?.role === "investor";
+  const isInvestorReady = selectedProject.investorSnapshot?.isCompleted;
   const isApplying = applyingProjectId === selectedProject.id;
   const isReviewing = reviewingProjectId === selectedProject.id;
 
@@ -93,6 +103,34 @@ export const ProjectDetailPanel = () => {
 
         <AppText className="leading-6">{selectedProject.description || "No description yet."}</AppText>
 
+     <View className="mt-4 gap-2">
+
+       {selectedProject.foundedYear ? (
+        <AppText tone="muted" size="sm">
+          Founded: {selectedProject.foundedYear}
+        </AppText>
+      ) : null}
+
+       {selectedProject.websiteUrl ? (
+        <AppText tone="primary" size="sm">
+          🌐 {selectedProject.websiteUrl}
+        </AppText>
+      ) : null}
+
+        {selectedProject.pitchVideoUrl ? (
+          <AppButton
+            size="sm"
+            variant="outline"
+            label="▶ Watch Founder Pitch"
+            className="self-start"
+            onPress={() => {
+              Linking.openURL(selectedProject.pitchVideoUrl);
+            }}
+          />
+       ) : null}
+
+    </View>
+         
       <View className="mt-5 flex-row gap-3">
         <View className="flex-1 rounded-md bg-background p-3">
           <AppText tone="muted" size="sm">
@@ -139,9 +177,112 @@ export const ProjectDetailPanel = () => {
         {selectedProject.owner.fullName || "Startuphouze member"} {selectedProject.owner.headline ? `| ${selectedProject.owner.headline}` : ""}
       </AppText>
 
+      
+      {(isFounder || isInvestor) ? (
+        <View className="mt-5">
+
+         <Card>
+           <CardContent className="p-4">
+
+             <AppText weight="bold" size="lg">
+               📊Investor Snapshot
+             </AppText>
+
+             <AppText tone="muted" size="sm" className="mt-1">
+               Complete your investor profile to unlock investor visibility.
+             </AppText>
+
+          <View className="mt-4">
+            <AppText weight="semibold">
+            {selectedProject.investorSnapshot?.isCompleted
+              ? "🟢 Investor Ready"
+              : `Progress: ${selectedProject.investorSnapshot?.completionPercentage ?? 0}%`}
+            </AppText>
+          </View>
+
+          <View className="mt-2 h-2 overflow-hidden rounded-full bg-background">
+            <View
+              className="h-full bg-primary"
+              style={{
+                width: `${selectedProject.investorSnapshot?.completionPercentage ?? 0}%`,
+              }}
+            />
+          </View>
+
+          <AppButton
+            label={
+              selectedProject.investorSnapshot?.isCompleted
+                ? "View Investor Snapshot"
+                : (selectedProject.investorSnapshot?.completionPercentage ?? 0) > 0
+                  ? "Continue Investor Snapshot"
+                  : "Start Investor Snapshot"
+            }
+            className="mt-4"
+            onPress={() => {
+
+              if (isInvestor) {
+                navigation.navigate(
+                  "InvestorSnapshotView",
+                  {
+                    projectId: selectedProject.id,
+                  }
+                );
+            
+                return;
+              }
+
+              navigation.navigate(
+                "BusinessSummary",
+                {
+                  projectId: selectedProject.id,
+                  project: selectedProject,
+                }
+              );
+            }}
+          />
+
+          <View className="mt-5 border-t border-border pt-4">
+
+            <AppText weight="bold">
+              Investor Highlights
+            </AppText>
+
+            <View className="mt-3 gap-2">
+
+            <AppText size="sm">
+              MRR: $
+              {selectedProject.investorSnapshot?.mrr?.toLocaleString() ?? 0}
+            </AppText>
+
+            <AppText size="sm">
+              ARR: $
+              {selectedProject.investorSnapshot?.arr?.toLocaleString() ?? 0}
+            </AppText>
+
+            <AppText size="sm">
+              Raising: $
+              {selectedProject.investorSnapshot?.amountRaising?.toLocaleString() ?? 0}
+            </AppText>
+       
+            <AppText size="sm">
+              Equity Offered:
+              {" "}
+              {selectedProject.investorSnapshot?.equityOffered ?? 0}%
+            </AppText>
+          </View>
+
+        </View>
+
+        </CardContent>
+      </Card>
+
+    </View>
+  ) : null}
+
       <AppText weight="bold" className="mt-5">
         Members ({members.length})
       </AppText>
+
       <View className="mt-2 gap-2">
         {members.length > 0 ? (
           members.map((member) => (

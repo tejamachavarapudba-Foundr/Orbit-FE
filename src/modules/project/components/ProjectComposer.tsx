@@ -74,7 +74,7 @@ export const ProjectComposer = () => {
 
         <View className="flex-row gap-3">
           <AppTextInput
-            label="Type"
+            label="Platform"
             value={values.projectType}
             onChangeText={(value) => setField("projectType", value)}
             className="flex-1"
@@ -86,7 +86,21 @@ export const ProjectComposer = () => {
             className="flex-1"
           />
         </View>
+        
+          <AppTextInput
+            label="Funding Stage"
+            value={values.fundingStage}
+            onChangeText={(value) => setField("fundingStage", value)}
+            placeholder="Bootstrapped, Pre-Seed, Seed"
+         />
 
+          <AppTextInput
+            label="Founded Year"
+            value={values.foundedYear?.toString() ?? ""}
+            onChangeText={(value) =>
+            setField("foundedYear", value ? Number(value) : null)}
+            keyboardType="numeric"
+         />
         <AppTextInput label="Location" value={values.location} onChangeText={(value) => setField("location", value)} />
         <AppTextInput
           label="Website"
@@ -94,6 +108,13 @@ export const ProjectComposer = () => {
           onChangeText={(value) => setField("websiteUrl", value)}
           autoCapitalize="none"
           keyboardType="url"
+        />
+        <AppTextInput
+          label="Founder Pitch Video URL"
+          value={values.pitchVideoUrl}
+          onChangeText={(value) => setField("pitchVideoUrl", value)}
+          autoCapitalize="none"
+          placeholder="https://youtube.com/..."
         />
         <AppTextInput
           label="Tech stack"

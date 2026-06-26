@@ -13,7 +13,7 @@ export const getOtherParticipantId = (chat: Chat, currentUserId?: string) =>
 
 export const useChats = () => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
-  const chats = useChatStore((state) => state.chats);
+  const chats = useChatStore((state) => state.chats) || []; // Guard fallback
   const selectedChat = useChatStore((state) => state.selectedChat);
   const isLoading = useChatStore((state) => state.isLoading);
   const isRefreshing = useChatStore((state) => state.isRefreshing);
@@ -28,14 +28,23 @@ export const useChats = () => {
   const selectChat = useChatStore((state) => state.selectChat);
   const clearSelectedChat = useChatStore((state) => state.clearSelectedChat);
   const deleteChat = useChatStore((state) => state.deleteChat);
-  const users = useUserStore((state) => state.users);
+  
+  const users = useUserStore((state) => state.users) || []; // Guard fallback
   const isUsersLoading = useUserStore((state) => state.isLoading);
   const loadUsers = useUserStore((state) => state.loadUsers);
-  const followers = useFollowStore((state) => state.followers);
-  const following = useFollowStore((state) => state.following);
+  
+  // High-risk store array references injected with fallback primitives
+  const rawFollowers = useFollowStore((state) => state.followers);
+  const rawFollowing = useFollowStore((state) => state.following);
+  const followers = useMemo(() => rawFollowers || [], [rawFollowers]);
+  const following = useMemo(() => rawFollowing || [], [rawFollowing]);
+  
   const isLoadingNetwork = useFollowStore((state) => state.isLoadingNetwork);
   const loadNetwork = useFollowStore((state) => state.loadNetwork);
-  const connectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
+  
+  const rawConnectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
+  const connectedProfiles = useMemo(() => rawConnectedProfiles || [], [rawConnectedProfiles]);
+  
   const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
   const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
 
@@ -67,8 +76,11 @@ export const useChats = () => {
   const profilesById = useMemo(() => {
     const map = Object.fromEntries(users.map((user) => [user.profile.id, user.profile]));
 
+    // Safe spread operators inside a memoization matrix
     for (const profile of [...followers, ...following, ...connectedProfiles]) {
-      map[profile.id] = profile;
+      if (profile?.id) {
+        map[profile.id] = profile;
+      }
     }
 
     return map;
@@ -81,9 +93,10 @@ export const useChats = () => {
 
   const networkUserIds = useMemo(() => {
     const ids = new Set<string>();
-    connectedProfiles.forEach((profile) => ids.add(profile.id));
-    followers.forEach((profile) => ids.add(profile.id));
-    following.forEach((profile) => ids.add(profile.id));
+    // Array verification checks via absolute fallback safety wrappers
+    if (Array.isArray(connectedProfiles)) connectedProfiles.forEach((profile) => profile?.id && ids.add(profile.id));
+    if (Array.isArray(followers)) followers.forEach((profile) => profile?.id && ids.add(profile.id));
+    if (Array.isArray(following)) following.forEach((profile) => profile?.id && ids.add(profile.id));
     return ids;
   }, [connectedProfiles, followers, following]);
 
@@ -92,7 +105,7 @@ export const useChats = () => {
     const result: UserSummary[] = [];
 
     for (const profile of [...following, ...followers]) {
-      if (!profile.id || profile.id === currentUserId || chatParticipantIds.has(profile.id) || seen.has(profile.id)) {
+      if (!profile?.id || profile.id === currentUserId || chatParticipantIds.has(profile.id) || seen.has(profile.id)) {
         continue;
       }
 

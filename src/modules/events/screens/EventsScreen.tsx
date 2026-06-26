@@ -77,7 +77,8 @@ export const EventsScreen = () => {
               </View>
               <View className="max-w-[140px] rounded-md bg-background px-3 py-2">
                 <AppText tone="muted" size="xs" className="text-right leading-5">
-                  Only founders, co-founders and investors can host events.
+                  Host together, 
+                  grow together.
                 </AppText>
               </View>
             </View>

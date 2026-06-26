@@ -2,6 +2,8 @@ import { memo } from "react";
 import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
+import { useProjectStore } from "@/modules/project/store";
+import { useAuthStore } from "@/modules/auth/store";
 import { AppText } from "@/components/ui/AppText";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -18,10 +20,31 @@ const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g,
 
 export const ProjectCard = memo(({ project, onPress }: ProjectCardProps) => {
   const colors = useThemeTokens();
+  const savedStartupIds =
+    useProjectStore(
+      (state) => state.savedStartupIds
+    );
+
+  const toggleSaveStartup =
+    useProjectStore(
+      (state) => state.toggleSaveStartup
+    );
+
+  const isSaved =
+    savedStartupIds.includes(
+      project.id
+    );
+
+  const user = useAuthStore(
+    (state) => state.user
+  );
+  
+  const isInvestor =
+    user?.profile?.role === "investor";
   const initial = (project.name || "S").charAt(0).toUpperCase();
 
   return (
-    <Pressable accessibilityRole="button" onPress={() => onPress(project.id)} className="mb-4">
+    <Pressable accessibilityRole="button" onPress={() => onPress(project.id)} className="mb-6">
       <Card className="overflow-hidden">
         <View className="h-24 bg-primary/15" />
         <View className="px-4 pb-4">
@@ -30,13 +53,45 @@ export const ProjectCard = memo(({ project, onPress }: ProjectCardProps) => {
               {initial}
             </AppText>
           </View>
-
+        <View className="flex-row items-center justify-between">
           <AppText family="display" weight="semibold" size="lg" numberOfLines={1}>
             {project.name || "Untitled project"}
           </AppText>
+
+          <Pressable
+            onPress={() =>
+              toggleSaveStartup(
+                project.id
+              )
+            }
+          >
+            <Feather
+              name="heart"
+              size={18}
+              color={
+                isSaved
+                  ? "#ef4444"
+                  : colors.muted
+              }
+            />
+          </Pressable>
+        </View>
+
           <AppText tone="muted" size="sm" className="mt-1" numberOfLines={2}>
             {project.tagline || formatValue(project.stage)}
           </AppText>
+          
+          <View className="mt-2">
+            <AppText size="xs" tone="muted">
+              Investor Snapshot
+            </AppText>
+
+            <AppText size="xs" weight="semibold">
+              {project.investorSnapshot?.isCompleted
+                ? "Published ✓"
+                : `${project.investorSnapshot?.completionPercentage ?? 0}% Complete`}
+            </AppText>
+          </View>
 
           <View className="mt-3 flex-row flex-wrap gap-2">
             <Badge label={formatValue(project.stage || "idea")} variant="outline" />
@@ -54,6 +109,46 @@ export const ProjectCard = memo(({ project, onPress }: ProjectCardProps) => {
                 Team {project.teamSize || 1}
               </AppText>
             </View>
+          </View>
+          
+          <View className="mt-3 gap-2">
+
+            {project.fundingStage ? (
+              <View className="flex-row items-center gap-2">
+                <Feather name="dollar-sign" size={12} color={colors.muted} />
+                <AppText tone="muted" size="xs">
+                  {project.fundingStage}
+                </AppText>
+              </View>
+            ) : null}
+
+            {project.foundedYear ? (
+              <View className="flex-row items-center gap-2">
+                <Feather name="calendar" size={12} color={colors.muted} />
+                <AppText tone="muted" size="xs">
+                  Founded {project.foundedYear}
+               </AppText>
+             </View>
+           ) : null}
+
+             {project.websiteUrl ? (
+               <View className="flex-row items-center gap-2">
+                 <Feather name="globe" size={12} color={colors.muted} />
+                 <AppText tone="primary" size="xs" numberOfLines={1}>
+                   {project.websiteUrl}
+                 </AppText>
+               </View>
+             ) : null}
+
+             {project.pitchVideoUrl ? (
+               <View className="flex-row items-center gap-2">
+                 <Feather name="play-circle" size={12} color={colors.primary} />
+                 <AppText tone="primary" size="xs">
+                   Founder Pitch Available
+                 </AppText>
+               </View>
+             ) : null}
+
           </View>
 
           <AppText size="sm" className="mt-3 leading-5" numberOfLines={3}>

@@ -29,8 +29,8 @@ const variantClass: Record<ButtonVariant, string> = {
 
 const sizeClass: Record<ButtonSize, string> = {
   sm: "h-8 px-3",
-  default: "h-9 px-4",
-  lg: "h-12 px-4",
+  default: "h-11 px-5",
+  lg: "h-14 px-6",
   icon: "h-9 w-9 px-0"
 };
 

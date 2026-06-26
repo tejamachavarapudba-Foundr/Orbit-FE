@@ -29,10 +29,16 @@ type ProjectState = {
   reviewingProjectId: string | null;
   errorMessage: string | null;
   detailErrorMessage: string | null;
+  investorStartups: Project[];
+  savedStartupIds: string[];
+  savedStartups: Project[];
+  loadSavedStartups: () => Promise<void>;
+  toggleSaveStartup: (projectId: string) => Promise<void>;
   loadProjects: () => Promise<void>;
   refreshProjects: () => Promise<void>;
   loadStartups: () => Promise<void>;
   loadTrendingStartups: () => Promise<void>;
+  loadInvestorDiscovery: () => Promise<void>;
   selectProject: (id: string) => Promise<void>;
   clearSelectedProject: () => void;
   createProject: (payload: ProjectPayload) => Promise<boolean>;
@@ -52,6 +58,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
   projects: [],
   startups: [],
   trendingStartups: [],
+  investorStartups: [],
   selectedProject: null,
   membersByProjectId: {},
   filters: { query: "", stage: "all", projectType: "all" },
@@ -63,6 +70,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
   reviewingProjectId: null,
   errorMessage: null,
   detailErrorMessage: null,
+  savedStartupIds: [],
+  savedStartups: [],
+
   loadProjects: async () => {
     set({ isLoading: true, errorMessage: null });
 
@@ -99,6 +109,74 @@ export const useProjectStore = create<ProjectState>((set) => ({
       set({ trendingStartups });
     } catch {
       set({ trendingStartups: [] });
+    }
+  },
+  loadSavedStartups: async () => {
+    try {
+      const saved =
+        await projectApi.getSavedStartups();
+  
+      set({
+        savedStartups: saved.map(
+          (item: any) => item.project
+        ),
+  
+        savedStartupIds: saved.map(
+          (item: any) => item.projectId
+        ),
+      });
+    } catch {
+      set({
+        savedStartups: [],
+        savedStartupIds: [],
+      });
+    }
+  },
+  toggleSaveStartup: async (
+    projectId,
+  ) => {
+    const state =
+      useProjectStore.getState();
+  
+    const isSaved =
+      state.savedStartupIds.includes(
+        projectId
+      );
+  
+    try {
+      if (isSaved) {
+        await projectApi.unsaveStartup(
+          projectId
+        );
+      } else {
+        await projectApi.saveStartup(
+          projectId
+        );
+      }
+  
+      await state.loadSavedStartups();
+    } catch (error) {
+      const appError = toAppError(error);
+    
+      useToastStore.getState().show({
+        type: "error",
+        title: "Save failed",
+        message: appError.message,
+      });
+    }
+  },
+  loadInvestorDiscovery: async () => {
+    try {
+      const startups =
+        await projectApi.getInvestorDiscovery();
+  
+      set({
+        investorStartups: startups,
+      });
+    } catch {
+      set({
+        investorStartups: [],
+      });
     }
   },
   selectProject: async (id) => {

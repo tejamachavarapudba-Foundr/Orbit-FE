@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useAuthStore } from "@/modules/auth/store"; // 👈 Import auth store
 import { UserRole, UserSummary } from "@/modules/user/types";
 import { useUserStore } from "@/modules/user/store";
 
@@ -50,6 +51,9 @@ const matchesRole = (user: UserSummary, role: UserRole) => {
 };
 
 export const useDiscoverUsers = () => {
+  // 1. Get the current logged-in user's ID
+  const currentUserId = useAuthStore((state) => state.user?.profile.id);
+
   const users = useUserStore((state) => state.users);
   const filters = useUserStore((state) => state.filters);
   const isLoading = useUserStore((state) => state.isLoading);
@@ -67,9 +71,16 @@ export const useDiscoverUsers = () => {
     }
   }, [isLoading, loadUsers, users.length]);
 
+  // 2. Filter out both search targets AND your own profile record
   const filteredUsers = useMemo(
-    () => users.filter((user) => matchesSearch(user, filters.query) && matchesRole(user, filters.role)),
-    [filters.query, filters.role, users]
+    () =>
+      users.filter(
+        (user) =>
+          user.id !== currentUserId && // 👈 Hard boundary: Omit yourself
+          matchesSearch(user, filters.query) &&
+          matchesRole(user, filters.role)
+      ),
+    [filters.query, filters.role, users, currentUserId]
   );
 
   const visibleUsers = useMemo(() => filteredUsers.slice(0, visibleCount), [filteredUsers, visibleCount]);

@@ -32,19 +32,21 @@ export const ConnectButton = memo(({ profile, compact = false }: ConnectButtonPr
 
   const rowClass = compact ? "mt-4 h-10 self-start px-5" : "h-11 w-full";
 
-  if (status === "pending_incoming") {
+  // 🟢 FIX: Matches backend value "incoming_pending" exactly
+  if (status === "incoming_pending") {
     return (
-      <View className={compact ? "mt-4 gap-2" : "gap-2"}>
-        <AppButton label="Accept" loading={isMutating} onPress={() => void acceptIncoming()} className={rowClass} />
-        <AppButton label="Decline" variant="outline" loading={isMutating} onPress={() => void declineIncoming()} className={rowClass} />
+      <View className={compact ? "mt-4 flex-row gap-2" : "flex-row gap-2 w-full justify-between"}>
+        <AppButton label="Accept" loading={isMutating} onPress={() => void acceptIncoming()} className="flex-1 h-11" />
+        <AppButton label="Decline" variant="outline" loading={isMutating} onPress={() => void declineIncoming()} className="flex-1 h-11" />
       </View>
     );
   }
 
-  if (status === "pending_outgoing") {
+  // 🟢 FIX: Matches backend value "outgoing_pending" exactly
+  if (status === "outgoing_pending") {
     return (
       <AppButton
-        label="Pending"
+        label="Cancel Request" // Changed from "Pending" to visually represent the action
         variant="outline"
         loading={isMutating}
         onPress={() => void cancelOutgoing()}

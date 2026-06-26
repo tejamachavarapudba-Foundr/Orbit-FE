@@ -1,5 +1,5 @@
 import { create } from "zustand";
-
+import { useProjectStore } from "@/modules/project/store";
 import { authApi } from "@/modules/auth/api";
 import { AuthProfile, AuthUser, LoginPayload, RegisterPayload } from "@/modules/auth/types";
 import { tokenService } from "@/services/api/tokenService";
@@ -22,7 +22,7 @@ type AuthState = {
   clearError: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({  
   isHydrated: false,
   status: "idle",
   user: null,
@@ -83,16 +83,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   logout: async () => {
     const email = get().user?.email;
-
+  
     try {
       if (email) {
         await authApi.logout(email);
       }
     } catch (error) {
-      logger.warn("Logout endpoint failed", error);
+      logger.warn(
+        "Logout endpoint failed",
+        error
+      );
     } finally {
       await tokenService.clear();
-      set({ status: "unauthenticated", user: null });
+  
+      useProjectStore.setState({
+        savedStartupIds: [],
+        savedStartups: [],
+      });
+  
+      set({
+        status: "unauthenticated",
+        user: null,
+      });
     }
   },
   updateProfile: (profile) =>
@@ -105,5 +117,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         : state.user
     })),
-  clearError: () => set({ errorMessage: null })
+  clearError: () => set({ errorMessage: null }),
 }));

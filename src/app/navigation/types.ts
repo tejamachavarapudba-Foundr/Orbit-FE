@@ -9,20 +9,43 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   Tabs: undefined;
+
   Profile: undefined;
   Discover: undefined;
   Network: undefined;
   Search: undefined;
   Admin: undefined;
+
   UserProfile: {
     userId: string;
-  };
+  }; 
+
+    BusinessSummary: {
+      projectId: string;
+    };
+    
+    Traction: {
+      projectId: string;
+    };
+    
+    Financial: {
+      projectId: string;
+    };
+    
+    Ownership: {
+      projectId: string;
+    };
+      
+    Review: {
+      projectId: string;
+    };
+  
+    InvestorSnapshotView: {
+      projectId: string;
+    };
+    
 };
 
-export type MainStackParamList = {
-  Tabs: undefined;
-  UserProfile: { userId: string };
-};
 
 export type OnboardingStackParamList = {
   OnboardingWelcome: undefined;

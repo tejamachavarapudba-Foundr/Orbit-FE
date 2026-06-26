@@ -54,5 +54,37 @@ export const projectApi = {
   createReview: async (id: string, payload: ProjectReviewPayload) => {
     const response = await apiClient.post<ProjectReview>(`/startups/${id}/reviews`, payload);
     return response.data;
+  },
+  getInvestorDiscovery: async () => {
+    const response =
+      await apiClient.get<Project[]>(
+        "/startups/investor-discovery"
+      );
+  
+    return response.data;
+  },
+  saveStartup: async (id: string) => {
+    const response =
+      await apiClient.post(
+        `/projects/${id}/save`
+      );
+  
+    return response.data;
+  },
+  unsaveStartup: async (id: string) => {
+    const response =
+      await apiClient.delete(
+        `/projects/${id}/save`
+      );
+  
+    return response.data;
+  },
+  getSavedStartups: async () => {
+    const response =
+      await apiClient.get(
+        "/projects/saved/list"
+      );
+  
+    return response.data;
   }
 };

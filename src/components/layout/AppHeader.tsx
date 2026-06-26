@@ -16,7 +16,7 @@ type MenuRoute = Exclude<keyof MainTabParamList, "Home" | "Jobs" | "Events" | "S
 type ProfileMenuItem = {
   label: string;
   icon: keyof typeof Feather.glyphMap;
-  route?: MenuRoute;
+  route?: string;
   action?: "logout";
 };
 
@@ -25,8 +25,7 @@ const profileMenuItems: ProfileMenuItem[] = [
   { label: "Discover", icon: "compass", route: "Discover" },
   { label: "My network", icon: "users", route: "Network" },
   { label: "Projects", icon: "send", route: "Projects" },
-  { label: "Messages", icon: "message-square", route: "Messages" },
-  { label: "New project", icon: "plus", route: "Projects" }
+  { label: "Messages", icon: "message-square", route: "Messages" }
 ];
 
 export const AppHeader = () => {
@@ -45,9 +44,34 @@ export const AppHeader = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const initial = user?.profile.fullName?.charAt(0).toUpperCase() || "S";
   const isAdmin = user?.role === "ADMIN";
-  const menuItems = isAdmin
-    ? [...profileMenuItems, { label: "Admin", icon: "shield", route: "Admin" } satisfies ProfileMenuItem]
-    : profileMenuItems;
+  const isInvestor =
+  user?.profile?.role?.toLowerCase() === "investor";
+
+  const menuItems = [
+    ...profileMenuItems,
+
+    isInvestor
+      ? {
+          label: "Investment Watchlist",
+          icon: "bookmark",
+          route: "InvestmentWatchlist",
+        }
+      : {
+          label: "New Project",
+          icon: "plus",
+          route: "Projects",
+        },
+
+    ...(isAdmin
+      ? [
+          {
+            label: "Admin",
+            icon: "shield",
+            route: "Admin",
+          },
+        ]
+      : []),
+  ];
 
   const handleMenuPress = (item: ProfileMenuItem) => {
     setIsProfileMenuOpen(false);
@@ -58,7 +82,9 @@ export const AppHeader = () => {
     }
 
     if (item.route) {
-      navigation.navigate(item.route);
+      navigation.navigate(
+        item.route as never
+      );
     }
   };
 
@@ -138,7 +164,7 @@ export const AppHeader = () => {
             <Pressable
               accessibilityRole="button"
               onPress={() => handleMenuPress({ label: "Sign out", icon: "log-out", action: "logout" })}
-              className="flex-row items-center gap-4 px-6 py-3"
+              className="flex-row items-center gap-5 px-6 py-4"
             >
               <View className="w-8 items-center">
                 <Feather name="log-out" size={22} color={colors.text} />

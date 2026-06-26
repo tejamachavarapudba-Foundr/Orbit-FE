@@ -29,7 +29,7 @@ const variantTextClass: Record<BadgeVariant, string> = {
 export const Badge = ({ label, variant = "outline", category, className = "" }: BadgeProps) => {
   if (category) {
     return (
-      <View className={`rounded-md border px-2.5 py-0.5 ${categoryBadgeClass[category]} ${className}`}>
+      <View className={`rounded-full border px-3 py-1 ${categoryBadgeClass[category]} ${className}`}>
         <AppText size="xs" weight="semibold" className={categoryBadgeTextClass[category]}>
           {label}
         </AppText>

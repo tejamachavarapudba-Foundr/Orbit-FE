@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Alert, ScrollView, Switch, View } from "react-native";
-
+import { useNavigation } from "@react-navigation/native";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -18,6 +18,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 
 export const ProfileScreen = () => {
   const colors = useThemeTokens();
+  const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const deleteAccount = useUserStore((state) => state.deleteAccount);
@@ -40,7 +41,7 @@ export const ProfileScreen = () => {
   useEffect(() => {
     ensureRoleProfile();
   }, [ensureRoleProfile, values.role]);
-
+  console.log("PROFILE SCREEN LOADED");
   const handleDeleteAccount = async () => {
     const didDelete = await deleteAccount();
     if (didDelete) {

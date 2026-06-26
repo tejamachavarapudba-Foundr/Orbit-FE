@@ -12,7 +12,7 @@ type CardProps = ViewProps &
 
 export const Card = ({ children, elevated = false, className = "", style, ...props }: CardProps) => (
   <View
-    className={`rounded-xl border border-border bg-card ${className}`}
+    className={`rounded-2xl border border-border bg-card ${className}`}
     style={[getShadowStyle(elevated ? "elevated" : "card"), style]}
     {...props}
   >

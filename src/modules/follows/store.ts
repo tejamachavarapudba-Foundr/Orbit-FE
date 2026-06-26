@@ -34,11 +34,20 @@ export const useFollowStore = create<FollowState>((set, get) => ({
   isLoadingNetwork: false,
   isRefreshingNetwork: false,
   networkErrorMessage: null,
+  
   loadNetwork: async (userId) => {
     set({ isLoadingNetwork: true, networkErrorMessage: null });
 
     try {
-      const [followers, following] = await Promise.all([followsApi.getFollowers(userId), followsApi.getFollowing(userId)]);
+      const [rawFollowers, rawFollowing] = await Promise.all([
+        followsApi.getFollowers(userId), 
+        followsApi.getFollowing(userId)
+      ]);
+      
+      // Defend against bad API payloads returning undefined/null values instead of arrays
+      const followers = Array.isArray(rawFollowers) ? rawFollowers : [];
+      const following = Array.isArray(rawFollowing) ? rawFollowing : [];
+
       set((state) => ({
         followers,
         following,
@@ -50,14 +59,27 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       }));
     } catch (error) {
       const appError = toAppError(error);
-      set({ networkErrorMessage: appError.message, isLoadingNetwork: false });
+      set({ 
+        networkErrorMessage: appError.message, 
+        isLoadingNetwork: false,
+        followers: [], // Safeguard: Reset back to empty array on failure
+        following: []  // Safeguard: Reset back to empty array on failure
+      });
     }
   },
+  
   refreshNetwork: async (userId) => {
     set({ isRefreshingNetwork: true, networkErrorMessage: null });
 
     try {
-      const [followers, following] = await Promise.all([followsApi.getFollowers(userId), followsApi.getFollowing(userId)]);
+      const [rawFollowers, rawFollowing] = await Promise.all([
+        followsApi.getFollowers(userId), 
+        followsApi.getFollowing(userId)
+      ]);
+
+      const followers = Array.isArray(rawFollowers) ? rawFollowers : [];
+      const following = Array.isArray(rawFollowing) ? rawFollowing : [];
+
       set((state) => ({
         followers,
         following,
@@ -69,9 +91,15 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       }));
     } catch (error) {
       const appError = toAppError(error);
-      set({ networkErrorMessage: appError.message, isRefreshingNetwork: false });
+      set({ 
+        networkErrorMessage: appError.message, 
+        isRefreshingNetwork: false,
+        followers: [], // Safeguard
+        following: []  // Safeguard
+      });
     }
   },
+  
   checkStatus: async (userId) => {
     if (get().statusByUserId[userId] !== undefined || get().mutatingByUserId[userId]) {
       return;
@@ -82,7 +110,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       set((state) => ({
         statusByUserId: {
           ...state.statusByUserId,
-          [userId]: status.isFollowing
+          [userId]: status?.isFollowing ?? false
         }
       }));
     } catch {
@@ -94,22 +122,29 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       }));
     }
   },
+  
   followUser: async (user) => {
+    if (!user?.id) return false;
     set((state) => setMutating(state, user.id, true));
 
     try {
       await followsApi.followUser(user.id);
-      set((state) => ({
-        following: state.following.some((profile) => profile.id === user.id) ? state.following : [user, ...state.following],
-        statusByUserId: {
-          ...state.statusByUserId,
-          [user.id]: true
-        },
-        mutatingByUserId: {
-          ...state.mutatingByUserId,
-          [user.id]: false
-        }
-      }));
+      set((state) => {
+        const safeFollowing = state.following || [];
+        return {
+          following: safeFollowing.some((profile) => profile.id === user.id) 
+            ? safeFollowing 
+            : [user, ...safeFollowing],
+          statusByUserId: {
+            ...state.statusByUserId,
+            [user.id]: true
+          },
+          mutatingByUserId: {
+            ...state.mutatingByUserId,
+            [user.id]: false
+          }
+        };
+      });
       return true;
     } catch (error) {
       const appError = toAppError(error);
@@ -123,22 +158,27 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       return false;
     }
   },
+  
   unfollowUser: async (userId) => {
+    if (!userId) return false;
     set((state) => setMutating(state, userId, true));
 
     try {
       await followsApi.unfollowUser(userId);
-      set((state) => ({
-        following: state.following.filter((profile) => profile.id !== userId),
-        statusByUserId: {
-          ...state.statusByUserId,
-          [userId]: false
-        },
-        mutatingByUserId: {
-          ...state.mutatingByUserId,
-          [userId]: false
-        }
-      }));
+      set((state) => {
+        const safeFollowing = state.following || [];
+        return {
+          following: safeFollowing.filter((profile) => profile.id !== userId),
+          statusByUserId: {
+            ...state.statusByUserId,
+            [userId]: false
+          },
+          mutatingByUserId: {
+            ...state.mutatingByUserId,
+            [userId]: false
+          }
+        };
+      });
       return true;
     } catch (error) {
       const appError = toAppError(error);

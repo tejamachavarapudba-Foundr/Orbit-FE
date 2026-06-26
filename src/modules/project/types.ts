@@ -29,6 +29,18 @@ export type Project = {
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
+
+  investorSnapshot?: {
+    completionPercentage: number;
+    isCompleted: boolean;
+    isInvestorReady: boolean;
+
+    mrr: number | null;
+    arr: number | null;
+
+    amountRaising: number | null;
+    equityOffered: number | null;
+  };
 };
 
 export type ProjectReview = {

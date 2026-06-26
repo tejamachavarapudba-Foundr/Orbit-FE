@@ -4,6 +4,35 @@ import { useAuthStore } from "@/modules/auth/store";
 import { useProjectStore } from "@/modules/project/store";
 import { ProjectPayload } from "@/modules/project/types";
 
+export const useInvestorDiscovery = () => {
+  const userId = useAuthStore(
+    (state) => state.user?.id
+    );
+  const investorStartups =
+    useProjectStore(
+      (state) => state.investorStartups
+    );
+ 
+  const loadInvestorDiscovery =
+    useProjectStore(
+      (state) => state.loadInvestorDiscovery
+    );
+
+  useEffect(() => {
+    void loadInvestorDiscovery();
+  }, []);
+
+  return {
+    investorStartups,
+  };
+
+  useEffect(() => {
+    if (userId) {
+      void loadSavedStartups();
+    }
+  }, [userId, loadSavedStartups]);
+};
+
 export const projectStageOptions = [
   { label: "All", value: "all" },
   { label: "Idea", value: "idea" },
@@ -56,12 +85,14 @@ const csvToArray = (value: string) =>
     .filter(Boolean);
 
 export const useProjects = () => {
+  const userId = useAuthStore((state) => state.user?.id);
   const projects = useProjectStore((state) => state.projects);
   const filters = useProjectStore((state) => state.filters);
   const isLoading = useProjectStore((state) => state.isLoading);
   const isRefreshing = useProjectStore((state) => state.isRefreshing);
   const errorMessage = useProjectStore((state) => state.errorMessage);
   const loadProjects = useProjectStore((state) => state.loadProjects);
+  const loadSavedStartups = useProjectStore((state) => state.loadSavedStartups);
   const refreshProjects = useProjectStore((state) => state.refreshProjects);
   const loadStartups = useProjectStore((state) => state.loadStartups);
   const loadTrendingStartups = useProjectStore((state) => state.loadTrendingStartups);
@@ -75,8 +106,9 @@ export const useProjects = () => {
       void loadProjects();
       void loadStartups();
       void loadTrendingStartups();
+      void loadSavedStartups();
     }
-  }, [isLoading, loadProjects, loadStartups, loadTrendingStartups, projects.length]);
+  }, [isLoading, loadProjects, loadStartups, loadTrendingStartups, loadSavedStartups, projects.length]);
 
   const filteredProjects = useMemo(
     () =>
