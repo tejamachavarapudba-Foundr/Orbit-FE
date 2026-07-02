@@ -2,7 +2,7 @@ import { AuthProfile } from "@/modules/auth/types";
 import { Post } from "@/modules/post/types";
 import { Project } from "@/modules/project/types";
 
-export type SearchType = "all" | "users" | "projects" | "jobs" | "events" | "posts";
+export type SearchType = "all" | "users" | "projects" | "jobs" | "events" | "posts" | "messages";
 
 export type SearchUser = {
   id: string;
@@ -39,6 +39,15 @@ export type SearchGroupedResults = {
   jobs: SearchJob[];
   events: SearchEvent[];
   posts: Post[];
+  messages: SearchMessage[];
+};
+
+
+export type SearchMessage = {
+  id: string;
+  content: string;
+  createdAt: string;
+  readAt?: string | null;
 };
 
 export type SearchStateResult = SearchGroupedResults & {

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, ListRenderItem, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
@@ -16,6 +16,7 @@ import { ProjectDetailPanel } from "@/modules/project/components/ProjectDetailPa
 import { projectStageOptions, projectTypeOptions, useProjectDetail, useProjects } from "@/modules/project/hooks";
 import { Project } from "@/modules/project/types";
 import { iconSize } from "@/theme/designTokens";
+import { MeetingRequestModal } from "@/modules/meeting/components/MeetingRequestModal";
 
 export const ProjectsScreen = () => {
   const colors = useThemeTokens();
@@ -34,17 +35,39 @@ export const ProjectsScreen = () => {
     setProjectType
   } = useProjects();
   const { selectProject } = useProjectDetail();
+  
+  const [
+    meetingVisible,
+    setMeetingVisible,
+    ] = useState(false);
+    
+    const [
+    selectedProject,
+    setSelectedProject,
+    ] =
+    useState<Project | null>(
+    null,
+    );
+
+    const handleBookMeeting = useCallback((project: Project) => {
+      setSelectedProject(project);
+      setMeetingVisible(true);
+    }, []);
 
   const renderProject = useCallback<ListRenderItem<Project>>(
     ({ item }) => (
       <View className="w-full max-w-2xl self-center">
-        <ProjectCard project={item} onPress={(id) => void selectProject(id)} />
+        <ProjectCard project={item}
+          onPress={(id) => void selectProject(id)}
+          onBookMeeting={handleBookMeeting}  
+        />
       </View>
     ),
     [selectProject]
   );
 
   return (
+  <>  
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
       <FlatList
@@ -116,7 +139,10 @@ export const ProjectsScreen = () => {
                   keyExtractor={(item) => item.id}
                   renderItem={({ item }) => (
                     <View className="mr-3 w-72">
-                      <ProjectCard project={item} onPress={(id) => void selectProject(id)} />
+                      <ProjectCard 
+                        project={item} onPress={(id) => void selectProject(id)}
+                        onBookMeeting={handleBookMeeting}
+                      />
                     </View>
                   )}
                   showsHorizontalScrollIndicator={false}
@@ -149,5 +175,15 @@ export const ProjectsScreen = () => {
         }
       />
     </AppScreen>
+    <MeetingRequestModal
+      visible={meetingVisible}
+      startupId={selectedProject?.id ?? ""}
+      startupName={selectedProject?.name ?? ""}
+      onClose={() => {
+        setMeetingVisible(false);
+        setSelectedProject(null);
+      }}
+    />
+  </>
   );
 };

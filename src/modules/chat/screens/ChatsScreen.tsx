@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FlatList, ListRenderItem, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
@@ -14,34 +14,67 @@ import { ChatRow } from "@/modules/chat/components/ChatRow";
 import { StartChatCard } from "@/modules/chat/components/StartChatCard";
 import { getOtherParticipantId, useChats } from "@/modules/chat/hooks";
 import { Chat } from "@/modules/chat/types";
-import { UserSummary } from "@/modules/user/types";
 import { iconSize } from "@/theme/designTokens";
+import { AppTextInput } from "@/components/ui/AppTextInput";
 
 export const ChatsScreen = () => {
   const colors = useThemeTokens();
-  const {
-    currentUserId,
-    chats,
-    selectedChat,
-    startableUsers,
-    isLoading,
-    isRefreshing,
-    isCreating,
-    isDetailLoading,
-    deletingChatId,
-    errorMessage,
-    detailErrorMessage,
-    loadChats,
-    refreshChats,
-    startChat,
-    selectChat,
-    clearSelectedChat,
-    deleteChat,
-    getParticipant
-  } = useChats();
+
+const [search, setSearch] = useState("");
+
+const {
+  currentUserId,
+  chats,
+  selectedChat,
+  startableUsers,
+  isLoading,
+  isRefreshing,
+  isCreating,
+  isDetailLoading,
+  deletingChatId,
+  errorMessage,
+  detailErrorMessage,
+  loadChats,
+  refreshChats,
+  startChat,
+  selectChat,
+  clearSelectedChat,
+  deleteChat,
+  getParticipant,
+} = useChats();
+
+const filteredChats = useMemo(() => {
+  if (!search.trim()) {
+    return chats;
+  }
+
+  const keyword = search.trim().toLowerCase();
+
+  return chats.filter((chat) => {
+    const participant = getParticipant(chat);
+
+    if (!participant) {
+    return false;
+    }
+
+    return (
+      participant?.fullName?.toLowerCase().includes(keyword) ||
+      participant?.headline?.toLowerCase().includes(keyword) ||
+      participant?.company?.toLowerCase().includes(keyword) ||
+      participant.bio?.toLowerCase().includes(keyword) ||
+      participant.location?.toLowerCase().includes(keyword)
+    );
+  });
+}, [search, chats, getParticipant]);
 
   const renderChat = useCallback<ListRenderItem<Chat>>(
-    ({ item }) => <ChatRow chat={item} participant={getParticipant(item)} onPress={(id) => void selectChat(id)} />,
+    ({ item }) => (
+    <ChatRow 
+      chat={item}
+      participant={getParticipant(item)}
+      onPress={(id) => void selectChat(id)}
+      />
+    ),
     [getParticipant, selectChat]
   );
 
@@ -50,16 +83,36 @@ export const ChatsScreen = () => {
       startableUsers.find((user) => user.profile.id === getOtherParticipantId(selectedChat, currentUserId))?.profile
     : undefined;
 
-  const listHeader = (
-    <View className="w-full max-w-2xl self-center pb-2 pt-4">
-      <View className="mb-1 flex-row items-center gap-2">
-        <Feather name="message-square" size={iconSize.lg} color={colors.primary} />
-        <AppText family="display" size="2xl" weight="bold" className="tracking-tight">
-          Messages
-        </AppText>
-      </View>
-
-      {startableUsers.length > 0 ? (
+    const listHeader = (
+      <View className="w-full max-w-2xl self-center pb-2 pt-4">
+    
+        <View className="mb-1 flex-row items-center gap-2">
+          <Feather
+            name="message-square"
+            size={iconSize.lg}
+            color={colors.primary}
+          />
+    
+          <AppText
+            family="display"
+            size="2xl"
+            weight="bold"
+            className="tracking-tight"
+          >
+            Messages
+          </AppText>
+        </View>
+    
+        <View className="mt-4">
+          <AppTextInput
+            label="Search"
+            placeholder="Search conversations..."
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+    
+        {startableUsers.length > 0 ? (
         <View className="mt-5">
           <AppText weight="semibold" size="sm">
             Start a chat
@@ -101,7 +154,7 @@ export const ChatsScreen = () => {
         </View>
       ) : (
         <FlatList
-          data={chats}
+          data={filteredChats}
           keyExtractor={(item) => item.id}
           renderItem={renderChat}
           refreshing={isRefreshing}

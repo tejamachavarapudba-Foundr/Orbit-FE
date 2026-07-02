@@ -17,5 +17,62 @@ export const chatApi = {
   deleteChat: async (id: string) => {
     const response = await apiClient.delete<Chat>(`/chats/${id}`);
     return response.data;
-  }
+  },
+  getMessages: async (
+    conversationId: string,
+    limit = 50,
+  ) => {
+    const response = await apiClient.get(
+      `/messages/${conversationId}`,
+      {
+        params: {
+          limit,
+        },
+      },
+    );
+    return response.data;
+  },
+  
+  sendMessage: async (payload: {
+    conversationId: string;
+    content: string;
+  }) => {
+    const response = await apiClient.post(
+      "/messages",
+      payload,
+    );
+  
+    return response.data;
+  },
+  
+  searchMessages: async (
+    conversationId: string,
+    query: string,
+  ) => {
+    const response = await apiClient.get(
+      `/messages/${conversationId}/search`,
+      {
+        params: {
+          q: query,
+        },
+      },
+    );
+  
+    return response.data;
+  },
 };
+// searchMessages: async (
+//   conversationId: string,
+//   query: string,
+// ) => {
+//   const response = await apiClient.get(
+//     `/messages/${conversationId}/search`,
+//     {
+//       params: {
+//         q: query,
+//       },
+//     },
+//   );
+
+//   return response.data;
+// };

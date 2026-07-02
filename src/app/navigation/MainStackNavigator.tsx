@@ -15,6 +15,9 @@ import { TractionScreen } from "@/modules/investorSnapshot/screens/TractionScree
 import { FinancialScreen } from "@/modules/investorSnapshot/screens/FinancialScreen";
 import { OwnershipScreen } from "@/modules/investorSnapshot/screens/OwnershipScreen";
 import { ReviewScreen } from "@/modules/investorSnapshot/screens/ReviewScreen";
+import { InvestorMeetingsScreen } from "@/modules/meeting/screens/InvestorMeetingsScreen";
+import { FounderMeetingRequestsScreen } from "@/modules/meeting/screens/FounderMeetingRequestsScreen";
+import { AdminMeetingRequestsScreen } from "@/modules/meeting/screens/AdminMeetingRequestsScreen";
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -94,6 +97,21 @@ export const MainStackNavigator = () => (
         options={{
           title: "Investment Watchlist",
         }}
+    />
+
+      <Stack.Screen
+        name="InvestorMeetings"
+        component={InvestorMeetingsScreen}
+    />
+
+      <Stack.Screen
+        name="FounderMeetings"
+        component={FounderMeetingRequestsScreen}
+    />
+
+      <Stack.Screen
+        name="AdminMeetings"
+        component={AdminMeetingRequestsScreen}
     />
   </Stack.Navigator>
 );

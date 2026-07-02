@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
@@ -14,12 +14,16 @@ import { iconSize } from "@/theme/designTokens";
 type ProjectCardProps = {
   project: Project;
   onPress: (id: string) => void;
+  onBookMeeting: (
+    project: Project,
+  ) => void;
 };
 
 const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-export const ProjectCard = memo(({ project, onPress }: ProjectCardProps) => {
+export const ProjectCard = memo(({ project, onPress, onBookMeeting }: ProjectCardProps) => {
   const colors = useThemeTokens();
+   
   const savedStartupIds =
     useProjectStore(
       (state) => state.savedStartupIds
@@ -154,6 +158,22 @@ export const ProjectCard = memo(({ project, onPress }: ProjectCardProps) => {
           <AppText size="sm" className="mt-3 leading-5" numberOfLines={3}>
             {project.description || project.pitch || "No description yet."}
           </AppText>
+
+          {/* ADD ONLY THIS SEPARATE MEETING ENTRY BLOCK */}
+          {isInvestor && (
+            <View className="mt-4 pt-3 border-t border-border flex-row justify-end">
+              <Pressable 
+                onPress={() => onBookMeeting(project)}
+                style={{ backgroundColor: colors.primary }}
+                className="px-4 py-2.5 rounded-xl flex-row items-center"
+              >
+                <Feather name="calendar" size={16} color="#fff" />
+                <AppText weight="semibold" size="sm" className="text-white ml-2">
+                  Book Meeting
+                </AppText>
+              </Pressable>
+            </View>
+          )}
         </View>
       </Card>
     </Pressable>

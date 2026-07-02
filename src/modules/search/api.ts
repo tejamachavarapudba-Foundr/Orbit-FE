@@ -10,7 +10,8 @@ const emptyResults = (): SearchGroupedResults => ({
   projects: [],
   jobs: [],
   events: [],
-  posts: []
+  posts: [],
+  messages: []
 });
 
 const normalizeArrayResponse = (type: SearchType, data: RawSearchResponse): SearchGroupedResults => {
@@ -22,7 +23,8 @@ const normalizeArrayResponse = (type: SearchType, data: RawSearchResponse): Sear
       projects: data.projects ?? [],
       jobs: data.jobs ?? [],
       events: data.events ?? [],
-      posts: data.posts ?? []
+      posts: data.posts ?? [],
+      messages: data.messages ?? []
     };
   }
 

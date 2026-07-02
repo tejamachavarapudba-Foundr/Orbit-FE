@@ -44,6 +44,10 @@ export type MainStackParamList = {
       projectId: string;
     };
     
+    InvestorMeetings: undefined;
+    FounderMeetings: { startupId: string;
+    };
+    AdminMeetings: undefined;
 };
 
 

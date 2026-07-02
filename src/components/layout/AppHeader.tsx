@@ -17,14 +17,14 @@ type ProfileMenuItem = {
   label: string;
   icon: keyof typeof Feather.glyphMap;
   route?: string;
-  action?: "logout";
+  action?: "logout" | "meetings";
 };
 
 const profileMenuItems: ProfileMenuItem[] = [
   { label: "My profile", icon: "user", route: "Profile" },
   { label: "Discover", icon: "compass", route: "Discover" },
   { label: "My network", icon: "users", route: "Network" },
-  { label: "Projects", icon: "send", route: "Projects" },
+  { label: "My Meetings", icon: "send", action: "meetings" },
   { label: "Messages", icon: "message-square", route: "Messages" }
 ];
 
@@ -81,11 +81,41 @@ export const AppHeader = () => {
       return;
     }
 
+    
+    if (item.action === "meetings") {
+      if (user?.role === "ADMIN") {
+        navigation.navigate("AdminMeetings");
+        return;
+      }
+
+      if (
+        user?.profile?.role?.toLowerCase() ===
+       "founder"
+     ) {
+       navigation.navigate(
+         "FounderMeetings",
+         {
+           startupId:
+             user.profile.projectId,
+          },
+        );
+
+        return;
+      }
+
+      navigation.navigate(
+        "InvestorMeetings",
+      );
+
+      return;
+    }
+
     if (item.route) {
       navigation.navigate(
-        item.route as never
+       item.route as never,
       );
     }
+
   };
 
   return (
