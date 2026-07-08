@@ -98,6 +98,9 @@ export const useProfileForm = () => {
   const updateAuthProfile = useAuthStore((state) => state.updateProfile);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const updateAvatar = useProfileStore((state) => state.updateAvatar);
+  const updateResume = useProfileStore((state) => state.updateResume);
+  const deleteResume = useProfileStore((state) => state.deleteResume);
+  const isResumeSaving = useProfileStore((state) => state.isResumeSaving);
   const isSaving = useProfileStore((state) => state.isSaving);
   const isAvatarSaving = useProfileStore((state) => state.isAvatarSaving);
   const errorMessage = useProfileStore((state) => state.errorMessage);
@@ -168,6 +171,55 @@ export const useProfileForm = () => {
     return true;
   }, [showToast, updateAuthProfile, updateAvatar, values.avatarUrl]);
 
+  const submitResume = useCallback(
+    async (payload: FormData) => {
+      const updated = await updateResume(payload);
+  
+      if (!updated) {
+        return false;
+      }
+  
+      updateAuthProfile(updated);
+  
+      setValues(fromProfile(updated));
+  
+      showToast({
+        type: "success",
+        title: "Resume uploaded",
+      });
+  
+      return true;
+    },
+    [
+      showToast,
+      updateAuthProfile,
+      updateResume,
+    ],
+  );
+
+  const submitResumeDelete = useCallback(async () => {
+    const updated = await deleteResume();
+  
+    if (!updated) {
+      return false;
+    }
+  
+    updateAuthProfile(updated);
+  
+    setValues(fromProfile(updated));
+  
+    showToast({
+      type: "success",
+      title: "Resume deleted",
+    });
+  
+    return true;
+  }, [
+    deleteResume,
+    updateAuthProfile,
+    showToast,
+  ]);
+
   const memberRole = normalizeMemberRole(values.role);
   const profileCompletion = memberRole
     ? calculateProfileCompletion(
@@ -187,22 +239,28 @@ export const useProfileForm = () => {
 
   return useMemo(
     () => ({
+      profile,
       values,
       memberRole,
       profileCompletion,
       errorMessage,
       isSaving,
       isAvatarSaving,
+      isResumeSaving,
       setValue,
       setRoleProfile,
       ensureRoleProfile,
       submit,
-      submitAvatar
+      submitAvatar,
+      submitResume,
+      submitResumeDelete,
     }),
     [
+      profile,
       ensureRoleProfile,
       errorMessage,
       isAvatarSaving,
+      isResumeSaving,
       isSaving,
       memberRole,
       profileCompletion,
@@ -210,7 +268,9 @@ export const useProfileForm = () => {
       setValue,
       submit,
       submitAvatar,
-      values
+      submitResume,
+      values,
+      submitResumeDelete,
     ]
   );
 };

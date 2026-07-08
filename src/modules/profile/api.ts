@@ -1,6 +1,7 @@
 import { apiClient } from "@/services/api/client";
 import { normalizeAuthProfile } from "@/modules/profile/normalizeProfile";
 import { Profile, UpdateAvatarPayload, UpdateProfilePayload } from "@/modules/profile/types";
+import { UpdateResumePayload } from "@/modules/profile/types";
 
 export const profileApi = {
   getProfiles: async () => {
@@ -18,5 +19,33 @@ export const profileApi = {
   updateAvatar: async (payload: UpdateAvatarPayload) => {
     const response = await apiClient.post<Profile>("/profiles/me/avatar", payload);
     return normalizeAuthProfile(response.data);
-  }
+  },
+  updateResume: async (
+    payload: UpdateResumePayload,
+  ) => {
+    const response =
+      await apiClient.patch<Profile>(
+        "/profiles/me/resume",
+        payload,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        },
+      );
+  
+    return normalizeAuthProfile(
+      response.data,
+    );
+  },
+
+  deleteResume: async () => {
+    const response = await apiClient.delete<Profile>(
+      "/profiles/me/resume",
+    );
+  
+    return normalizeAuthProfile(response.data);
+  },
 };
+

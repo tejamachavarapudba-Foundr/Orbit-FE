@@ -28,6 +28,11 @@ export type AuthProfile = {
   roleProfile?: RoleProfileData | null;
   createdAt: string;
   updatedAt: string;
+  // resume
+  resumeKey?: string;
+  resumeFileName?: string;
+  resumeFileSize?: number;
+  resumeUpdatedAt?: string;
 };
 
 export type LoginPayload = {

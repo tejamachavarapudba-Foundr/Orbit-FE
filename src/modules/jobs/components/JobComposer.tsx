@@ -18,7 +18,6 @@ export const JobComposer = () => {
   const colors = useThemeTokens();
   const { createJob, isCreating } = useJobs();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [projectId, setProjectId] = useState("");
   const [startupName, setStartupName] = useState("");
   const [heading, setHeading] = useState("");
   const [role, setRole] = useState("engineer");
@@ -26,10 +25,9 @@ export const JobComposer = () => {
   const [skills, setSkills] = useState("");
   const [description, setDescription] = useState("");
 
-  const canSubmit = projectId.trim() && startupName.trim() && heading.trim() && role.trim() && description.trim();
+  const canSubmit = startupName.trim() && heading.trim() && role.trim() && description.trim();
 
   const reset = () => {
-    setProjectId("");
     setStartupName("");
     setHeading("");
     setRole("engineer");
@@ -41,7 +39,6 @@ export const JobComposer = () => {
 
   const submit = async () => {
     const success = await createJob({
-      projectId: projectId.trim(),
       startupName: startupName.trim(),
       heading: heading.trim(),
       role: role.trim(),
@@ -77,7 +74,6 @@ export const JobComposer = () => {
         <AppText weight="semibold" size="lg">
           New job
         </AppText>
-        <AppTextInput label="Project ID" value={projectId} onChangeText={setProjectId} autoCapitalize="none" />
         <AppTextInput label="Startup name" value={startupName} onChangeText={setStartupName} />
         <AppTextInput label="Heading" value={heading} onChangeText={setHeading} />
         <View className="flex-row gap-3">

@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { useProjectStore } from "@/modules/project/store";
@@ -23,7 +23,7 @@ const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g,
 
 export const ProjectCard = memo(({ project, onPress, onBookMeeting }: ProjectCardProps) => {
   const colors = useThemeTokens();
-   
+  console.log("Project Logo:", project.logoUrl);
   const savedStartupIds =
     useProjectStore(
       (state) => state.savedStartupIds
@@ -52,11 +52,28 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting }: ProjectCar
       <Card className="overflow-hidden">
         <View className="h-24 bg-primary/15" />
         <View className="px-4 pb-4">
-          <View className="-mt-8 mb-3 h-14 w-14 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
-            <AppText weight="bold" size="xl" tone="primary">
-              {initial}
+        <View className="-mt-8 mb-3 h-14 w-14 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          {project.logoUrl ? (
+            <Image
+              source={{ uri: project.logoUrl }}
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+              resizeMode="cover"
+            />
+         ) : (
+          <View className="flex-1 items-center justify-center">
+            <AppText
+              weight="bold"
+              size="xl"
+              tone="primary"
+            >
+             {initial}
             </AppText>
           </View>
+          )}
+        </View>
         <View className="flex-row items-center justify-between">
           <AppText family="display" weight="semibold" size="lg" numberOfLines={1}>
             {project.name || "Untitled project"}

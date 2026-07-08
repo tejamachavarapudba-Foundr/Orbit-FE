@@ -15,6 +15,8 @@ import { useProfileForm } from "@/modules/profile/hooks";
 import { useUserStore } from "@/modules/user/store";
 import { useToastStore } from "@/store/toastStore";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { ResumeCard } from "@/components/profile/ResumeCard";
+import * as DocumentPicker from 'expo-document-picker';
 
 export const ProfileScreen = () => {
   const colors = useThemeTokens();
@@ -25,17 +27,21 @@ export const ProfileScreen = () => {
   const isDeletingAccount = useUserStore((state) => state.isDeletingAccount);
   const showToast = useToastStore((state) => state.show);
   const {
+    profile,
     values,
     memberRole,
     profileCompletion,
     errorMessage,
     isSaving,
-    isAvatarSaving,
+    isAvatarSaving,    
+    isResumeSaving,
     setValue,
     setRoleProfile,
     ensureRoleProfile,
     submit,
-    submitAvatar
+    submitAvatar,
+    submitResume,
+    submitResumeDelete,
   } = useProfileForm();
 
   useEffect(() => {
@@ -56,8 +62,73 @@ export const ProfileScreen = () => {
       { text: "Delete", style: "destructive", onPress: () => void handleDeleteAccount() }
     ]);
   };
-
+  const handleResumeUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+  
+      if (result.canceled || result.assets?.length === 0) {
+        return;
+      }
+  
+      const file = result.assets[0];
+  
+      const formData = new FormData();
+  
+      formData.append(
+        "file",
+        {
+          uri: file.uri,
+          name: file.name,
+          type: file.mimeType || "application/octet-stream",
+        } as any,
+      );
+  
+      const success = await submitResume(formData);
+  
+      if (success) {
+        showToast({
+          type: "success",
+          title: "Resume uploaded",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+  
+      showToast({
+        type: "error",
+        title: "Resume upload failed",
+      });
+    }
+  };
   const roleLabel = ONBOARDING_ROLES.find((role) => role.value === memberRole)?.label ?? values.role;
+
+  const handleResumeDelete = async () => {
+    Alert.alert(
+      "Delete Resume",
+      "Are you sure you want to delete your resume?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await submitResumeDelete();
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <AppScreen>
@@ -153,6 +224,14 @@ export const ProfileScreen = () => {
           />
           <AppButton label="Update avatar" variant="outline" loading={isAvatarSaving} onPress={() => void submitAvatar()} />
         </View>
+
+        <ResumeCard
+          profile={profile}
+          isUploading={isResumeSaving}
+          onUpload={() => void handleResumeUpload()}
+          onReplace={() => void handleResumeUpload()}
+          onDelete={() => void handleResumeDelete()}
+        />
 
         <View className="mb-8 mt-4 gap-3">
           <AppButton label="Sign out" variant="outline" onPress={() => void logout()} />

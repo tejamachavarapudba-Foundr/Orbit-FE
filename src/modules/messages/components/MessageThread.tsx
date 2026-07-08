@@ -21,6 +21,7 @@ const formatTime = (date: string) =>
 
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
+  console.count("MESSAGETHREAD");
   const {
     currentUserId,
     messages,

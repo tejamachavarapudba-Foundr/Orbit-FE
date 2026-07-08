@@ -1,6 +1,6 @@
 import { NavigationContainer, Theme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
+import { useMemo } from "react";
 import { RootStackParamList } from "@/app/navigation/types";
 import { AuthNavigator } from "@/app/navigation/AuthNavigator";
 import { MainStackNavigator } from "@/app/navigation/MainStackNavigator";
@@ -23,23 +23,30 @@ export const RootNavigator = () => {
   const profile = useAuthStore((state) => state.user?.profile);
   const showOnboarding = isAuthenticated && needsOnboarding(profile);
 
-  const navigationTheme: Theme = {
-    dark: useThemeStore.getState().resolvedScheme === "dark",
-    colors: {
-      primary: colors.primary,
-      background: colors.background,
-      card: colors.surface,
-      text: colors.text,
-      border: colors.border,
-      notification: colors.primary
-    },
-    fonts: {
-      regular: { fontFamily: "System", fontWeight: "400" },
-      medium: { fontFamily: "System", fontWeight: "500" },
-      bold: { fontFamily: "System", fontWeight: "700" },
-      heavy: { fontFamily: "System", fontWeight: "800" }
-    }
-  };
+  const resolvedScheme = useThemeStore(
+    (state) => state.resolvedScheme,
+  );
+  
+  const navigationTheme = useMemo<Theme>(
+    () => ({
+      dark: resolvedScheme === "dark",
+      colors: {
+        primary: colors.primary,
+        background: colors.background,
+        card: colors.surface,
+        text: colors.text,
+        border: colors.border,
+        notification: colors.primary,
+      },
+      fonts: {
+        regular: { fontFamily: "System", fontWeight: "400" },
+        medium: { fontFamily: "System", fontWeight: "500" },
+        bold: { fontFamily: "System", fontWeight: "700" },
+        heavy: { fontFamily: "System", fontWeight: "800" },
+      },
+    }),
+    [resolvedScheme, colors],
+  );
 
   if (!isAuthHydrated || !isThemeHydrated) {
     return (

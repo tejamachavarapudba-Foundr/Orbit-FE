@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert, View } from "react-native";
-
+import { useAuthStore } from "@/modules/auth/store";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
@@ -26,6 +26,23 @@ export const JobDetailPanel = () => {
 
   const isMutating = mutatingId === selectedJob.id;
   const applications = selectedJob.applications ?? [];
+  const profile = useAuthStore(
+    (state) => state.user?.profile,
+  );
+  
+  const role = profile?.role;
+  
+  const canManageJobs =
+    role === "founder" ||
+    role === "co_founder" ||
+    role === "investor" ||
+    role === "hr";
+  
+  const canApply =
+    !canManageJobs;
+  
+  const isOwner =
+    profile?.id === selectedJob.posterId;
 
   const submitApply = async () => {
     const success = await applyJob(selectedJob.id, applicationMessage.trim() || "Resume + cover letter...");
@@ -77,7 +94,7 @@ export const JobDetailPanel = () => {
             </View>
           ))}
         </View>
-
+        {canApply && (
         <View className="rounded-md border border-border bg-muted-bg p-3">
           <AppText weight="semibold" size="sm">
             Apply
@@ -99,7 +116,8 @@ export const JobDetailPanel = () => {
             size="sm"
           />
         </View>
-
+        )}
+        {isOwner && (
         <View className="rounded-md border border-border bg-muted-bg p-3">
           <AppText weight="semibold" size="sm">
             Owner tools
@@ -136,7 +154,7 @@ export const JobDetailPanel = () => {
             />
           </View>
         </View>
-
+        )}
         <View>
           <AppText weight="semibold" size="sm">
             Applications ({applications.length})

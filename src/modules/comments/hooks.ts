@@ -1,47 +1,100 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useAuthStore } from "@/modules/auth/store";
 import { useCommentStore } from "@/modules/comments/store";
+import { Comment } from "@/modules/comments/types";
 
-export const usePostComments = (postId: string) => {
-  const currentUserId = useAuthStore((state) => state.user?.profile.id);
-  const comments = useCommentStore((state) => state.comments);
-  const isLoading = useCommentStore((state) => state.isLoading);
-  const isSubmitting = useCommentStore((state) => state.isSubmittingByPostId[postId] ?? false);
-  const deletingCommentId = useCommentStore((state) => state.deletingCommentId);
-  const errorMessage = useCommentStore((state) => state.errorMessage);
-  const loadComments = useCommentStore((state) => state.loadComments);
-  const createComment = useCommentStore((state) => state.createComment);
-  const deleteComment = useCommentStore((state) => state.deleteComment);
-  const [draft, setDraft] = useState("");
+export const usePostComments = (
+  postId: string,
+  initialComments: Comment[],
+) => {
+  const currentUserId = useAuthStore(
+    (state) => state.user?.profile.id,
+  );
 
-  useEffect(() => {
-    if (comments.length === 0 && !isLoading) {
-      void loadComments();
-    }
-  }, [comments.length, isLoading, loadComments]);
+  const isLoading = useCommentStore(
+    (state) => state.isLoading,
+  );
 
-  const postComments = useMemo(() => comments.filter((comment) => comment.postId === postId), [comments, postId]);
+  const isSubmitting = useCommentStore(
+    (state) =>
+      state.isSubmittingByPostId[postId] ??
+      false,
+  );
 
-  const submitComment = useCallback(async () => {
-    const content = draft.trim();
+  const deletingCommentId =
+    useCommentStore(
+      (state) => state.deletingCommentId,
+    );
 
-    if (!content) {
-      return false;
-    }
+  const errorMessage = useCommentStore(
+    (state) => state.errorMessage,
+  );
 
-    const didSucceed = await createComment(postId, content);
-    if (didSucceed) {
-      setDraft("");
-    }
+  const createComment =
+    useCommentStore(
+      (state) => state.createComment,
+    );
 
-    return didSucceed;
-  }, [createComment, draft, postId]);
+  const deleteComment =
+    useCommentStore(
+      (state) => state.deleteComment,
+    );
+
+  const [draft, setDraft] =
+    useState("");
+
+    const comments = useCommentStore(
+      state => state.comments,
+  );
+  
+  const postComments = useMemo(() => {
+  
+      const liveComments =
+          comments.filter(
+              c => c.postId === postId,
+          );
+  
+      return liveComments.length > 0
+          ? liveComments
+          : initialComments;
+  
+  }, [
+      comments,
+      initialComments,
+      postId,
+  ]);
+
+  const submitComment =
+    useCallback(async () => {
+      const content = draft.trim();
+
+      if (!content) {
+        return false;
+      }
+
+      const didSucceed =
+        await createComment(
+          postId,
+          content,
+        );
+
+      if (didSucceed) {
+        setDraft("");
+      }
+
+      return didSucceed;
+    }, [
+      createComment,
+      draft,
+      postId,
+    ]);
 
   return {
     currentUserId,
     comments: postComments,
-    commentsCount: postComments.length,
+    commentsCount:
+      postComments.length,
     isLoading,
     isSubmitting,
     deletingCommentId,
@@ -49,6 +102,6 @@ export const usePostComments = (postId: string) => {
     draft,
     setDraft,
     submitComment,
-    deleteComment
+    deleteComment,
   };
 };

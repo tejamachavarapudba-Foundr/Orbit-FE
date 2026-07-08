@@ -17,6 +17,7 @@ import { Post, PostCategory } from "@/modules/post/types";
 
 export const FeedScreen = () => {
   const user = useAuthStore((state) => state.user);
+  console.count("FEEDSCREEN");
   const {
     posts,
     totalCount,
@@ -40,18 +41,27 @@ export const FeedScreen = () => {
     []
   );
   const keyExtractor = useCallback((item: Post) => item.id, []);
-
+  const ITEM_SEPARATOR_HEIGHT = 16;
+  const ItemSeparator = () => (
+    <View style={{ height: ITEM_SEPARATOR_HEIGHT }} />
+);
   return (
     <AppScreen withHorizontalPadding={false}>
       <FlatList
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={7}
+        removeClippedSubviews={true}
+        updateCellsBatchingPeriod={50}
+        ItemSeparatorComponent={ItemSeparator}
         data={posts}
         keyExtractor={keyExtractor}
         renderItem={renderPost}
         refreshing={isRefreshing}
         onRefresh={() => void refreshPosts()}
         onEndReached={hasMore ? loadMore : undefined}
-        onEndReachedThreshold={0.4}
-        contentContainerStyle={{ gap: 16, paddingHorizontal: 16, paddingBottom: 32, paddingTop: 8 }}
+        onEndReachedThreshold={0.2}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32, paddingTop: 8 }}
         ListHeaderComponent={
           <View className="w-full max-w-2xl self-center py-4">
             <View className="mb-5 flex-row items-start justify-between gap-3">

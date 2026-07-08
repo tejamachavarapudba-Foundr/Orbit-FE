@@ -71,7 +71,7 @@ import {
       );
   
        
-      console.log("Admin meetings:", meetings);
+      // console.log("Admin meetings:", meetings);
       
     const isSubmitting =
       useMeetingStore(
@@ -85,17 +85,17 @@ import {
       });
   
     useEffect(() => {
-      setValues((current) => ({
+      setValues((current: typeof values) => ({
         ...current,
         startupId,
       }));
     }, [startupId]);
     
-    useEffect(() => {
-      console.log("Loading admin meetings...");
-      void loadMeetings();
-    }, []);
-    const setField =
+    // useEffect(() => {
+    //   console.log("Loading admin meetings...");
+    //   void loadMeetings();
+    // }, []);
+    const setField = 
       useCallback(
         <
           Key extends keyof typeof values,
@@ -103,7 +103,7 @@ import {
           key: Key,
           value: (typeof values)[Key],
         ) => {
-          setValues((current) => ({
+          setValues((current: typeof values) => ({
             ...current,
             [key]: value,
           }));
@@ -111,7 +111,7 @@ import {
         [],
       );
   
-    const submit =
+    const submit = 
       useCallback(async () => {
         if (
           !values.purpose.trim() ||
@@ -149,12 +149,12 @@ import {
   
       isSubmitting,
   
-      canSubmit:
-        Boolean(
-          values.purpose &&
-            values.preferredDate1 &&
-            values.preferredTime1,
-        ),
+      //canSubmit:
+        // Boolean(
+        //   values.purpose &&
+        //     values.preferredDate1 &&
+        //     values.preferredTime1,
+        // ),
     };
   };
   

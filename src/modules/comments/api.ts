@@ -2,8 +2,8 @@ import { apiClient } from "@/services/api/client";
 import { Comment, CommentResponse, CreateCommentPayload } from "@/modules/comments/types";
 
 export const commentsApi = {
-  getComments: async () => {
-    const response = await apiClient.get<Comment[]>("/comments");
+  getComments: async (postId: string) => {
+    const response = await apiClient.get<Comment[]>(`/comments?postId=${postId}`);
     return response.data;
   },
   createComment: async (payload: CreateCommentPayload) => {

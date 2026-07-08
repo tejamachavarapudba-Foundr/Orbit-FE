@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
+import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/modules/auth/store";
 import { usePostStore } from "@/modules/post/store";
 import { CreatePostPayload, PostCategory, PostFormValues, PostMediaType } from "@/modules/post/types";
@@ -43,9 +43,7 @@ const initialForm: PostFormValues = {
 const toPayload = (values: PostFormValues): CreatePostPayload => ({
   content: values.content.trim(),
   category: values.category,
-  imageUrl: values.imageUrl.trim(),
   linkUrl: values.linkUrl.trim(),
-  mediaType: values.mediaType,
   projectId: null
 });
 
@@ -74,10 +72,19 @@ export const useFeed = () => {
     setVisibleCount((current) => Math.min(current + pageSize, filteredPosts.length));
   }, [filteredPosts.length]);
 
-  const updateCategory = useCallback((category: PostCategory | "all") => {
-    setVisibleCount(pageSize);
-    setActiveCategory(category);
-  }, []);
+  const updateCategory = useCallback(
+    (category: PostCategory | "all") => {
+      setActiveCategory((current) => {
+        if (current === category) {
+          return current;
+        }
+  
+        setVisibleCount(pageSize);
+        return category;
+      });
+    },
+    []
+  );
 
   return {
     posts: visiblePosts,
@@ -103,14 +110,14 @@ export const usePostComposer = () => {
     setValues((current) => ({ ...current, [key]: value }));
   }, []);
 
-  const submit = useCallback(async () => {
+  const submit = useCallback(async (files: ImagePicker.ImagePickerAsset[]) => {
     const payload = toPayload(values);
 
     if (!payload.content) {
       return false;
     }
 
-    const didSucceed = await createPost(payload);
+    const didSucceed = await createPost(payload, files);
     if (didSucceed) {
       setValues(initialForm);
     }

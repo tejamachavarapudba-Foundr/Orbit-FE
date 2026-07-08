@@ -5,12 +5,14 @@ import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { usePostComments } from "@/modules/comments/hooks";
+import { Comment } from "@/modules/comments/types";
 
 type CommentsPanelProps = {
   postId: string;
+  initialComments: Comment[];
 };
 
-export const CommentsPanel = memo(({ postId }: CommentsPanelProps) => {
+export const CommentsPanel = memo(({ postId, initialComments }: CommentsPanelProps) => {
   const colors = useThemeTokens();
   const {
     currentUserId,
@@ -23,7 +25,7 @@ export const CommentsPanel = memo(({ postId }: CommentsPanelProps) => {
     setDraft,
     submitComment,
     deleteComment
-  } = usePostComments(postId);
+  } = usePostComments(postId, initialComments);
 
   const emptyMessage = useMemo(() => (isLoading ? "Loading…" : null), [isLoading]);
 

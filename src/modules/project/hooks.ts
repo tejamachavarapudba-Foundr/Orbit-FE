@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 
 import { useAuthStore } from "@/modules/auth/store";
 import { useProjectStore } from "@/modules/project/store";
@@ -18,20 +18,28 @@ export const useInvestorDiscovery = () => {
       (state) => state.loadInvestorDiscovery
     );
 
+    const loadSavedStartups =
+  useProjectStore(
+    (state) => state.loadSavedStartups
+  );
+
   useEffect(() => {
     void loadInvestorDiscovery();
   }, []);
 
-  return {
-    investorStartups,
-  };
 
   useEffect(() => {
     if (userId) {
       void loadSavedStartups();
     }
   }, [userId, loadSavedStartups]);
+
+  return {
+    investorStartups,
+  };
 };
+
+ 
 
 export const projectStageOptions = [
   { label: "All", value: "all" },
@@ -100,15 +108,21 @@ export const useProjects = () => {
   const setQuery = useProjectStore((state) => state.setQuery);
   const setStage = useProjectStore((state) => state.setStage);
   const setProjectType = useProjectStore((state) => state.setProjectType);
-
+  const hasLoaded = useRef(false);
   useEffect(() => {
-    if (projects.length === 0 && !isLoading) {
-      void loadProjects();
-      void loadStartups();
-      void loadTrendingStartups();
-      void loadSavedStartups();
+    if (hasLoaded.current) {
+      return;
     }
-  }, [isLoading, loadProjects, loadStartups, loadTrendingStartups, loadSavedStartups, projects.length]);
+  
+    hasLoaded.current = true;
+  
+    void Promise.all([
+      loadProjects(),
+      loadStartups(),
+      loadTrendingStartups(),
+      loadSavedStartups(),
+    ]);
+  }, []);
 
   const filteredProjects = useMemo(
     () =>

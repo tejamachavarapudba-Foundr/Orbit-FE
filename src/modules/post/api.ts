@@ -1,5 +1,6 @@
 import { apiClient } from "@/services/api/client";
 import { CreatePostPayload, Post, UpdatePostPayload } from "@/modules/post/types";
+import * as ImagePicker from "expo-image-picker";
 
 export const postApi = {
   getPosts: async () => {
@@ -10,9 +11,73 @@ export const postApi = {
     const response = await apiClient.get<Post>(`/posts/${id}`);
     return response.data;
   },
-  createPost: async (payload: CreatePostPayload) => {
-    const response = await apiClient.post<Post>("/posts", payload);
-    return response.data;
+  createPost: async (payload: CreatePostPayload, files: ImagePicker.ImagePickerAsset[]) => {
+    const formData = new FormData();
+    formData.append(
+      "content",
+      payload.content,
+  );
+  
+  formData.append(
+      "category",
+      payload.category,
+  );
+  
+  if(payload.linkUrl){
+     formData.append(
+        "linkUrl",
+        payload.linkUrl,
+     );
+  }
+  
+  if(payload.projectId){
+     formData.append(
+        "projectId",
+        payload.projectId,
+     );
+  }
+
+  files.forEach(file=>{
+    formData.append(
+       "files",
+       {
+           uri:file.uri,
+           type:file.mimeType ??
+                "image/jpeg",
+           name:
+             file.fileName ??
+             `upload-${Date.now()}`,
+       } as any,
+    );
+});
+
+files.forEach((file, index) => {
+formData.append(
+  "mediaMetadata",
+  JSON.stringify({
+    index,
+    width: file.width ?? null,
+    height: file.height ?? null,
+    duration: file.duration ?? null,
+    mimeType: file.mimeType ?? null,
+    fileSize: file.fileSize ?? null,
+  }),
+);
+});
+
+const response =
+    await apiClient.post<Post>(
+      "/posts",
+      formData,
+      {
+        headers: {
+         "Content-Type":
+          "multipart/form-data",
+      },
+    },
+  );
+
+   return response.data;
   },
   updatePost: async (id: string, payload: UpdatePostPayload) => {
     const response = await apiClient.patch<Post>(`/posts/${id}`, payload);

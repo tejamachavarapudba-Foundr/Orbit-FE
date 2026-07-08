@@ -2,75 +2,48 @@ import { useState } from "react";
 import { Image, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useUploadMedia } from "@/modules/media/hooks";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { postCategoryOptions, usePostComposer } from "@/modules/post/hooks";
-import { PostMediaType } from "@/modules/post/types";
 
 export const PostComposer = () => {
   const colors = useThemeTokens();
   const { values, isSubmitting, setField, submit, canSubmit } = usePostComposer();
   const [showExtras, setShowExtras] = useState(false);
-  const uploadMedia = useUploadMedia();
+  const [selectedFiles, setSelectedFiles] =
+  useState<ImagePicker.ImagePickerAsset[]>([]);
   const clearMedia = () => {
-    setField("imageUrl", "");
-    setField("mediaType", "none" as PostMediaType);
+    setSelectedFiles([]);
   };
   
   const handlePickPhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-  
-    if (result.canceled) {
-      return;
-    }
-  
-    try {
-      const upload = await uploadMedia.mutateAsync({
-        uri: result.assets[0].uri,
-        kind: "post",
+    const result =
+      await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
       });
-  
-      console.log("UPLOAD RESPONSE:", upload);
-      console.log("CURRENT IMAGE URL:", values.imageUrl);
-      setField("imageUrl", result.assets[0].uri);
-      console.log("LOCAL URI:", result.assets[0].uri);
-      setField("mediaType", "image" as PostMediaType);
-      
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handlePickVideo = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["videos"],
-      quality: 0.8,
-    });
   
     if (result.canceled) return;
   
-    try {
-      const upload = await uploadMedia.mutateAsync({
-        uri: result.assets[0].uri,
-        kind: "post",
+    setSelectedFiles(result.assets);
+  };
+
+  const handlePickVideo = async () => {
+    const result =
+      await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["videos"],
+        quality: 0.8,
       });
   
-      setField("imageUrl", upload.url);
-      setField("mediaType", "video" as PostMediaType);
-    } catch (error) {
-      console.error("Video upload failed:", error);
-    }
+    if (result.canceled) return;
+  
+    setSelectedFiles(result.assets);
   };
   
-  console.log("CURRENT IMAGE URL:", values.imageUrl);
-
+  console.count("POST COMPOSER");
   return (
     <Card className="mb-5">
       <CardContent className="gap-4 p-4">
@@ -86,12 +59,12 @@ export const PostComposer = () => {
           className="min-h-[88px] rounded-md border border-input bg-background px-3 py-3 text-base leading-6 text-text"
         />
 
-        {values.imageUrl ? (
+        {selectedFiles.length > 0 ?  (
           <View className="relative border border-red-500 p-2">
             <AppText>IMAGE FOUND</AppText>
 
             <Image
-              source={{ uri: values.imageUrl }}
+              source={{ uri: selectedFiles[0]?.uri }}
               style={{
                 width: 300,
                height: 200,
@@ -124,29 +97,9 @@ export const PostComposer = () => {
                 className="h-11 flex-1 text-sm text-text"
               />
             </View>
-            {!values.imageUrl.trim() ? (
-              <View className="flex-row items-center gap-2 rounded-md border border-input bg-background px-3">
-                <Feather name="image" size={16} color={colors.muted} />
-                <TextInput
-                  value={values.imageUrl}
-                  onChangeText={(value) => {
-                    setField("imageUrl", value);
-                    if (value.trim()) {
-                      setField("mediaType", "image" as PostMediaType);
-                    }
-                  }}
-                  placeholder="Image or video URL"
-                  placeholderTextColor={colors.muted}
-                  selectionColor={colors.primary}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                  className="h-11 flex-1 text-sm text-text"
-                />
-              </View>
-            ) : null}
           </View>
         ) : null}
-
+        
         <View>
           <AppText tone="muted" size="xs" weight="medium" className="mb-2">
             Category
@@ -193,7 +146,7 @@ export const PostComposer = () => {
               loading={isSubmitting}
               disabled={!canSubmit}
               leftIcon={<Feather name="send" size={14} color={colors.onPrimary} />}
-              onPress={() => void submit()}
+              onPress={() => void submit(selectedFiles)}
             />
           </View>
         </View>

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-
+import * as ImagePicker from "expo-image-picker";
 import { postApi } from "@/modules/post/api";
 import { CreatePostPayload, Post, UpdatePostPayload } from "@/modules/post/types";
 import { useToastStore } from "@/store/toastStore";
@@ -19,7 +19,7 @@ type PostState = {
   refreshPosts: () => Promise<void>;
   getPostById: (id: string) => Promise<void>;
   clearSelectedPost: () => void;
-  createPost: (payload: CreatePostPayload) => Promise<boolean>;
+  createPost: (payload: CreatePostPayload, files: ImagePicker.ImagePickerAsset[]) => Promise<boolean>;
   updatePost: (id: string, payload: UpdatePostPayload) => Promise<boolean>;
   deletePost: (id: string) => Promise<boolean>;
 };
@@ -71,11 +71,15 @@ export const usePostStore = create<PostState>((set) => ({
     }
   },
   clearSelectedPost: () => set({ selectedPost: null, detailErrorMessage: null }),
-  createPost: async (payload) => {
+  createPost: async (payload, files) => {
     set({ isSubmitting: true, errorMessage: null });
-
+    
     try {
-      const post = await postApi.createPost(payload);
+      const post = await postApi.createPost(payload, files);
+      console.log(
+        "NEW POST FROM API:",
+        JSON.stringify(post, null, 2),
+      );
       set((state) => ({ posts: sortPosts([post, ...state.posts]), isSubmitting: false }));
       useToastStore.getState().show({ type: "success", title: "Post published" });
       return true;

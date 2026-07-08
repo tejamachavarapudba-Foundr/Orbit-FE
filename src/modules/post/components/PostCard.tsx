@@ -1,7 +1,6 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useEffect, useState } from "react";
 import { Alert, Image, Linking, Pressable, Share, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
@@ -16,6 +15,8 @@ import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { Post, PostCategory } from "@/modules/post/types";
 import { iconSize, toBadgeCategory } from "@/theme/designTokens";
+import { Video, ResizeMode } from 'expo-av';
+import { getMediaSize } from "@/modules/post/utils/media";
 
 type PostCardProps = {
   post: Post;
@@ -35,30 +36,79 @@ const formatRelativeTime = (date: string) => {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(date));
 };
 
+const PostVideo = ({
+  uri,
+  width,
+  height,
+}: {
+  uri: string;
+  width?: number | null;
+  height?: number | null;
+}) => {
+  const mediaSize = getMediaSize(
+    width ?? null,
+    height ?? null,
+  );
+
+  return (
+    <View
+      style={{
+        width: mediaSize.width,
+        height: mediaSize.height,
+        borderRadius: 12,
+        overflow: "hidden",
+        backgroundColor: "#000",
+      }}
+    >
+      <Video
+        source={{ uri }}
+        useNativeControls
+        resizeMode={ResizeMode.CONTAIN}
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+        shouldPlay={false}
+        isLooping={false}
+      />
+    </View>
+  );
+};
+
 export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
-  const currentUser = useAuthStore((state) => state.user);
+  console.count(`POSTCARD-${post.id}`);
   const { currentUserId, isSubmitting, deletingPostId, updatePost, deletePost } = usePostActions();
-  const { likesCount, isLikedByMe, isMutating, toggleLike } = usePostLikes(post.id);
-  const { commentsCount } = usePostComments(post.id);
+  const {
+    likesCount,
+    isLikedByMe,
+    isMutating,
+    toggleLike,
+  } = usePostLikes(
+    post.id,
+    post.likes,
+  );
+  
+  const commentsCount = post.comments.length;
   const [isEditing, setIsEditing] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [draftContent, setDraftContent] = useState(post.content);
   const [draftCategory, setDraftCategory] = useState<PostCategory>(
     postCategoryOptions.some((option) => option.value === post.category) ? (post.category as PostCategory) : "Update"
   );
-  const isOwnPost = currentUserId === post.authorId;
-  const authorName = isOwnPost ? currentUser?.profile.fullName || "You" : `Member ${post.authorId.slice(0, 8)}`;
-  const authorRole = isOwnPost ? currentUser?.profile.headline || "Founder" : "Community member";
+  const isOwnPost = currentUserId === post.author?.id;
+  const authorName = post.author?.fullName ??  "Unknown";
+  const authorRole = post.author?.headline ??  "";
   const isDeleting = deletingPostId === post.id;
 
-  const categoryLabel = useMemo(() => {
-    const match = postCategoryOptions.find((option) => option.value === post.category);
-    return match?.label ?? post.category;
-  }, [post.category]);
+  const categoryLabel =
+  postCategoryOptions.find(
+    option => option.value === post.category
+  )?.label ?? post.category;
 
   const categoryBadge = toBadgeCategory(post.category);
-
+  const media = post.media?.[0];
+  const mediaSize = getMediaSize(media?.width?? null, media?.height?? null,);
   const submitEdit = useCallback(async () => {
     const didSucceed = await updatePost(post.id, {
       content: draftContent.trim(),
@@ -90,7 +140,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     <Card className="overflow-hidden">
       <View className="px-4 pb-0 pt-4">
         <View className="flex-row items-start gap-3">
-          <Avatar name={authorName} imageUrl="" size="md" fallback="mesh" />
+          <Avatar name={authorName} imageUrl={post.author.avatarUrl} size="md" fallback="mesh" />
           <View className="min-w-0 flex-1 pr-24">
             <AppText weight="medium" numberOfLines={1}>
               {authorName}
@@ -153,19 +203,28 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             <AppText size="sm" className="leading-relaxed">
               {post.content}
             </AppText>
-            {post.imageUrl ? (
-              post.mediaType === "video" ? (
-                <View className="max-h-80 w-full overflow-hidden rounded-lg border border-border bg-black">
-                  <AppText tone="muted" size="sm" className="p-4 text-center">
-                    Video: {post.imageUrl}
-                  </AppText>
-                </View>
+            {media ? (
+              media.type === "VIDEO" ? (
+                <PostVideo uri={media.url} width={media.width?? null} height={media.height?? null} />
               ) : (
-                <Image
-                  source={{ uri: post.imageUrl }}
-                  className="max-h-96 w-full rounded-lg border border-border bg-black"
-                  resizeMode="cover"
-                />
+                <View
+                  style={{
+                    width: mediaSize.width,
+                    height: mediaSize.height,
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    backgroundColor: "#000",
+                  }}
+                >
+                  <Image
+                    source={{ uri: media.url }}
+                    resizeMode="contain"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  />
+                </View>
               )
             ) : null}
             {post.linkUrl ? (
@@ -247,7 +306,12 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 </View>
               ) : null}
             </View>
-            {showComments ? <CommentsPanel postId={post.id} /> : null}
+            {showComments ?
+              <CommentsPanel
+                  postId={post.id}
+                  initialComments={post.comments}
+              /> 
+             : null}
           </>
         ) : null}
       </CardContent>

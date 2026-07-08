@@ -34,6 +34,7 @@ const projectsTabIcon = ({ color }: TabIconProps) => (
 
 export const MainNavigator = () => {
   const colors = useThemeTokens();
+  console.count("MAINNAVIGATOR");
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
 
   // 1. Connection invitations counter
@@ -84,22 +85,29 @@ export const MainNavigator = () => {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Feed", tabBarIcon: tabIcon("home") }} />
       
-      <Tab.Screen 
-        name="Messages" 
-        component={ChatsScreen} 
-        options={{ 
-          tabBarIcon: tabIcon("message-square"),
-          tabBarBadge: combinedMessageAlerts > 0 ? combinedMessageAlerts : undefined,
-          tabBarBadgeStyle: { 
-            backgroundColor: colors.primary, 
-            color: '#fff', 
-            fontSize: 10, 
-            height: 16, 
-            minWidth: 16,
-            lineHeight: 14,
-            textAlign: 'center'
+      <Tab.Screen
+        name="Messages"
+        component={ChatsScreen}
+        options={() => {
+          const options: any = {
+            tabBarIcon: tabIcon("message-square"),
+          };
+
+          if (combinedMessageAlerts > 0) {
+            options.tabBarBadge = combinedMessageAlerts;
+            options.tabBarBadgeStyle = {
+              backgroundColor: colors.primary,
+              color: "#fff",
+              fontSize: 10,
+              height: 16,
+              minWidth: 16,
+              lineHeight: 14,
+              textAlign: "center",
+            };
           }
-        }} 
+
+          return options;
+        }}
       />
       
       <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />

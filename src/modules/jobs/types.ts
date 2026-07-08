@@ -10,6 +10,29 @@ export type JobApplication = {
   status: JobApplicationStatus;
   createdAt: string;
   updatedAt: string;
+  resumeKey?: string | null;
+
+  resumeFileName?: string | null;
+
+  resumeFileSize?: number | null;
+
+  coverLetter?: string | null;
+
+  expectedSalary?: string | null;
+
+  noticePeriod?: string | null;
+
+  portfolioUrl?: string | null;
+
+  linkedinUrl?: string | null;
+
+  applicant?: {
+    id: string;
+    fullName: string;
+    headline: string;
+    avatarUrl: string;
+    role: string;
+  };
 };
 
 export type Job = {
@@ -29,7 +52,6 @@ export type Job = {
 };
 
 export type CreateJobPayload = {
-  projectId: string;
   startupName: string;
   heading: string;
   role: string;
@@ -38,11 +60,21 @@ export type CreateJobPayload = {
   description: string;
 };
 
-export type UpdateJobPayload = Partial<Omit<CreateJobPayload, "projectId">>;
+export type UpdateJobPayload = Partial<CreateJobPayload>;
 
-export type ApplyJobPayload = {
-  message: string;
-};
+export interface ApplyJobPayload {
+  message?: string;
+
+  coverLetter?: string;
+
+  expectedSalary?: string;
+
+  noticePeriod?: string;
+
+  portfolioUrl?: string;
+
+  linkedinUrl?: string;
+}
 
 export type DeleteJobResponse = {
   success: boolean;

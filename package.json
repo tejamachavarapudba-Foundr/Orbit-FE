@@ -26,6 +26,8 @@
     "axios": "^1.7.9",
     "expo": "~52.0.35",
     "expo-asset": "~11.0.5",
+    "expo-av": "^16.0.8",
+    "expo-document-picker": "^57.0.0",
     "expo-font": "~13.0.4",
     "expo-image-picker": "~16.0.5",
     "expo-secure-store": "~14.0.1",

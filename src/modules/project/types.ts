@@ -2,7 +2,7 @@ import { AuthProfile } from "@/modules/auth/types";
 
 export type Project = {
   id: string;
-  FounderId: string;
+  ownerId: string;
   name: string;
   tagline: string;
   description: string;

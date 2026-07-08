@@ -12,8 +12,8 @@ type CommentState = {
   isSubmittingByPostId: Record<string, boolean>;
   deletingCommentId: string | null;
   errorMessage: string | null;
-  loadComments: () => Promise<void>;
-  refreshComments: () => Promise<void>;
+  loadComments: (postId: string) => Promise<void>;
+  refreshComments: (postId: string) => Promise<void>;
   createComment: (postId: string, content: string) => Promise<boolean>;
   deleteComment: (id: string) => Promise<boolean>;
 };
@@ -27,25 +27,40 @@ export const useCommentStore = create<CommentState>((set) => ({
   isSubmittingByPostId: {},
   deletingCommentId: null,
   errorMessage: null,
-  loadComments: async () => {
+  loadComments: async (postId) => {
     set({ isLoading: true, errorMessage: null });
 
     try {
-      const comments = await commentsApi.getComments();
-      set({ comments: sortComments(comments), isLoading: false });
+      const comments = await commentsApi.getComments(postId);
+
+      set({
+         comments: sortComments(comments),
+          isLoading: false 
+        });
     } catch (error) {
       const appError = toAppError(error);
-      set({ errorMessage: appError.message, isLoading: false });
-    }
+
+        set({ 
+          errorMessage: appError.message,
+          isLoading: false
+        });
+      }
   },
-  refreshComments: async () => {
+  refreshComments: async (postId) => {
     try {
-      const comments = await commentsApi.getComments();
-      set({ comments: sortComments(comments), errorMessage: null });
+      const comments = await commentsApi.getComments(postId);
+
+      set({ 
+        comments: sortComments(comments), 
+        errorMessage: null 
+      });
     } catch (error) {
       const appError = toAppError(error);
-      set({ errorMessage: appError.message });
-    }
+
+        set({
+           errorMessage: appError.message 
+        });
+      }
   },
   createComment: async (postId, content) => {
     set((state) => ({

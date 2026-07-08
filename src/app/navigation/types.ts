@@ -7,6 +7,14 @@ export type AuthStackParamList = {
   ForgotPassword: undefined;
 };
 
+export type MainTabParamList = {
+  Home: undefined;
+  Messages: undefined;
+  Projects: undefined;
+  Jobs: undefined;
+  Events: undefined;
+};
+
 export type MainStackParamList = {
   Tabs: undefined;
 

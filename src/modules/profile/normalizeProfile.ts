@@ -133,6 +133,27 @@ export const normalizeAuthProfile = (raw: AuthProfile & RawRecord): AuthProfile 
     profileCompletion: Number(raw.profileCompletion ?? raw.profile_completion ?? 0),
     roleProfile,
     createdAt: asString(raw.createdAt ?? raw.created_at),
-    updatedAt: asString(raw.updatedAt ?? raw.updated_at)
+    updatedAt: asString(raw.updatedAt ?? raw.updated_at),
+    // Resume metadata
+    resumeKey: asString(
+      raw.resumeKey ??
+      raw.resume_key,
+    ),
+
+    resumeFileName: asString(
+      raw.resumeFileName ??
+      raw.resume_file_name,
+    ),
+
+    resumeFileSize: Number(
+      raw.resumeFileSize ??
+      raw.resume_file_size ??
+      0,
+    ),
+
+    resumeUpdatedAt: asString(
+      raw.resumeUpdatedAt ??
+      raw.resume_updated_at,
+    ),
   };
 };

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { FlatList, ListRenderItem, TextInput, View } from "react-native";
-
+import { useAuthStore } from "@/modules/auth/store";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
@@ -39,6 +39,15 @@ export const JobsScreen = () => {
     ),
     [selectJob]
   );
+  const profile = useAuthStore(
+    (state) => state.user?.profile,
+  );
+  
+  const canPostJobs =
+    profile?.role === "founder" ||
+    profile?.role === "co_founder" ||
+    profile?.role === "investor" ||
+    profile?.role === "hr";
 
   return (
     <AppScreen withHorizontalPadding={false}>
@@ -86,11 +95,11 @@ export const JobsScreen = () => {
                 />
               ))}
             </View>
-
-            <View className="mt-4">
-              <JobComposer />
-            </View>
-
+            {canPostJobs && (
+              <View className="mt-4">
+                <JobComposer />
+              </View>
+            )}
             <JobDetailPanel />
           </View>
         }
