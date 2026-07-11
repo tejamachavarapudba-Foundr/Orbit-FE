@@ -64,6 +64,6 @@ export async function uploadProfilePhoto(userId: string, file: File) {
     return publicUrl;
   } catch (error) {
     console.error('Profile upload error:', error);
-    throw error;
+    thro error;
   }
 }
