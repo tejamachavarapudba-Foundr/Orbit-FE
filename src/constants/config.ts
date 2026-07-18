@@ -15,7 +15,7 @@ const resolveApiBaseUrl = () => {
     return `http://${window.location.hostname}:3000/api`;
   }
 
-  return "http://192.168.1.6:3000/api";
+  return "http://192.168.1.17:3000/api";
 };
 
 export const appConfig = {
@@ -26,4 +26,5 @@ export const appConfig = {
     process.env.EXPO_PUBLIC_AUTH_REFRESH_PATH ?? "/auth/refresh",
   authTokenKey: "startuphouze.auth.tokens",
   themeKey: "startuphouze.theme.preference",
+  viewedStartupsKey: "startuphouze.viewed.startups",
 } as const;

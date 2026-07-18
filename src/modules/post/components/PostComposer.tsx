@@ -9,7 +9,12 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { postCategoryOptions, usePostComposer } from "@/modules/post/hooks";
 
-export const PostComposer = () => {
+type PostComposerProps = {
+  embedded?: boolean;
+  onSuccess?: () => void;
+};
+
+export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps) => {
   const colors = useThemeTokens();
   const { values, isSubmitting, setField, submit, canSubmit } = usePostComposer();
   const [showExtras, setShowExtras] = useState(false);
@@ -43,10 +48,17 @@ export const PostComposer = () => {
     setSelectedFiles(result.assets);
   };
   
-  console.count("POST COMPOSER");
-  return (
-    <Card className="mb-5">
-      <CardContent className="gap-4 p-4">
+  const handleSubmit = async () => {
+    const didSucceed = await submit(selectedFiles);
+    if (didSucceed) {
+      setSelectedFiles([]);
+      setShowExtras(false);
+      onSuccess?.();
+    }
+  };
+
+  const content = (
+    <CardContent className={`gap-4 ${embedded ? "p-0" : "p-4"}`}>
         <TextInput
           value={values.content}
           onChangeText={(value) => setField("content", value)}
@@ -146,11 +158,16 @@ export const PostComposer = () => {
               loading={isSubmitting}
               disabled={!canSubmit}
               leftIcon={<Feather name="send" size={14} color={colors.onPrimary} />}
-              onPress={() => void submit(selectedFiles)}
+              onPress={() => void handleSubmit()}
             />
           </View>
         </View>
       </CardContent>
-    </Card>
   );
+
+  if (embedded) {
+    return content;
+  }
+
+  return <Card className="mb-5">{content}</Card>;
 };

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { useAuthStore } from "@/modules/auth/store";
 import { projectApi } from "@/modules/project/api";
 import {
   Project,
@@ -13,6 +14,10 @@ import {
 } from "@/modules/project/types";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
+import {
+  loadViewedStartupIds,
+  saveViewedStartupIds,
+} from "@/modules/project/services/viewedStartupsStorage";
 
 type ProjectState = {
   projects: Project[];
@@ -32,7 +37,10 @@ type ProjectState = {
   investorStartups: Project[];
   savedStartupIds: string[];
   savedStartups: Project[];
+  viewedStartupIds: string[];
   loadSavedStartups: () => Promise<void>;
+  loadViewedStartups: (userId: string) => Promise<void>;
+  markStartupViewed: (userId: string, projectId: string) => Promise<void>;
   toggleSaveStartup: (projectId: string) => Promise<void>;
   loadProjects: () => Promise<void>;
   refreshProjects: () => Promise<void>;
@@ -72,6 +80,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
   detailErrorMessage: null,
   savedStartupIds: [],
   savedStartups: [],
+  viewedStartupIds: [],
 
   loadProjects: async () => {
     set({ isLoading: true, errorMessage: null });
@@ -132,6 +141,20 @@ export const useProjectStore = create<ProjectState>((set) => ({
       });
     }
   },
+  loadViewedStartups: async (userId) => {
+    const viewedStartupIds = await loadViewedStartupIds(userId);
+    set({ viewedStartupIds });
+  },
+  markStartupViewed: async (userId, projectId) => {
+    const state = useProjectStore.getState();
+    if (state.viewedStartupIds.includes(projectId)) {
+      return;
+    }
+
+    const viewedStartupIds = [...state.viewedStartupIds, projectId];
+    set({ viewedStartupIds });
+    await saveViewedStartupIds(userId, viewedStartupIds);
+  },
   toggleSaveStartup: async (
     projectId,
   ) => {
@@ -181,6 +204,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
   },
   selectProject: async (id) => {
     set({ isDetailLoading: true, detailErrorMessage: null });
+
+    const { markStartupViewed } = useProjectStore.getState();
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      void markStartupViewed(userId, id);
+    }
 
     try {
       const selectedProject = await projectApi.getStartupById(id);

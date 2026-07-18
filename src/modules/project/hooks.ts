@@ -101,10 +101,12 @@ export const useProjects = () => {
   const errorMessage = useProjectStore((state) => state.errorMessage);
   const loadProjects = useProjectStore((state) => state.loadProjects);
   const loadSavedStartups = useProjectStore((state) => state.loadSavedStartups);
+  const loadViewedStartups = useProjectStore((state) => state.loadViewedStartups);
   const refreshProjects = useProjectStore((state) => state.refreshProjects);
   const loadStartups = useProjectStore((state) => state.loadStartups);
   const loadTrendingStartups = useProjectStore((state) => state.loadTrendingStartups);
   const trendingStartups = useProjectStore((state) => state.trendingStartups);
+  const viewedStartupIds = useProjectStore((state) => state.viewedStartupIds);
   const setQuery = useProjectStore((state) => state.setQuery);
   const setStage = useProjectStore((state) => state.setStage);
   const setProjectType = useProjectStore((state) => state.setProjectType);
@@ -123,6 +125,24 @@ export const useProjects = () => {
       loadSavedStartups(),
     ]);
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      void loadViewedStartups(userId);
+    }
+  }, [userId, loadViewedStartups]);
+
+  const viewedSet = useMemo(() => new Set(viewedStartupIds), [viewedStartupIds]);
+
+  const newStartups = useMemo(
+    () => projects.filter((startup) => !viewedSet.has(startup.id)),
+    [projects, viewedSet],
+  );
+
+  const viewedStartups = useMemo(
+    () => projects.filter((startup) => viewedSet.has(startup.id)),
+    [projects, viewedSet],
+  );
 
   const filteredProjects = useMemo(
     () =>
@@ -155,6 +175,8 @@ export const useProjects = () => {
   return {
     projects: filteredProjects,
     trendingStartups,
+    newStartups,
+    viewedStartups,
     totalCount: filteredProjects.length,
     filters,
     isLoading,

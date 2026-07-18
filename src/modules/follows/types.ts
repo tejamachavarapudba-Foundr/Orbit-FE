@@ -13,4 +13,4 @@ export type FollowStatusResponse = {
   isFollowing: boolean;
 };
 
-export type NetworkTab = "followers" | "following";
+export type NetworkTab = "feed" | "following" | "followers";

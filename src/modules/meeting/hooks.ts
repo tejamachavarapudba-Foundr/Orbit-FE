@@ -142,19 +142,18 @@ import {
   
     return {
       values,
-  
+
       setField,
-  
+
       submit,
-  
+
       isSubmitting,
-  
-      //canSubmit:
-        // Boolean(
-        //   values.purpose &&
-        //     values.preferredDate1 &&
-        //     values.preferredTime1,
-        // ),
+
+      canSubmit: Boolean(
+        values.purpose &&
+          values.preferredDate1 &&
+          values.preferredTime1,
+      ),
     };
   };
   

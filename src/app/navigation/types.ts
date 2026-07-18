@@ -19,6 +19,7 @@ export type MainStackParamList = {
   Tabs: undefined;
 
   Profile: undefined;
+  Settings: undefined;
   Discover: undefined;
   Network: undefined;
   Search: undefined;

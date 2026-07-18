@@ -6,6 +6,7 @@ import { InvestmentWatchlistScreen } from "@/modules/project/screens/InvestmentW
 import { InvestorSnapshotViewScreen } from "@/modules/investor/screens/InvestorSnapshotViewScreen";
 import { UserPublicProfileScreen } from "@/modules/user/screens/UserPublicProfileScreen";
 import { ProfileScreen } from "@/modules/profile/screens/ProfileScreen";
+import { SettingsScreen } from "@/modules/settings/screens/SettingsScreen";
 import { DiscoverScreen } from "@/modules/user/screens/DiscoverScreen";
 import { NetworkScreen } from "@/modules/user/screens/NetworkScreen";
 import { SearchScreen } from "@/modules/search/screens/SearchScreen";
@@ -33,6 +34,11 @@ export const MainStackNavigator = () => (
     <Stack.Screen
       name="Profile"
       component={ProfileScreen}
+    />
+
+    <Stack.Screen
+      name="Settings"
+      component={SettingsScreen}
     />
 
     <Stack.Screen

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, ListRenderItem, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -8,68 +8,155 @@ import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ConnectButton } from "@/modules/connections/components/ConnectButton";
-import { ConnectionCountLabel } from "@/modules/connections/components/ConnectionCountLabel";
 import { IncomingRequestsSection } from "@/modules/connections/components/IncomingRequestsSection";
+import { useConnectionsStore } from "@/modules/connections/store";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { useNetwork } from "@/modules/follows/hooks";
+import { NetworkMemberRow } from "@/modules/follows/components/NetworkMemberRow";
+import { useNetwork, useNetworkSuggestions } from "@/modules/follows/hooks";
 import { FollowProfile, NetworkTab } from "@/modules/follows/types";
-import { UserAvatar } from "@/modules/user/components/UserAvatar";
+import { SuggestedProfile } from "@/modules/follows/suggestionEngine";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
+import { useUserStore } from "@/modules/user/store";
+import { getShadowStyle } from "@/theme/shadows";
+import { lucideToFeather } from "@/theme/designTokens";
 
-const tabLabels: { label: string; value: NetworkTab }[] = [
-  { label: "Followers", value: "followers" },
-  { label: "Following", value: "following" }
-];
+type NetworkTabOption = {
+  label: string;
+  value: NetworkTab;
+  icon?: keyof typeof lucideToFeather;
+  count?: number;
+};
 
-const ProfileRow = ({ profile, onPress }: { profile: FollowProfile; onPress: (userId: string) => void }) => {
+const NetworkTabBar = ({
+  activeTab,
+  followingCount,
+  followersCount,
+  onChange
+}: {
+  activeTab: NetworkTab;
+  followingCount: number;
+  followersCount: number;
+  onChange: (tab: NetworkTab) => void;
+}) => {
   const colors = useThemeTokens();
-  const headline = profile.headline.trim() || profile.role || "Foundr member";
-  const detail = [profile.company, profile.location].filter(Boolean).join(" | ");
+
+  const tabs = useMemo<NetworkTabOption[]>(
+    () => [
+      { label: "Feed", value: "feed", icon: "Sparkles" },
+      { label: "Following", value: "following", icon: "Users", count: followingCount },
+      { label: "Followers", value: "followers", count: followersCount }
+    ],
+    [followersCount, followingCount]
+  );
 
   return (
-    <View className="rounded-md border border-border bg-surface p-4">
-      <Pressable accessibilityRole="button" onPress={() => onPress(profile.id)}>
-        <View className="flex-row gap-3">
-          <UserAvatar name={profile.fullName} imageUrl={profile.avatarUrl} />
-          <View className="flex-1">
-            <View className="flex-row items-start justify-between gap-2">
-              <AppText weight="bold" size="lg" className="flex-1">
-                {profile.fullName || "Foundr member"}
-              </AppText>
-              <Feather name="chevron-right" size={18} color={colors.muted} />
-            </View>
-            <AppText tone="primary" size="sm" weight="medium" className="mt-1">
-              {headline}
+    <View className="flex-row rounded-full border border-border bg-background p-1">
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.value;
+        const iconName = tab.icon ? (lucideToFeather[tab.icon] as keyof typeof Feather.glyphMap) : null;
+        const label = tab.count !== undefined ? `${tab.label} (${tab.count})` : tab.label;
+
+        return (
+          <Pressable
+            key={tab.value}
+            accessibilityRole="button"
+            onPress={() => onChange(tab.value)}
+            className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-full px-2 py-2.5 ${
+              isActive ? "bg-surface" : "bg-transparent"
+            }`}
+            style={isActive ? getShadowStyle("card") : undefined}
+          >
+            {iconName ? <Feather name={iconName} size={14} color={isActive ? colors.text : colors.muted} /> : null}
+            <AppText
+              tone={isActive ? "default" : "muted"}
+              weight="semibold"
+              size="xs"
+              numberOfLines={1}
+              className="text-center"
+            >
+              {label}
             </AppText>
-            <ConnectionCountLabel userId={profile.id} className="mt-1" />
-            {detail ? (
-              <AppText tone="muted" size="sm" className="mt-2">
-                {detail}
-              </AppText>
-            ) : null}
-            {profile.skills.length > 0 ? (
-              <View className="mt-3 self-start rounded-md bg-primary/10 px-3 py-2">
-                <AppText tone="primary" size="sm">
-                  {profile.skills[0]}
-                </AppText>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      </Pressable>
-      <ConnectButton profile={profile} compact />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+};
+
+const FeedView = ({
+  following,
+  suggestions,
+  isLoadingNetwork,
+  isLoadingSuggestions,
+  onPressProfile
+}: {
+  following: FollowProfile[];
+  suggestions: SuggestedProfile[];
+  isLoadingNetwork: boolean;
+  isLoadingSuggestions: boolean;
+  onPressProfile: (userId: string) => void;
+}) => {
+  if (isLoadingNetwork && following.length === 0) {
+    return <UserSkeletonList />;
+  }
+
+  return (
+    <View className="gap-3">
+      {following.length === 0 ? (
+        <EmptyState
+          title="Your feed is quiet"
+          message="Follow members to see them here and get better suggestions."
+        />
+      ) : (
+        following.map((profile) => (
+          <NetworkMemberRow key={profile.id} profile={profile} onPress={onPressProfile} showFollowButton />
+        ))
+      )}
+
+      <View className="mt-4">
+        <AppText weight="bold" size="lg">
+          Suggested for you
+        </AppText>
+        <AppText tone="muted" size="sm" className="mt-1">
+          People you may know based on your role, location, and network.
+        </AppText>
+      </View>
+
+      {isLoadingSuggestions && suggestions.length === 0 ? (
+        <UserSkeletonList />
+      ) : suggestions.length === 0 ? (
+        <EmptyState
+          title="No suggestions right now"
+          message="Check back after you follow more members or update your profile."
+        />
+      ) : (
+        suggestions.map((profile) => (
+          <NetworkMemberRow
+            key={profile.id}
+            profile={profile}
+            onPress={onPressProfile}
+            subtitle={
+              profile.mutualCount > 0
+                ? `${profile.mutualCount} mutual connection${profile.mutualCount > 1 ? "s" : ""} · ${profile.reason}`
+                : profile.reason
+            }
+          />
+        ))
+      )}
     </View>
   );
 };
 
 export const NetworkScreen = () => {
   const openUserProfile = useOpenUserProfile();
-  const [activeTab, setActiveTab] = useState<NetworkTab>("followers");
+  const [activeTab, setActiveTab] = useState<NetworkTab>("feed");
+  const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
+  const refreshUsers = useUserStore((state) => state.refreshUsers);
   const {
     currentUserId,
     profiles,
+    following,
     followersCount,
     followingCount,
     isLoadingNetwork,
@@ -78,12 +165,24 @@ export const NetworkScreen = () => {
     loadNetwork,
     refresh
   } = useNetwork(activeTab);
+  const { suggestions, isLoadingSuggestions } = useNetworkSuggestions();
+
+  useEffect(() => {
+    if (currentUserId) {
+      void loadConnectedProfiles(currentUserId);
+    }
+  }, [currentUserId, loadConnectedProfiles]);
 
   const renderProfile = useCallback<ListRenderItem<FollowProfile>>(
-    ({ item }) => <ProfileRow profile={item} onPress={openUserProfile} />,
+    ({ item }) => <NetworkMemberRow profile={item} onPress={openUserProfile} />,
     [openUserProfile]
   );
   const keyExtractor = useCallback((item: FollowProfile) => item.id, []);
+
+  const handleRefresh = useCallback(() => {
+    void refresh();
+    void refreshUsers();
+  }, [refresh, refreshUsers]);
 
   const retry = useCallback(() => {
     if (currentUserId) {
@@ -91,80 +190,65 @@ export const NetworkScreen = () => {
     }
   }, [currentUserId, loadNetwork]);
 
+  const listEmpty = useMemo(() => {
+    if (activeTab === "feed") {
+      return null;
+    }
+
+    if (isLoadingNetwork) {
+      return <UserSkeletonList />;
+    }
+
+    if (networkErrorMessage) {
+      return <ErrorState message={networkErrorMessage} onRetry={retry} />;
+    }
+
+    if (activeTab === "followers") {
+      return <EmptyState title="No followers yet" message="As members discover you, they will appear here." />;
+    }
+
+    return (
+      <View className="mt-2">
+        <EmptyState title="You are not following anyone yet" message="Discover members and follow people you want in your network." />
+        <AppButton label="Refresh network" variant="outline" onPress={() => void refresh()} className="mt-4" />
+      </View>
+    );
+  }, [activeTab, isLoadingNetwork, networkErrorMessage, refresh, retry]);
+
   return (
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
 
       <FlatList
-        data={profiles}
+        data={activeTab === "feed" ? [] : profiles}
         keyExtractor={keyExtractor}
         renderItem={renderProfile}
         refreshing={isRefreshingNetwork}
-        onRefresh={() => void refresh()}
+        onRefresh={handleRefresh}
         contentContainerStyle={{ gap: 12, paddingHorizontal: 20, paddingBottom: 32 }}
         ListHeaderComponent={
-          <View className="pt-6">
-            <AppText size="2xl" weight="bold">
-              Your network
-            </AppText>
-            <AppText tone="muted" className="mt-2 leading-6">
-              Track people following you and the members you follow on Startuphouze.
-            </AppText>
-
-            <View className="mt-6 flex-row gap-3">
-              <View className="flex-1 rounded-md border border-border bg-surface p-4">
-                <AppText tone="muted" size="sm">
-                  Followers
-                </AppText>
-                <AppText size="2xl" weight="bold" className="mt-1">
-                  {followersCount}
-                </AppText>
-              </View>
-              <View className="flex-1 rounded-md border border-border bg-surface p-4">
-                <AppText tone="muted" size="sm">
-                  Following
-                </AppText>
-                <AppText size="2xl" weight="bold" className="mt-1">
-                  {followingCount}
-                </AppText>
-              </View>
-            </View>
+          <View className="gap-5 pt-6">
+            <NetworkTabBar
+              activeTab={activeTab}
+              followingCount={followingCount}
+              followersCount={followersCount}
+              onChange={setActiveTab}
+            />
 
             <IncomingRequestsSection />
 
-            <View className="mt-5 flex-row rounded-md border border-border bg-surface p-1">
-              {tabLabels.map((tab) => {
-                const isActive = activeTab === tab.value;
-                return (
-                  <Pressable
-                    key={tab.value}
-                    accessibilityRole="button"
-                    onPress={() => setActiveTab(tab.value)}
-                    className={`flex-1 rounded-md px-4 py-3 ${isActive ? "bg-primary" : "bg-transparent"}`}
-                  >
-                    <AppText tone={isActive ? "onPrimary" : "muted"} weight="semibold" className="text-center">
-                      {tab.label}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
-            </View>
+            {activeTab === "feed" ? (
+              <FeedView
+                following={following}
+                suggestions={suggestions}
+                isLoadingNetwork={isLoadingNetwork}
+                isLoadingSuggestions={isLoadingSuggestions}
+                onPressProfile={openUserProfile}
+              />
+            ) : null}
           </View>
         }
-        ListEmptyComponent={
-          isLoadingNetwork ? (
-            <UserSkeletonList />
-          ) : networkErrorMessage ? (
-            <ErrorState message={networkErrorMessage} onRetry={retry} />
-          ) : activeTab === "followers" ? (
-            <EmptyState title="No followers yet" message="As members discover you, they will appear here." />
-          ) : (
-            <View className="mt-2">
-              <EmptyState title="You are not following anyone yet" message="Discover members and follow people you want in your network." />
-              <AppButton label="Refresh network" variant="outline" onPress={() => void refresh()} className="mt-4" />
-            </View>
-          )
-        }
+        ListEmptyComponent={listEmpty}
       />
     </AppScreen>
   );

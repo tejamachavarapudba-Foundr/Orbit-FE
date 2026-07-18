@@ -1,9 +1,12 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { FollowProfile, NetworkTab } from "@/modules/follows/types";
 import { useFollowStore } from "@/modules/follows/store";
+import { buildNetworkSuggestions } from "@/modules/follows/suggestionEngine";
 import { useAuthStore } from "@/modules/auth/store";
+import { useConnectionsStore } from "@/modules/connections/store";
 import { useToastStore } from "@/store/toastStore";
+import { useUserStore } from "@/modules/user/store";
 
 export const useNetwork = (activeTab: NetworkTab) => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
@@ -31,14 +34,54 @@ export const useNetwork = (activeTab: NetworkTab) => {
 
   return {
     currentUserId,
-    profiles: activeTab === "followers" ? followers : following,
+    profiles: activeTab === "followers" ? followers : activeTab === "following" ? following : [],
     followersCount: followers.length,
     followingCount: following.length,
+    following,
+    followers,
     isLoadingNetwork,
     isRefreshingNetwork,
     networkErrorMessage,
     loadNetwork,
     refresh
+  };
+};
+
+export const useNetworkSuggestions = () => {
+  const viewer = useAuthStore((state) => state.user?.profile);
+  const following = useFollowStore((state) => state.following);
+  const followers = useFollowStore((state) => state.followers);
+  const connectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
+  const users = useUserStore((state) => state.users);
+  const isLoadingUsers = useUserStore((state) => state.isLoading);
+  const loadUsers = useUserStore((state) => state.loadUsers);
+
+  useEffect(() => {
+    if (users.length === 0 && !isLoadingUsers) {
+      void loadUsers();
+    }
+  }, [isLoadingUsers, loadUsers, users.length]);
+
+  const connectedIds = useMemo(
+    () => new Set(connectedProfiles.map((profile) => profile.id)),
+    [connectedProfiles]
+  );
+
+  const suggestions = useMemo(
+    () =>
+      buildNetworkSuggestions(
+        viewer,
+        users.map((user) => user.profile),
+        following,
+        followers,
+        connectedIds
+      ),
+    [connectedIds, followers, following, users, viewer]
+  );
+
+  return {
+    suggestions,
+    isLoadingSuggestions: isLoadingUsers
   };
 };
 

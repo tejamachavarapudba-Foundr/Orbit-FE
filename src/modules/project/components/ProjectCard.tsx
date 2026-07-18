@@ -178,11 +178,14 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting }: ProjectCar
 
           {/* ADD ONLY THIS SEPARATE MEETING ENTRY BLOCK */}
           {isInvestor && (
-            <View className="mt-4 pt-3 border-t border-border flex-row justify-end">
-              <Pressable 
-                onPress={() => onBookMeeting(project)}
+            <View className="mt-4 flex-row justify-end border-t border-border pt-3">
+              <Pressable
+                onPress={(event) => {
+                  event.stopPropagation?.();
+                  onBookMeeting(project);
+                }}
                 style={{ backgroundColor: colors.primary }}
-                className="px-4 py-2.5 rounded-xl flex-row items-center"
+                className="flex-row items-center rounded-xl px-4 py-2.5"
               >
                 <Feather name="calendar" size={16} color="#fff" />
                 <AppText weight="semibold" size="sm" className="text-white ml-2">
