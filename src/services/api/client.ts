@@ -30,6 +30,12 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
+  console.log("========== REQUEST ==========");
+  console.log("BASE URL:", config.baseURL);
+  console.log("URL:", config.url);
+  console.log("FULL URL:", `${config.baseURL}${config.url}`);
+  console.log("METHOD:", config.method);
+
   const tokens = tokenService.get();
 
   if (tokens?.accessToken) {
@@ -40,27 +46,69 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("SUCCESS RESPONSE");
+    console.log(response.config.url);
+    console.log(response.status);
+    console.log(response.data);
+
+    return response;
+  },
+
   async (error: AxiosError) => {
+
+    console.log("========== ERROR ==========");
+
+    console.log("MESSAGE:", error.message);
+
+    console.log("CODE:", error.code);
+
+    console.log("STATUS:", error.response?.status);
+
+    console.log("DATA:", error.response?.data);
+
+    console.log("REQUEST URL:", error.config?.url);
+
+    console.log("BASE URL:", error.config?.baseURL);
+
+    console.log("FULL URL:",
+      `${error.config?.baseURL}${error.config?.url}`
+    );
+
     const originalRequest = error.config as RetryableRequest | undefined;
+
     const tokens = tokenService.get();
 
-    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry || !tokens?.refreshToken) {
+    if (
+      error.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      !tokens?.refreshToken
+    ) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
     try {
+
       const refreshedTokens = await refreshTokens(tokens.refreshToken);
 
       await tokenService.set(refreshedTokens);
-      originalRequest.headers.Authorization = `Bearer ${refreshedTokens.accessToken}`;
+
+      originalRequest.headers.Authorization =
+        `Bearer ${refreshedTokens.accessToken}`;
 
       return apiClient(originalRequest);
+
     } catch (refreshError) {
-      logger.warn("Refresh token failed", refreshError);
+
+      console.log("REFRESH FAILED");
+
+      console.log(refreshError);
+
       await tokenService.clear();
+
       return Promise.reject(refreshError);
     }
   }

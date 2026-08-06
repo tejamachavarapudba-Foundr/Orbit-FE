@@ -48,16 +48,19 @@ export const RootNavigator = () => {
     [resolvedScheme, colors],
   );
 
-  if (!isAuthHydrated || !isThemeHydrated) {
-    return (
-      <AppScreen>
-        <Skeleton className="mt-12 h-10 w-40" />
-        <Skeleton className="mt-8 h-40 w-full" />
-        <Skeleton className="mt-4 h-12 w-full" />
-        <Skeleton className="mt-3 h-12 w-full" />
-      </AppScreen>
-    );
-  }
+  console.log("AUTH =", isAuthHydrated);
+  console.log("THEME =", isThemeHydrated);
+
+  return (
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="Auth"
+          component={AuthNavigator}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 
   return (
     <NavigationContainer theme={navigationTheme}>

@@ -24,6 +24,8 @@ const toAuthUser = (response: AuthMeResponse): AuthUser => {
 export const authApi = {
   login: async (payload: LoginPayload) => {
     const response = await apiClient.post<AuthTokenResponse>("/auth/login", payload);
+    console.log("LOGIN RESPONSE");
+    console.log(response.data);
     return response.data;
   },
   register: async (payload: RegisterPayload) => {

@@ -49,8 +49,10 @@ export default function App() {
 
   useEffect(() => {
     void bootstrapTheme();
-    void bootstrapAuth();
-  }, [bootstrapAuth, bootstrapTheme]);
+  
+    // TEMPORARILY DISABLE
+    // void bootstrapAuth();
+  }, []);
 
   if (!fontsLoaded) {
     return (

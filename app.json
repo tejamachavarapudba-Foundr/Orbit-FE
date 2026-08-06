@@ -1,12 +1,34 @@
 {
   "expo": {
     "name": "Startuphouze",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "slug": "startuphouze",
     "version": "1.0.0",
+    "jsEngine": "jsc",
     "orientation": "portrait",
     "scheme": "startuphouze",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A66C2"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/dc4b1e6d-bc45-48df-9fc0-78ad433edfa5"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#0A66C2",
+      "barStyle": "light-content"
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#0A66C2"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -16,7 +38,9 @@
     },
     "android": {
       "package": "com.startuphouze.app",
+      "versionCode": 1,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A66C2"
       }
     },
@@ -28,6 +52,11 @@
       "expo-asset",
       "expo-font",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dc4b1e6d-bc45-48df-9fc0-78ad433edfa5"
+      }
+    }
   }
 }

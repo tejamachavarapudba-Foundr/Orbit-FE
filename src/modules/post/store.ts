@@ -41,7 +41,18 @@ export const usePostStore = create<PostState>((set) => ({
     set({ isLoading: true, errorMessage: null });
 
     try {
+      console.log("Loading posts...");
+
       const posts = await postApi.getPosts();
+
+      console.log("Loaded", posts.length);
+
+      set({
+          posts: sortPosts(posts),
+          isLoading: false,
+      });
+
+      console.log("State updated");
       set({ posts: sortPosts(posts), isLoading: false });
     } catch (error) {
       const appError = toAppError(error);
@@ -52,7 +63,18 @@ export const usePostStore = create<PostState>((set) => ({
     set({ isRefreshing: true, errorMessage: null });
 
     try {
+      console.log("Loading posts...");
+
       const posts = await postApi.getPosts();
+
+      console.log("Loaded", posts.length);
+
+      set({
+          posts: sortPosts(posts),
+          isLoading: false,
+      });
+
+      console.log("State updated");
       set({ posts: sortPosts(posts), isRefreshing: false });
     } catch (error) {
       const appError = toAppError(error);
