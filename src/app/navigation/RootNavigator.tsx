@@ -48,19 +48,20 @@ export const RootNavigator = () => {
     [resolvedScheme, colors],
   );
 
-  console.log("AUTH =", isAuthHydrated);
+  console.log("HYDRATED =", isAuthHydrated);
+
+    console.log(
+        "STATUS =",
+        useAuthStore.getState().status
+    );
+
+    console.log(
+        "USER =",
+        useAuthStore.getState().user?.email
+    );
   console.log("THEME =", isThemeHydrated);
 
-  return (
-    <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen
-          name="Auth"
-          component={AuthNavigator}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+
 
   return (
     <NavigationContainer theme={navigationTheme}>

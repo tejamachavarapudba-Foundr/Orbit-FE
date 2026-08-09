@@ -26,8 +26,8 @@ export const AppHeader = () => {
       <View className="flex-row items-center justify-between">
         {showBackButton ? (
           <Pressable onPress={() => navigation.goBack()} className="flex-row items-center gap-2">
-            <Feather name="arrow-left" size={20} color={colors.text} />
-            <AppText weight="semibold">Back</AppText>
+            <Feather name="chevron-left" size={22} color={colors.text} />
+            <AppText>←</AppText>
           </Pressable>
         ) : (
           <AppLogo />

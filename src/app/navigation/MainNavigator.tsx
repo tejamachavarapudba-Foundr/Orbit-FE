@@ -24,12 +24,12 @@ type TabIconProps = {
 
 const tabIcon =
   (featherName: keyof typeof Feather.glyphMap) =>
-  ({ color }: TabIconProps) => (
-    <Feather name={featherName} size={24} color={color} />
+  ({ color, size }: TabIconProps) => (
+    <Feather name={featherName} size={size} color={color} />
   );
 
-const projectsTabIcon = ({ color }: TabIconProps) => (
-  <Ionicons name="rocket-outline" size={24} color={color} />
+const projectsTabIcon = ({ color, size }: TabIconProps) => (
+  <Ionicons name="rocket-outline" size={size} color={color} />
 );
 
 export const MainNavigator = () => {

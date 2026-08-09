@@ -20,7 +20,7 @@ import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
+import * as Font from "expo-font";
 import { RootNavigator } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/services/api/queryClient";
 import { useAuthStore } from "@/modules/auth/store";
@@ -45,8 +45,12 @@ export default function App() {
     Sora_700Bold
   });
 
-  const fontsLoaded = manropeLoaded && soraLoaded;
-
+  const fontsLoaded = true;
+  
+  useEffect(() => {
+    console.log("Loaded fonts:", Font.getLoadedFonts());
+  }, []);
+  
   useEffect(() => {
     void bootstrapTheme();
   
@@ -54,14 +58,7 @@ export default function App() {
     // void bootstrapAuth();
   }, []);
 
-  if (!fontsLoaded) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
+  
   return (
     <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={{ flex: 1 }}>
       <SafeAreaProvider>
