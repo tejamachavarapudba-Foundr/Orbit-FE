@@ -14,51 +14,68 @@ import {
   Sora_700Bold,
   useFonts as useSoraFonts
 } from "@expo-google-fonts/sora";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useFonts as useExpoFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import * as Font from "expo-font";
 import { RootNavigator } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/services/api/queryClient";
 import { useAuthStore } from "@/modules/auth/store";
 import { useThemeStore } from "@/store/themeStore";
 
 export default function App() {
-  const bootstrapAuth = useAuthStore((state) => state.bootstrap);
   const bootstrapTheme = useThemeStore((state) => state.bootstrap);
+  const bootstrapAuth = useAuthStore((state) => state.bootstrap);
   const colorScheme = useThemeStore((state) => state.resolvedScheme);
-  
 
-  const [manropeLoaded] = useManropeFonts({
+  const [manropeLoaded, manropeError] = useManropeFonts({
     Manrope_400Regular,
     Manrope_500Medium,
     Manrope_600SemiBold,
     Manrope_700Bold
   });
 
-  const [soraLoaded] = useSoraFonts({
+  const [soraLoaded, soraError] = useSoraFonts({
     Sora_400Regular,
     Sora_600SemiBold,
     Sora_700Bold
   });
 
-  const fontsLoaded = true;
-  
+  const [iconFontsLoaded, iconFontsError] = useExpoFonts({
+    ...Feather.font,
+    ...Ionicons.font
+  });
+
+  const fontLoadError = manropeError ?? soraError ?? iconFontsError;
+  const fontsLoaded = manropeLoaded && soraLoaded && iconFontsLoaded;
+
   useEffect(() => {
-    console.log("Loaded fonts:", Font.getLoadedFonts());
-  }, []);
-  
+    if (__DEV__ && fontLoadError) {
+      console.warn("Failed to load app fonts", fontLoadError);
+    }
+  }, [fontLoadError]);
+
   useEffect(() => {
     void bootstrapTheme();
-  
-    // TEMPORARILY DISABLE
-    // void bootstrapAuth();
-  }, []);
+    void bootstrapAuth();
+  }, [bootstrapAuth, bootstrapTheme]);
 
-  
+  if (!fontsLoaded && !fontLoadError) {
+    return (
+      <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="#0A66C2" />
+          </View>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={{ flex: 1 }}>
       <SafeAreaProvider>

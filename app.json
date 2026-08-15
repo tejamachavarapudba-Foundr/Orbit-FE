@@ -50,7 +50,15 @@
     "plugins": [
       "expo-secure-store",
       "expo-asset",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/feather.ttf",
+            "./assets/fonts/ionicons.ttf"
+          ]
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "extra": {

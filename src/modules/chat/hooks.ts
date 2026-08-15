@@ -28,29 +28,28 @@ export const useChats = () => {
   const selectChat = useChatStore((state) => state.selectChat);
   const clearSelectedChat = useChatStore((state) => state.clearSelectedChat);
   const deleteChat = useChatStore((state) => state.deleteChat);
-  
+
   const users = useUserStore((state) => state.users) || []; // Guard fallback
   const isUsersLoading = useUserStore((state) => state.isLoading);
   const loadUsers = useUserStore((state) => state.loadUsers);
-  
+
   // High-risk store array references injected with fallback primitives
   const rawFollowers = useFollowStore((state) => state.followers);
   const rawFollowing = useFollowStore((state) => state.following);
   const followers = useMemo(() => rawFollowers || [], [rawFollowers]);
   const following = useMemo(() => rawFollowing || [], [rawFollowing]);
-  
-  const isLoadingNetwork = useFollowStore((state) => state.isLoadingNetwork);
+
   const loadNetwork = useFollowStore((state) => state.loadNetwork);
-  
+
   const rawConnectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
   const connectedProfiles = useMemo(() => rawConnectedProfiles || [], [rawConnectedProfiles]);
-  
+
   const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
   const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
 
   useEffect(() => {
     if (chats.length === 0 && !isLoading) {
-      void loadChats();
+      // void loadChats();
     }
   }, [chats.length, isLoading, loadChats]);
 
@@ -61,10 +60,10 @@ export const useChats = () => {
   }, [isUsersLoading, loadUsers, users.length]);
 
   useEffect(() => {
-    if (currentUserId && followers.length === 0 && following.length === 0 && !isLoadingNetwork) {
+    if (currentUserId) {
       void loadNetwork(currentUserId);
     }
-  }, [currentUserId, followers.length, following.length, isLoadingNetwork, loadNetwork]);
+  }, [currentUserId, loadNetwork]);
 
   useEffect(() => {
     if (currentUserId) {

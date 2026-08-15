@@ -21,7 +21,6 @@ import { MeetingRequestModal } from "@/modules/meeting/components/MeetingRequest
 
 export const ProjectsScreen = () => {
   const colors = useThemeTokens();
-  console.count("PROJECTSSCREEN");
   const {
     projects,
     trendingStartups,

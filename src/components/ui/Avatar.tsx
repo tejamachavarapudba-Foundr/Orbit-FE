@@ -28,7 +28,6 @@ const textSize: Record<AvatarSize, "xs" | "sm" | "base" | "lg"> = {
 
 export const Avatar = ({ name, imageUrl = "", size = "md", fallback = "mesh", className = "" }: AvatarProps) => {
   const initial = name.trim().charAt(0).toUpperCase() || "?";
-  console.count("AVATAR");
   const fallbackClass = fallback === "mesh" ? "bg-primary" : "bg-muted-bg";
 
   if (imageUrl.trim()) {

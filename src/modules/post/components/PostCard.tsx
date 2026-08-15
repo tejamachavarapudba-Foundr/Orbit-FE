@@ -77,7 +77,6 @@ const PostVideo = ({
 
 export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
-  console.count(`POSTCARD-${post.id}`);
   const { currentUserId, isSubmitting, deletingPostId, updatePost, deletePost } = usePostActions();
   const {
     likesCount,

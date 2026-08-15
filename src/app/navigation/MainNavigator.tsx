@@ -34,7 +34,6 @@ const projectsTabIcon = ({ color, size }: TabIconProps) => (
 
 export const MainNavigator = () => {
   const colors = useThemeTokens();
-  console.count("MAINNAVIGATOR");
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
 
   // 1. Connection invitations counter
