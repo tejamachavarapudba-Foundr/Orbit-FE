@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
-import { CommentsPanel } from "@/modules/comments/components/CommentsPanel";
+import { CommentsModal } from "@/modules/comments/components/CommentsModal";
 import { usePostComments } from "@/modules/comments/hooks";
 import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
@@ -63,7 +63,7 @@ const PostVideo = ({
       <Video
         source={{ uri }}
         useNativeControls
-        resizeMode={ResizeMode.CONTAIN}
+        resizeMode={ResizeMode.COVER}
         style={{
           width: "100%",
           height: "100%",
@@ -129,8 +129,8 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const sharePost = useCallback(async () => {
     const message = [post.content, post.linkUrl].filter(Boolean).join("\n\n");
     await Share.share({
-      title: "Foundr post",
-      message: message || "Foundr post",
+      title: "Startuphouze post",
+      message: message || "Startuphouze post",
       url: post.linkUrl || undefined
     });
   }, [post.content, post.linkUrl]);
@@ -217,7 +217,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 >
                   <Image
                     source={{ uri: media.url }}
-                    resizeMode="contain"
+                    resizeMode="cover"
                     style={{
                       width: "100%",
                       height: "100%",
@@ -260,7 +260,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => setShowComments((current) => !current)}
+                  onPress={() => setShowComments(true)}
                   hitSlop={actionHitSlop}
                   className="h-9 flex-row items-center justify-center gap-1.5 rounded-md px-2"
                 >
@@ -305,12 +305,12 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 </View>
               ) : null}
             </View>
-            {showComments ?
-              <CommentsPanel
-                  postId={post.id}
-                  initialComments={post.comments}
-              /> 
-             : null}
+            <CommentsModal
+              visible={showComments}
+              onClose={() => setShowComments(false)}
+              postId={post.id}
+              initialComments={post.comments}
+            />
           </>
         ) : null}
       </CardContent>

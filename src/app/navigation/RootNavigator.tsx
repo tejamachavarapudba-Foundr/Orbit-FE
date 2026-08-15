@@ -48,20 +48,13 @@ export const RootNavigator = () => {
     [resolvedScheme, colors],
   );
 
-  console.log("HYDRATED =", isAuthHydrated);
-
-    console.log(
-        "STATUS =",
-        useAuthStore.getState().status
+  if (!isAuthHydrated || !isThemeHydrated) {
+    return (
+      <AppScreen>
+        <Skeleton className="mt-24 h-10 w-2/3 self-center" />
+      </AppScreen>
     );
-
-    console.log(
-        "USER =",
-        useAuthStore.getState().user?.email
-    );
-  console.log("THEME =", isThemeHydrated);
-
-
+  }
 
   return (
     <NavigationContainer theme={navigationTheme}>

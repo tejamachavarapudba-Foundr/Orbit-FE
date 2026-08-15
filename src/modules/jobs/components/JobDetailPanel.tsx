@@ -19,6 +19,7 @@ export const JobDetailPanel = () => {
   const [applicationMessage, setApplicationMessage] = useState("");
   const [editHeading, setEditHeading] = useState("");
   const [editSkills, setEditSkills] = useState("");
+  const profile = useAuthStore((state) => state.user?.profile);
 
   if (!selectedJob) {
     return null;
@@ -26,10 +27,8 @@ export const JobDetailPanel = () => {
 
   const isMutating = mutatingId === selectedJob.id;
   const applications = selectedJob.applications ?? [];
-  const profile = useAuthStore(
-    (state) => state.user?.profile,
-  );
-  
+  const skills = selectedJob.skills ?? [];
+
   const role = profile?.role;
   
   const canManageJobs =
@@ -86,7 +85,7 @@ export const JobDetailPanel = () => {
         </AppText>
 
         <View className="flex-row flex-wrap gap-2">
-          {selectedJob.skills.map((skill) => (
+          {skills.map((skill) => (
             <View key={skill} className="rounded-md bg-muted-bg px-2.5 py-1">
               <AppText tone="muted" size="xs">
                 {skill}

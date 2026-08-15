@@ -18,7 +18,9 @@ export const OnboardingMatchScreen = (_props: Props) => {
   const { draft, isSubmitting, completeOnboarding } = useOnboarding();
   const profile = useAuthStore((state) => state.user?.profile);
   const completion = calculateProfileCompletion(profile, draft.memberRole);
-  const { matches, isLoading } = useMatchRecommendations(null);
+  const { matches, isLoading } = useMatchRecommendations(
+    draft.memberRole ? { memberRole: draft.memberRole, goals: draft.goals } : null
+  );
 
   const finish = async () => {
     await completeOnboarding();
@@ -79,7 +81,7 @@ export const OnboardingMatchScreen = (_props: Props) => {
           <ProfileCompletionBar percent={completion} />
         </View>
 
-        <AppButton label="Enter Foundr" loading={isSubmitting} onPress={() => void finish()} className="mt-8" />
+        <AppButton label="Enter Startuphouze" loading={isSubmitting} onPress={() => void finish()} className="mt-8" />
         <AppText tone="muted" size="xs" className="mt-3 text-center leading-5">
           You can complete the rest of your profile anytime from the Profile tab.
         </AppText>

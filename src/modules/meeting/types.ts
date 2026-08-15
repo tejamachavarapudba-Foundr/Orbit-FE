@@ -7,7 +7,8 @@ export type MeetingStatus =
   | "pending"
   | "founder_contacted"
   | "approved"
-  | "rejected";
+  | "rejected"
+  | "completed";
 
 export type MeetingPurpose =
   | "Investment Discussion"
@@ -77,6 +78,7 @@ export type MeetingCounts = {
   approved: number;
   rejected: number;
   founder_contacted: number;
+  completed: number;
 };
 
 export type MeetingTimelineItem = {

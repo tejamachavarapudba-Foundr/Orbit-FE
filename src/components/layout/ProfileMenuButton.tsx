@@ -66,21 +66,6 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
   const handleMenuPress = (item: ProfileMenuItem) => {
     closeMenu();
 
-    // #region agent log
-    fetch("http://127.0.0.1:7427/ingest/b69baca5-7169-4c15-b121-a6217c30cb9c", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ac9505" },
-      body: JSON.stringify({
-        sessionId: "ac9505",
-        location: "ProfileMenuButton.tsx:handleMenuPress",
-        message: "Profile menu item pressed",
-        data: { label: item.label, action: item.action, route: item.route },
-        timestamp: Date.now(),
-        hypothesisId: "H1",
-      }),
-    }).catch(() => {});
-    // #endregion
-
     if (item.action === "settings") {
       navigation.navigate("Settings");
       return;
@@ -94,7 +79,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
 
       if (user?.profile?.role?.toLowerCase() === "founder") {
         navigation.navigate("FounderMeetings", {
-          startupId: user.profile.projectId,
+          startupId: "",
         });
         return;
       }
@@ -113,24 +98,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
   };
 
   const handleToggleMenu = () => {
-    setIsProfileMenuOpen((isOpen) => {
-      const nextOpen = !isOpen;
-      // #region agent log
-      fetch("http://127.0.0.1:7427/ingest/b69baca5-7169-4c15-b121-a6217c30cb9c", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ac9505" },
-        body: JSON.stringify({
-          sessionId: "ac9505",
-          location: "ProfileMenuButton.tsx:handleToggleMenu",
-          message: "Profile menu toggled",
-          data: { isOpen: nextOpen },
-          timestamp: Date.now(),
-          hypothesisId: "H4",
-        }),
-      }).catch(() => {});
-      // #endregion
-      return nextOpen;
-    });
+    setIsProfileMenuOpen((isOpen) => !isOpen);
   };
 
   return (

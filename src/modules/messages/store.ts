@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import { useAuthStore } from "@/modules/auth/store";
+import { useChatStore } from "@/modules/chat/store";
 import { messagesApi } from "@/modules/messages/api";
 import { Message } from "@/modules/messages/types";
 import { useToastStore } from "@/store/toastStore";
@@ -52,7 +54,23 @@ export const useMessageStore = create<MessageState>((set) => ({
     }
   },
   sendMessage: async (conversationId, content) => {
+    const currentUserId = useAuthStore.getState().user?.profile.id ?? "";
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticMessage: Message = {
+      id: optimisticId,
+      conversationId,
+      senderId: currentUserId,
+      content,
+      readAt: null,
+      createdAt: new Date().toISOString()
+    };
+
+    // Show the message immediately instead of waiting on the round trip.
     set((state) => ({
+      messagesByConversationId: {
+        ...state.messagesByConversationId,
+        [conversationId]: sortMessages([...(state.messagesByConversationId[conversationId] ?? []), optimisticMessage])
+      },
       isSendingByConversationId: { ...state.isSendingByConversationId, [conversationId]: true },
       errorByConversationId: { ...state.errorByConversationId, [conversationId]: null }
     }));
@@ -62,14 +80,27 @@ export const useMessageStore = create<MessageState>((set) => ({
       set((state) => ({
         messagesByConversationId: {
           ...state.messagesByConversationId,
-          [conversationId]: sortMessages([...(state.messagesByConversationId[conversationId] ?? []), message])
+          [conversationId]: sortMessages(
+            (state.messagesByConversationId[conversationId] ?? []).map((item) => (item.id === optimisticId ? message : item))
+          )
         },
         isSendingByConversationId: { ...state.isSendingByConversationId, [conversationId]: false }
       }));
+      useChatStore.getState().patchLastMessage(conversationId, {
+        id: message.id,
+        senderId: message.senderId,
+        content: message.content,
+        createdAt: message.createdAt
+      });
       return true;
     } catch (error) {
       const appError = toAppError(error);
       set((state) => ({
+        // Roll back the optimistic message on failure.
+        messagesByConversationId: {
+          ...state.messagesByConversationId,
+          [conversationId]: (state.messagesByConversationId[conversationId] ?? []).filter((item) => item.id !== optimisticId)
+        },
         errorByConversationId: { ...state.errorByConversationId, [conversationId]: appError.message },
         isSendingByConversationId: { ...state.isSendingByConversationId, [conversationId]: false }
       }));

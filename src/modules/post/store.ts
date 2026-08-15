@@ -41,18 +41,7 @@ export const usePostStore = create<PostState>((set) => ({
     set({ isLoading: true, errorMessage: null });
 
     try {
-      console.log("Loading posts...");
-
       const posts = await postApi.getPosts();
-
-      console.log("Loaded", posts.length);
-
-      set({
-          posts: sortPosts(posts),
-          isLoading: false,
-      });
-
-      console.log("State updated");
       set({ posts: sortPosts(posts), isLoading: false });
     } catch (error) {
       const appError = toAppError(error);
@@ -63,18 +52,7 @@ export const usePostStore = create<PostState>((set) => ({
     set({ isRefreshing: true, errorMessage: null });
 
     try {
-      console.log("Loading posts...");
-
       const posts = await postApi.getPosts();
-
-      console.log("Loaded", posts.length);
-
-      set({
-          posts: sortPosts(posts),
-          isLoading: false,
-      });
-
-      console.log("State updated");
       set({ posts: sortPosts(posts), isRefreshing: false });
     } catch (error) {
       const appError = toAppError(error);
@@ -98,10 +76,6 @@ export const usePostStore = create<PostState>((set) => ({
     
     try {
       const post = await postApi.createPost(payload, files);
-      console.log(
-        "NEW POST FROM API:",
-        JSON.stringify(post, null, 2),
-      );
       set((state) => ({ posts: sortPosts([post, ...state.posts]), isSubmitting: false }));
       useToastStore.getState().show({ type: "success", title: "Post published" });
       return true;

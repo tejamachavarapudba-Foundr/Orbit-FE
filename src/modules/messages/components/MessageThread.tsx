@@ -1,5 +1,6 @@
-import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,8 +20,11 @@ const formatTime = (date: string) =>
     minute: "2-digit"
   }).format(new Date(date));
 
+const HEADER_HEIGHT = 60;
+
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
+  const insets = useSafeAreaInsets();
   const {
     currentUserId,
     messages,
@@ -34,7 +38,11 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   } = useConversationMessages(conversationId);
 
   return (
-    <View className="min-h-[400px] flex-1 bg-card">
+    <KeyboardAvoidingView
+      className="min-h-[400px] flex-1 bg-card"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? HEADER_HEIGHT + insets.top : 0}
+    >
       <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>
         {isLoading ? (
           <View className="gap-3">
@@ -98,6 +106,6 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
           <Feather name="send" size={iconSize.md} color={colors.onPrimary} />
         </Pressable>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };

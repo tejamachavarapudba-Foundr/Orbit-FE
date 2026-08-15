@@ -35,7 +35,7 @@ const getPreview = (chat: Chat) => {
 };
 
 export const ChatRow = memo(({ chat, participant, onPress }: ChatRowProps) => {
-  const name = participant?.fullName || "Foundr member";
+  const name = participant?.fullName || "Startuphouze member";
   const preview = useMemo(() => getPreview(chat), [chat]);
 
   return (

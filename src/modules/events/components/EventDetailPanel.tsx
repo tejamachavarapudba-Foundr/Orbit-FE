@@ -82,7 +82,7 @@ export const EventDetailPanel = () => {
               <View key={attendee.id} className="rounded-md border border-border bg-surface p-3">
                 <AppText weight="semibold">{attendee.fullName}</AppText>
                 <AppText tone="muted" size="sm" className="mt-1">
-                  {attendee.headline || attendee.company || "Foundr member"}
+                  {attendee.headline || attendee.company || "Startuphouze member"}
                 </AppText>
               </View>
             ))

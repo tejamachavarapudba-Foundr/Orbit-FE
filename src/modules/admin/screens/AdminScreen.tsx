@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Alert, Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
@@ -33,7 +33,10 @@ export const AdminScreen = () => {
   return (
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void loadDashboard()} />}
+      >
         <View className="w-full max-w-4xl self-center pt-8">
           <AppText size="2xl" weight="bold">
             Admin

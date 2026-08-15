@@ -128,22 +128,22 @@ export const InvestorSnapshotViewScreen = () => {
 
         <MetricCard
           label="Total Users"
-          value={snapshot.totalUsers?.toLocaleString()}
+          value={snapshot.totalUsers?.toLocaleString() ?? null}
         />
 
         <MetricCard
           label="Active Users"
-          value={snapshot.activeUsers?.toLocaleString()}
+          value={snapshot.activeUsers?.toLocaleString() ?? null}
         />
 
         <MetricCard
           label="Paying Customers"
-          value={snapshot.payingCustomers?.toLocaleString()}
+          value={snapshot.payingCustomers?.toLocaleString() ?? null}
         />
 
         <MetricCard
           label="Enterprise Customers"
-          value={snapshot.enterpriseCustomers?.toLocaleString()}
+          value={snapshot.enterpriseCustomers?.toLocaleString() ?? null}
         />
         
         <MetricCard

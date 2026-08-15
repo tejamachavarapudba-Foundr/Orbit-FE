@@ -25,7 +25,8 @@ export const MediaPickerButton = ({
         );
 
       if (
-        !result.canceled
+        !result.canceled &&
+        result.assets[0]
       ) {
         onSelected(
           result.assets[0].uri,

@@ -5,7 +5,7 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 
 type AppTextInputProps = TextInputProps & {
-  label: string;
+  label?: string;
   error?: string | undefined;
   className?: string;
 };
@@ -16,9 +16,11 @@ export const AppTextInput = ({ label, error, className = "", ...props }: AppText
 
   return (
     <View className="gap-2">
-      <AppText size="sm" weight="medium">
-        {label}
-      </AppText>
+      {label ? (
+        <AppText size="sm" weight="medium">
+          {label}
+        </AppText>
+      ) : null}
       <TextInput
         placeholderTextColor={colors.muted}
         selectionColor={colors.primary}
@@ -30,7 +32,7 @@ export const AppTextInput = ({ label, error, className = "", ...props }: AppText
           setIsFocused(false);
           props.onBlur?.(event);
         }}
-        className={`h-9 rounded-md border bg-transparent px-3 text-sm text-text shadow-sm ${
+        className={`min-h-[40px] rounded-md border bg-transparent px-3 py-2 text-sm leading-5 text-text shadow-sm ${
           isFocused ? "border-ring" : "border-input"
         } ${error ? "border-danger" : ""} ${className}`}
         {...props}

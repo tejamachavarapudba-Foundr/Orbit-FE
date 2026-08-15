@@ -29,49 +29,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   errorMessage: null,
   isSubmitting: false,
   bootstrap: async () => {
-    console.log("AUTH BOOTSTRAP START");
-  
     try {
       const tokens = await tokenService.hydrate();
-  
-      console.log("TOKENS =", tokens);
-  
+
       if (!tokens) {
-        console.log("NO TOKENS");
-  
         set({
           isHydrated: true,
           status: "unauthenticated",
           user: null,
         });
-  
+
         return;
       }
-  
-      console.log("CALLING /auth/me");
-  
+
       const user = await authApi.me();
-  
-      console.log("USER =", user);
-  
+
       set({
         isHydrated: true,
         status: "authenticated",
         user,
       });
     } catch (e) {
-      console.log("BOOTSTRAP ERROR", e);
-  
+      logger.error("Auth bootstrap failed", e);
+
       await tokenService.clear();
-  
+
       set({
         isHydrated: true,
         status: "unauthenticated",
         user: null,
       });
     }
-  
-    console.log("AUTH BOOTSTRAP END");
   },
     
   login: async (payload) => {

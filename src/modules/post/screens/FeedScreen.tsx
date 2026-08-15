@@ -4,7 +4,6 @@ import {
   ListRenderItem,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   Pressable,
   View,
 } from "react-native";
@@ -30,34 +29,6 @@ import { Post, PostCategory } from "@/modules/post/types";
 const SCROLL_THRESHOLD = 120;
 const TAB_BAR_HEIGHT = 80;
 
-// #region agent log
-const DEBUG_LOG_HOST = Platform.OS === "android" ? "10.0.2.2" : "127.0.0.1";
-const debugLog = (
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data: Record<string, unknown>,
-  runId = "pre-fix",
-) => {
-  fetch(`http://${DEBUG_LOG_HOST}:7427/ingest/b69baca5-7169-4c15-b121-a6217c30cb9c`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "40df94",
-    },
-    body: JSON.stringify({
-      sessionId: "40df94",
-      runId,
-      hypothesisId,
-      location,
-      message,
-      data: { platform: Platform.OS, ...data },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-};
-// #endregion
-
 export const FeedScreen = () => {
   const user = useAuthStore((state) => state.user);
   const colors = useThemeTokens();
@@ -80,17 +51,11 @@ export const FeedScreen = () => {
     setActiveCategory,
   } = useFeed();
 
-  const openComposer = useCallback((source: "prompt" | "fab") => {
-    // #region agent log
-    debugLog("C", "FeedScreen.tsx:openComposer", "composer opened", { source });
-    // #endregion
+  const openComposer = useCallback((_source: "prompt" | "fab") => {
     setComposerOpen(true);
   }, []);
 
   const closeComposer = useCallback(() => {
-    // #region agent log
-    debugLog("C", "FeedScreen.tsx:closeComposer", "composer closed", {});
-    // #endregion
     setComposerOpen(false);
   }, []);
 
@@ -101,13 +66,6 @@ export const FeedScreen = () => {
     if (shouldShowFab !== showFabRef.current) {
       showFabRef.current = shouldShowFab;
       setShowFab(shouldShowFab);
-      // #region agent log
-      debugLog("B", "FeedScreen.tsx:handleScroll", "fab visibility changed", {
-        scrollY: Math.round(scrollY),
-        showFab: shouldShowFab,
-        threshold: SCROLL_THRESHOLD,
-      });
-      // #endregion
     }
   }, []);
 

@@ -27,7 +27,14 @@ export type MainStackParamList = {
 
   UserProfile: {
     userId: string;
-  }; 
+  };
+
+  ProjectDetail: {
+    id: string;
+  };
+
+  InvestmentWatchlist: undefined;
+  Notifications: undefined;
 
     BusinessSummary: {
       projectId: string;

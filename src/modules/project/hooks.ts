@@ -57,16 +57,38 @@ export const projectTypeOptions = [
   { label: "AI", value: "ai" }
 ];
 
+export const FUNDING_STAGE_OPTIONS = [
+  { label: "Idea Stage", value: "idea_stage" },
+  { label: "Bootstrapping", value: "bootstrapping" },
+  { label: "Pre-Seed Stage", value: "pre_seed_stage" },
+  { label: "Seed Stage", value: "seed_stage" },
+  { label: "Series A", value: "series_a" },
+  { label: "Series B", value: "series_b" },
+  { label: "Series C", value: "series_c" },
+  { label: "Series D", value: "series_d" }
+] as const;
+
+export const PROJECT_CATEGORY_OPTIONS = [
+  { label: "AI", value: "ai" },
+  { label: "SaaS", value: "saas" },
+  { label: "FinTech", value: "fintech" },
+  { label: "HealthTech", value: "healthtech" },
+  { label: "E-commerce", value: "ecommerce" },
+  { label: "DeepTech", value: "deeptech" },
+  { label: "Mobility", value: "mobility" },
+  { label: "Consumer & Social Platforms", value: "consumer_social" }
+] as const;
+
 const emptyPayload: ProjectPayload = {
   name: "",
   tagline: "",
   description: "",
   pitch: "",
-  category: "app",
+  category: "saas",
   industryTags: [],
   projectType: "saas",
   stage: "idea",
-  fundingStage: "bootstrapped",
+  fundingStage: "bootstrapping",
   teamSize: 1,
   foundedYear: null,
   location: "",
@@ -190,15 +212,23 @@ export const useProjects = () => {
   };
 };
 
-export const useProjectForm = () => {
+export const useProjectForm = (existingProject?: import("@/modules/project/types").Project | null) => {
   const createProject = useProjectStore((state) => state.createProject);
+  const updateProject = useProjectStore((state) => state.updateProject);
   const isSubmitting = useProjectStore((state) => state.isSubmitting);
-  const [values, setValues] = useState({
-    ...emptyPayload,
-    industryTagsText: "",
-    techStackText: "",
-    lookingForText: ""
-  });
+  const isEditing = Boolean(existingProject);
+
+  const initialValues = existingProject
+    ? {
+        ...emptyPayload,
+        ...existingProject,
+        industryTagsText: existingProject.industryTags.join(", "),
+        techStackText: existingProject.techStack.join(", "),
+        lookingForText: existingProject.lookingFor.join(", ")
+      }
+    : { ...emptyPayload, industryTagsText: "", techStackText: "", lookingForText: "" };
+
+  const [values, setValues] = useState(initialValues);
 
   const setField = useCallback(<Key extends keyof typeof values>(key: Key, value: (typeof values)[Key]) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -209,7 +239,7 @@ export const useProjectForm = () => {
       return false;
     }
 
-    const didSucceed = await createProject({
+    const payload = {
       ...values,
       name: values.name.trim(),
       tagline: values.tagline.trim(),
@@ -219,16 +249,27 @@ export const useProjectForm = () => {
       industryTags: csvToArray(values.industryTagsText),
       techStack: csvToArray(values.techStackText),
       lookingFor: csvToArray(values.lookingForText)
-    });
+    };
 
-    if (didSucceed) {
+    const didSucceed = existingProject
+      ? await updateProject(existingProject.id, payload)
+      : await createProject(payload);
+
+    if (didSucceed && !existingProject) {
       setValues({ ...emptyPayload, industryTagsText: "", techStackText: "", lookingForText: "" });
     }
 
     return didSucceed;
-  }, [createProject, values]);
+  }, [createProject, updateProject, existingProject, values]);
 
-  return { values, setField, submit, isSubmitting, canSubmit: Boolean(values.name.trim() && values.description.trim()) };
+  return {
+    values,
+    setField,
+    submit,
+    isSubmitting,
+    isEditing,
+    canSubmit: Boolean(values.name.trim() && values.description.trim())
+  };
 };
 
 export const useProjectDetail = () => {

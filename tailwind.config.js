@@ -7,7 +7,21 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Manrope_400Regular"],
-        display: ["Sora_600SemiBold"]
+        "sans-medium": ["Manrope_500Medium"],
+        "sans-semibold": ["Manrope_600SemiBold"],
+        "sans-bold": ["Manrope_700Bold"],
+        display: ["Sora_400Regular"],
+        "display-semibold": ["Sora_600SemiBold"],
+        "display-bold": ["Sora_700Bold"]
+      },
+      fontSize: {
+        xs: ["12px", { lineHeight: "18px" }],
+        sm: ["14px", { lineHeight: "22px" }],
+        base: ["16px", { lineHeight: "26px" }],
+        lg: ["18px", { lineHeight: "28px" }],
+        xl: ["20px", { lineHeight: "30px" }],
+        "2xl": ["24px", { lineHeight: "34px" }],
+        "3xl": ["30px", { lineHeight: "40px" }]
       },
       borderRadius: {
         sm: "8px",

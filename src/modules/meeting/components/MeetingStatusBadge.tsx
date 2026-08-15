@@ -34,6 +34,12 @@ const STATUS_CONFIG = {
     background: "#FEE2E2",
     color: "#DC2626",
   },
+
+  completed: {
+    label: "Completed",
+    background: "#E0E7FF",
+    color: "#4338CA",
+  },
 };
 
 export const MeetingStatusBadge = ({

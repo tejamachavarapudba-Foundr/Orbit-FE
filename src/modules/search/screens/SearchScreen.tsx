@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { ScrollView, TextInput, View } from "react-native";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
@@ -6,6 +6,7 @@ import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { searchTypeOptions, useGlobalSearch } from "@/modules/search/hooks";
@@ -43,21 +44,15 @@ export const SearchScreen = () => {
           </View>
 
           <View className="mt-4 flex-row flex-wrap gap-2">
-            {searchTypeOptions.map((option) => {
-              const isActive = type === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="button"
-                  onPress={() => setType(option.value)}
-                  className={`rounded-md border px-4 py-2 ${isActive ? "border-primary bg-primary" : "border-border bg-surface"}`}
-                >
-                  <AppText tone={isActive ? "onPrimary" : "muted"} weight="medium">
-                    {option.label}
-                  </AppText>
-                </Pressable>
-              );
-            })}
+            {searchTypeOptions.map((option) => (
+              <FilterChip
+                key={option.value}
+                label={option.label}
+                isActive={type === option.value}
+                activeTone="primary"
+                onPress={() => setType(option.value)}
+              />
+            ))}
           </View>
 
           <View className="mt-4 flex-row gap-3">

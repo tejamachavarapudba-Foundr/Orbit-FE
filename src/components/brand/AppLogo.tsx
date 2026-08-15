@@ -23,7 +23,7 @@ export const AppLogo = ({ compact = false }: AppLogoProps) => {
       </View>
       {!compact ? (
         <AppText family="display" weight="bold" size="lg" className="tracking-tight">
-          Foundr
+          Startuphouze
         </AppText>
       ) : null}
     </View>

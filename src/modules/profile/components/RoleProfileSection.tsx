@@ -1,8 +1,11 @@
 import { View } from "react-native";
 
+import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { normalizeMemberRole } from "@/constants/memberRoles";
 import { RoleProfileData } from "@/modules/profile/schemas";
+import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
 
 type RoleProfileSectionProps = {
   role: string;
@@ -77,6 +80,24 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     const data = roleProfile.data;
     return (
       <View className="gap-4">
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Engineer specialization
+          </AppText>
+          <Dropdown
+            value={data.specialization}
+            options={ENGINEER_SPECIALIZATIONS}
+            onChange={(v) => setField("specialization", v)}
+            placeholder="Select specialization"
+          />
+          {data.specialization === "other" ? (
+            <AppTextInput
+              placeholder="Describe your specialization"
+              value={data.specializationOther}
+              onChangeText={(v) => setField("specializationOther", v)}
+            />
+          ) : null}
+        </View>
         <AppTextInput label="Skills" value={toCsv(data.skills)} onChangeText={(v) => setField("skills", fromCsv(v))} />
         <AppTextInput label="Experience level" value={data.experienceLevel} onChangeText={(v) => setField("experienceLevel", v)} />
         <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />

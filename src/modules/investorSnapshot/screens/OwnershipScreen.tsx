@@ -8,6 +8,7 @@ import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Card, CardContent } from "@/components/ui/Card";
 
 import { useInvestorSnapshot } from "../hooks";
+import { OwnershipPieChart } from "../components/OwnershipPieChart";
 
 export const OwnershipScreen = () => {
   const navigation = useNavigation<any>();
@@ -283,6 +284,15 @@ export const OwnershipScreen = () => {
               keyboardType="numeric"
             />
 
+          </View>
+
+          <View className="mt-6 items-center">
+            <OwnershipPieChart
+              founderOwnership={Number(founderOwnership) || 0}
+              employeeEsop={Number(employeeEsop) || 0}
+              investorOwnership={Number(investorOwnership) || 0}
+              availablePool={Number(availablePool) || 0}
+            />
           </View>
 
           {/* VALIDATION */}

@@ -53,7 +53,7 @@ export const UserConnectActions = ({ profile }: UserConnectActionsProps) => {
 
   return (
     <View>
-      {status === "pending_incoming" && incomingNote ? (
+      {status === "incoming_pending" && incomingNote ? (
         <View className="mb-4 rounded-md border border-border bg-background p-3">
           <AppText tone="muted" size="sm" weight="medium">
             Connection note

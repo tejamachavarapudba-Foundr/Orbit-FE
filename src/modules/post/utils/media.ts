@@ -2,8 +2,9 @@ import { Dimensions } from "react-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width - 32; // Card padding
 
-const MAX_HEIGHT = 650;
-const MIN_HEIGHT = 220;
+// Instagram clamps posts between a portrait max (4:5) and a landscape max (1.91:1).
+const MIN_RATIO = 4 / 5;
+const MAX_RATIO = 1.91;
 
 export function getMediaSize(
   width: number | null = null,
@@ -12,21 +13,14 @@ export function getMediaSize(
   if (!width || !height) {
     return {
       width: SCREEN_WIDTH,
-      height: 350,
+      height: SCREEN_WIDTH / MIN_RATIO,
     };
   }
 
-  const ratio = width / height;
-
-  let calculatedHeight = SCREEN_WIDTH / ratio;
-
-  calculatedHeight = Math.max(
-    MIN_HEIGHT,
-    Math.min(MAX_HEIGHT, calculatedHeight),
-  );
+  const ratio = Math.max(MIN_RATIO, Math.min(MAX_RATIO, width / height));
 
   return {
     width: SCREEN_WIDTH,
-    height: calculatedHeight,
+    height: SCREEN_WIDTH / ratio,
   };
 }

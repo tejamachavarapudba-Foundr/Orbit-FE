@@ -47,17 +47,17 @@ export const ProfileScreen = () => {
   useEffect(() => {
     ensureRoleProfile();
   }, [ensureRoleProfile, values.role]);
-  console.log("PROFILE SCREEN LOADED");
+
   const handleDeleteAccount = async () => {
     const didDelete = await deleteAccount();
     if (didDelete) {
-      showToast({ type: "success", title: "Account deleted", message: "Your Foundr account was removed." });
+      showToast({ type: "success", title: "Account deleted", message: "Your Startuphouze account was removed." });
       await logout();
     }
   };
 
   const confirmDeleteAccount = () => {
-    Alert.alert("Delete account?", "This will remove your Foundr account and sign you out.", [
+    Alert.alert("Delete account?", "This will remove your Startuphouze account and sign you out.", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => void handleDeleteAccount() }
     ]);
@@ -74,12 +74,11 @@ export const ProfileScreen = () => {
         multiple: false,
       });
   
-      if (result.canceled || result.assets?.length === 0) {
+      const file = result.assets?.[0];
+      if (result.canceled || !file) {
         return;
       }
-  
-      const file = result.assets[0];
-  
+
       const formData = new FormData();
   
       formData.append(
@@ -138,7 +137,7 @@ export const ProfileScreen = () => {
           Profile
         </AppText>
         <AppText tone="muted" className="mt-2">
-          {user?.email ?? "Complete your Foundr profile."}
+          {user?.email ?? "Complete your Startuphouze profile."}
         </AppText>
 
         <View className="mt-6">

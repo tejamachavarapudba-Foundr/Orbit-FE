@@ -5,6 +5,8 @@ import { MainStackParamList } from "@/app/navigation/types";
 import { InvestmentWatchlistScreen } from "@/modules/project/screens/InvestmentWatchlistScreen";
 import { InvestorSnapshotViewScreen } from "@/modules/investor/screens/InvestorSnapshotViewScreen";
 import { UserPublicProfileScreen } from "@/modules/user/screens/UserPublicProfileScreen";
+import { ProjectDetailScreen } from "@/modules/project/screens/ProjectDetailScreen";
+import { NotificationsScreen } from "@/modules/notifications/screens/NotificationsScreen";
 import { ProfileScreen } from "@/modules/profile/screens/ProfileScreen";
 import { SettingsScreen } from "@/modules/settings/screens/SettingsScreen";
 import { DiscoverScreen } from "@/modules/user/screens/DiscoverScreen";
@@ -65,7 +67,17 @@ export const MainStackNavigator = () => (
       name="UserProfile"
       component={UserPublicProfileScreen}
     />
-  
+
+    <Stack.Screen
+      name="ProjectDetail"
+      component={ProjectDetailScreen}
+    />
+
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+    />
+
 
     <Stack.Screen
       name="BusinessSummary"

@@ -21,7 +21,7 @@ export const StartChatCard = memo(({ user, isCreating, onStart }: StartChatCardP
       <CardContent className="gap-2 p-4">
         <Avatar name={profile.fullName} imageUrl={profile.avatarUrl ?? ""} size="md" fallback="mesh" />
         <AppText weight="medium" numberOfLines={1}>
-          {profile.fullName || "Foundr member"}
+          {profile.fullName || "Startuphouze member"}
         </AppText>
         <AppText tone="muted" size="xs" numberOfLines={2}>
           {profile.headline || profile.role || "Member"}

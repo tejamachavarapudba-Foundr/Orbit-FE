@@ -30,7 +30,7 @@ export const IncomingRequestsSection = () => {
       <View className="mt-4 gap-3">
         {incomingRequests.map((request) => {
           const requester = request.requester;
-          const name = requester?.fullName || "Foundr member";
+          const name = requester?.fullName || "Startuphouze member";
 
           return (
             <View key={request.id} className="rounded-md border border-border bg-background p-4">

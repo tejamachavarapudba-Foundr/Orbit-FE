@@ -12,7 +12,8 @@ export const onboardingApi = {
     try {
       const response = await apiClient.patch<OnboardingProfileResponse & AuthProfile>("/profiles/me/onboarding", payload);
       return response.data;
-    } catch {
+    } catch (error) {
+      console.warn("[onboarding] saveProgress primary endpoint failed, falling back to profile patch", error);
       const patch = buildProfilePatchFromOnboarding(payload);
       const response = await apiClient.patch<AuthProfile>("/profiles/me", patch);
       return response.data;
@@ -25,7 +26,8 @@ export const onboardingApi = {
         payload
       );
       return response.data;
-    } catch {
+    } catch (error) {
+      console.warn("[onboarding] complete primary endpoint failed, falling back to profile patch", error);
       const patch = buildProfilePatchFromOnboarding({
         step: "matches",
         memberRole: payload.memberRole,

@@ -2,7 +2,7 @@ import { FollowProfile } from "@/modules/follows/types";
 
 export type ConnectionRequestStatus = "pending" | "accepted" | "declined" | "cancelled";
 
-export type ConnectionStatus = "none" | "pending_outgoing" | "pending_incoming" | "connected";
+export type ConnectionStatus = "none" | "outgoing_pending" | "incoming_pending" | "connected";
 
 export type ConnectionRequest = {
   id: string;

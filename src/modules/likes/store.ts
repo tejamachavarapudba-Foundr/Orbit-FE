@@ -6,61 +6,54 @@ import { Like } from "@/modules/likes/types";
 import { toAppError } from "@/utils/errors";
 
 type LikeState = {
-  likes: Like[];
-  isLoading: boolean;
+  likesByPostId: Record<string, Like[]>;
   mutatingPostId: string | null;
   errorMessage: string | null;
-  loadLikes: () => Promise<void>;
-  toggleLike: (postId: string) => Promise<boolean>;
+  toggleLike: (postId: string, currentLikes: Like[]) => Promise<boolean>;
 };
 
 const isLike = (value: unknown): value is Like =>
   typeof value === "object" && value !== null && "id" in value && "postId" in value && "userId" in value;
 
 export const useLikeStore = create<LikeState>((set, get) => ({
-  likes: [],
-  isLoading: false,
+  likesByPostId: {},
   mutatingPostId: null,
   errorMessage: null,
-  loadLikes: async () => {
-    set({ isLoading: true, errorMessage: null });
+  toggleLike: async (postId, currentLikes) => {
+    const currentUser = useAuthStore.getState().user;
+    const currentUserId = currentUser?.profile.id;
+    const baseline = get().likesByPostId[postId] ?? currentLikes;
+    const alreadyLiked = currentUserId != null && baseline.some((like) => like.userId === currentUserId);
 
-    try {
-      const likes = await likesApi.getLikes();
-      set({ likes, isLoading: false });
-    } catch (error) {
-      const appError = toAppError(error);
-      set({ errorMessage: appError.message, isLoading: false });
-    }
-  },
-  toggleLike: async (postId) => {
-    set({ mutatingPostId: postId, errorMessage: null });
+    // Optimistic update so the like button reflects instantly.
+    const optimisticLikes = alreadyLiked
+      ? baseline.filter((like) => like.userId !== currentUserId)
+      : [
+          ...baseline,
+          {
+            id: `optimistic-${postId}-${currentUserId ?? "me"}`,
+            postId,
+            userId: currentUserId ?? "",
+            createdAt: new Date().toISOString(),
+            ...(currentUser?.profile ? { user: currentUser.profile } : {})
+          }
+        ];
+
+    set((state) => ({
+      likesByPostId: { ...state.likesByPostId, [postId]: optimisticLikes },
+      mutatingPostId: postId,
+      errorMessage: null
+    }));
 
     try {
       const response = await likesApi.toggleLike(postId);
-      const currentUser = useAuthStore.getState().user;
 
       set((state) => {
-        const currentUserId = currentUser?.profile.id;
-        const withoutCurrentUserLike = state.likes.filter(
-          (like) => !(like.postId === postId && like.userId === currentUserId)
-        );
+        const withoutCurrentUserLike = baseline.filter((like) => like.userId !== currentUserId);
 
-        if (isLike(response)) {
-          return {
-            likes: [
-              ...withoutCurrentUserLike,
-              {
-                ...response,
-                ...(currentUser?.profile ? { user: currentUser.profile } : {})
-              }
-            ],
-            mutatingPostId: null
-          };
-        }
-
-        return {
-          likes: response.liked
+        const resolvedLikes = isLike(response)
+          ? [...withoutCurrentUserLike, { ...response, ...(currentUser?.profile ? { user: currentUser.profile } : {}) }]
+          : response.liked
             ? [
                 ...withoutCurrentUserLike,
                 {
@@ -71,7 +64,10 @@ export const useLikeStore = create<LikeState>((set, get) => ({
                   ...(currentUser?.profile ? { user: currentUser.profile } : {})
                 }
               ]
-            : withoutCurrentUserLike,
+            : withoutCurrentUserLike;
+
+        return {
+          likesByPostId: { ...state.likesByPostId, [postId]: resolvedLikes },
           mutatingPostId: null
         };
       });
@@ -79,7 +75,12 @@ export const useLikeStore = create<LikeState>((set, get) => ({
       return true;
     } catch (error) {
       const appError = toAppError(error);
-      set({ errorMessage: appError.message, mutatingPostId: null });
+      // Roll back the optimistic update on failure.
+      set((state) => ({
+        likesByPostId: { ...state.likesByPostId, [postId]: baseline },
+        errorMessage: appError.message,
+        mutatingPostId: null
+      }));
       return false;
     }
   }

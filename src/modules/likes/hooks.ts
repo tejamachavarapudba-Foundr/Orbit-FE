@@ -20,9 +20,15 @@ export const usePostLikes = (
     (state) => state.toggleLike,
   );
 
+  const storeLikesForPost = useLikeStore(
+    (state) => state.likesByPostId[postId],
+  );
+
+  // The store only tracks posts once they've been toggled locally; until
+  // then, fall back to the snapshot the post list was loaded with.
   const postLikes = useMemo(
-    () => initialLikes,
-    [initialLikes],
+    () => storeLikesForPost ?? initialLikes,
+    [storeLikesForPost, initialLikes],
   );
 
   const isLikedByMe =
@@ -36,6 +42,6 @@ export const usePostLikes = (
     likesCount: postLikes.length,
     isLikedByMe,
     isMutating: mutatingPostId === postId,
-    toggleLike: () => toggleLike(postId),
+    toggleLike: () => toggleLike(postId, initialLikes),
   };
 };

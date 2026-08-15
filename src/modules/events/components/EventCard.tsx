@@ -46,7 +46,7 @@ export const EventCard = memo(({ event, isJoined, isMutating, onRsvp, onView }: 
           </AppText>
           <View className="mt-3 flex-row flex-wrap items-center gap-2">
             <AppText tone="muted" size="sm">
-              Hosted by Foundr member
+              Hosted by Startuphouze member
             </AppText>
             <View className="rounded-md bg-background px-3 py-1">
               <AppText weight="semibold" size="sm">

@@ -21,6 +21,7 @@ type ChatState = {
   selectChat: (id: string) => Promise<void>;
   clearSelectedChat: () => void;
   deleteChat: (id: string) => Promise<boolean>;
+  patchLastMessage: (chatId: string, message: { id?: string; senderId?: string; content?: string; createdAt?: string }) => void;
 };
 
 const sortChats = (chats: Chat[]) =>
@@ -107,5 +108,29 @@ export const useChatStore = create<ChatState>((set) => ({
       useToastStore.getState().show({ type: "error", title: "Delete failed", message: appError.message });
       return false;
     }
+  },
+  patchLastMessage: (chatId, message) => {
+    set((state) => {
+      const applyPatch = (chat: Chat): Chat => {
+        if (chat.id !== chatId) {
+          return chat;
+        }
+        const existingMessages = chat.messages ?? [];
+        const nextMessages = message.id && existingMessages.some((item) => item.id === message.id)
+          ? existingMessages
+          : [...existingMessages, message];
+
+        return {
+          ...chat,
+          lastMessageAt: message.createdAt ?? new Date().toISOString(),
+          messages: nextMessages
+        };
+      };
+
+      return {
+        chats: sortChats(state.chats.map(applyPatch)),
+        selectedChat: state.selectedChat ? applyPatch(state.selectedChat) : state.selectedChat
+      };
+    });
   }
 }));

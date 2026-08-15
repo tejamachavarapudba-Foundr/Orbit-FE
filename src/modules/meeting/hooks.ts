@@ -69,10 +69,7 @@ import {
       useMeetingStore(
         (state) => state.createMeeting,
       );
-  
-       
-      // console.log("Admin meetings:", meetings);
-      
+
     const isSubmitting =
       useMeetingStore(
         (state) => state.isSubmitting,
@@ -90,12 +87,8 @@ import {
         startupId,
       }));
     }, [startupId]);
-    
-    // useEffect(() => {
-    //   console.log("Loading admin meetings...");
-    //   void loadMeetings();
-    // }, []);
-    const setField = 
+
+    const setField =
       useCallback(
         <
           Key extends keyof typeof values,
@@ -321,6 +314,10 @@ import {
       {
         label: "Rejected",
         value: "rejected",
+      },
+      {
+        label: "Completed",
+        value: "completed",
       },
     ];
   

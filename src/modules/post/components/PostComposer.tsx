@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Image, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { ResizeMode, Video } from "expo-av";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -71,18 +72,22 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
           className="min-h-[88px] rounded-md border border-input bg-background px-3 py-3 text-base leading-6 text-text"
         />
 
-        {selectedFiles.length > 0 ?  (
-          <View className="relative border border-red-500 p-2">
-            <AppText>IMAGE FOUND</AppText>
-
-            <Image
-              source={{ uri: selectedFiles[0]?.uri }}
-              style={{
-                width: 300,
-               height: 200,
-              }}
-              resizeMode="cover"
-            />
+        {selectedFiles.length > 0 && selectedFiles[0] ? (
+          <View className="relative overflow-hidden rounded-md bg-black" style={{ width: "100%", height: 220 }}>
+            {selectedFiles[0].type === "video" ? (
+              <Video
+                source={{ uri: selectedFiles[0].uri }}
+                useNativeControls
+                resizeMode={ResizeMode.COVER}
+                style={{ width: "100%", height: "100%" }}
+              />
+            ) : (
+              <Image
+                source={{ uri: selectedFiles[0].uri }}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
+            )}
 
             <Pressable
               accessibilityRole="button"

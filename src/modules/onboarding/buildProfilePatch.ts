@@ -75,6 +75,8 @@ const mergeRoleProfile = (
             ? fromCsv(roleFields.skills ?? quick?.skills ?? "")
             : prior.skills,
           experienceLevel: roleFields.experienceLevel ?? prior.experienceLevel,
+          specialization: roleFields.specialization ?? prior.specialization,
+          specializationOther: roleFields.specializationOther ?? prior.specializationOther,
           goals
         }
       };

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { FlatList, ListRenderItem, TextInput, View } from "react-native";
 import { useAuthStore } from "@/modules/auth/store";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -12,8 +12,11 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { JobCard } from "@/modules/jobs/components/JobCard";
 import { JobComposer } from "@/modules/jobs/components/JobComposer";
 import { JobDetailPanel } from "@/modules/jobs/components/JobDetailPanel";
+import { MyApplicationsPanel, MyPostsAnalyticsPanel } from "@/modules/jobs/components/MyJobsPanel";
 import { jobRoleOptions, useJobs } from "@/modules/jobs/hooks";
 import { Job } from "@/modules/jobs/types";
+
+type JobsTab = "browse" | "mine";
 
 export const JobsScreen = () => {
   const colors = useThemeTokens();
@@ -49,11 +52,13 @@ export const JobsScreen = () => {
     profile?.role === "investor" ||
     profile?.role === "hr";
 
+  const [activeTab, setActiveTab] = useState<JobsTab>("browse");
+
   return (
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
       <FlatList
-        data={jobs}
+        data={activeTab === "browse" ? jobs : []}
         keyExtractor={(item) => item.id}
         renderItem={renderJob}
         refreshing={isRefreshing}
@@ -75,36 +80,59 @@ export const JobsScreen = () => {
               </AppText>
             </View>
 
-            <TextInput
-              value={filters.query}
-              onChangeText={setQuery}
-              placeholder="Search jobs, startups, skills..."
-              placeholderTextColor={colors.muted}
-              selectionColor={colors.primary}
-              className="mt-5 h-11 rounded-md border border-input bg-background px-3 text-sm text-text"
-            />
-
             <View className="mt-4 flex-row flex-wrap gap-2">
-              {jobRoleOptions.map((role) => (
-                <FilterChip
-                  key={role}
-                  label={role === "all" ? "All roles" : role}
-                  isActive={filters.role === role}
-                  activeTone="primary"
-                  onPress={() => setRole(role)}
-                />
-              ))}
+              <FilterChip
+                label="New jobs"
+                isActive={activeTab === "browse"}
+                activeTone="primary"
+                onPress={() => setActiveTab("browse")}
+              />
+              <FilterChip
+                label={canPostJobs ? "My posts | Analytics" : "Applied | Status"}
+                isActive={activeTab === "mine"}
+                activeTone="primary"
+                onPress={() => setActiveTab("mine")}
+              />
             </View>
-            {canPostJobs && (
-              <View className="mt-4">
-                <JobComposer />
-              </View>
+
+            {activeTab === "browse" ? (
+              <>
+                <TextInput
+                  value={filters.query}
+                  onChangeText={setQuery}
+                  placeholder="Search jobs, startups, skills..."
+                  placeholderTextColor={colors.muted}
+                  selectionColor={colors.primary}
+                  className="mt-5 h-11 rounded-md border border-input bg-background px-3 text-sm text-text"
+                />
+
+                <View className="mt-4 flex-row flex-wrap gap-2">
+                  {jobRoleOptions.map((role) => (
+                    <FilterChip
+                      key={role}
+                      label={role === "all" ? "All roles" : role}
+                      isActive={filters.role === role}
+                      activeTone="primary"
+                      onPress={() => setRole(role)}
+                    />
+                  ))}
+                </View>
+                {canPostJobs && (
+                  <View className="mt-4">
+                    <JobComposer />
+                  </View>
+                )}
+                <JobDetailPanel />
+              </>
+            ) : canPostJobs ? (
+              <MyPostsAnalyticsPanel visible={activeTab === "mine"} />
+            ) : (
+              <MyApplicationsPanel visible={activeTab === "mine"} />
             )}
-            <JobDetailPanel />
           </View>
         }
         ListEmptyComponent={
-          isLoading ? (
+          activeTab === "mine" ? null : isLoading ? (
             <View className="w-full max-w-2xl gap-3 self-center">
               <Skeleton className="h-36 w-full rounded-xl" />
               <Skeleton className="h-36 w-full rounded-xl" />

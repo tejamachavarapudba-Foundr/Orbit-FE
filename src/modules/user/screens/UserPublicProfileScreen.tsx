@@ -99,7 +99,7 @@ export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
 
             <View className="mt-4 flex-row flex-wrap items-center gap-2">
               <AppText size="2xl" weight="bold">
-                {profile.fullName || "Foundr member"}
+                {profile.fullName || "Startuphouze member"}
               </AppText>
               {profile.openToConnect ? (
                 <View className="rounded-full bg-success/15 px-3 py-1">

@@ -1,13 +1,19 @@
-import { RefreshControl, ScrollView, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppButton } from "@/components/ui/AppButton";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { iconSize } from "@/theme/designTokens";
 
 import { useAdminMeetings } from "@/modules/meeting/hooks";
 import { MeetingCard } from "@/modules/meeting/components/MeetingCard";
 
 export const AdminMeetingRequestsScreen = () => {
+  const colors = useThemeTokens();
+  const navigation = useNavigation<any>();
   const {
     meetings,
     isLoading,
@@ -29,8 +35,16 @@ export const AdminMeetingRequestsScreen = () => {
 
   return (
     <AppScreen
-      contentContainerClassName="p-4"
+      contentContainerClassName="flex-1 p-4"
     >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        onPress={() => navigation.goBack()}
+        className="mb-2 h-9 w-9 items-center justify-center rounded-md"
+      >
+        <Feather name="arrow-left" size={iconSize.md} color={colors.text} />
+      </Pressable>
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={

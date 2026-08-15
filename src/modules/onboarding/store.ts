@@ -173,7 +173,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         onboardingCompleted: true
       });
 
-      useToastStore.getState().show({ type: "success", title: "Welcome to Foundr!", message: "Your profile is ready." });
+      useToastStore.getState().show({ type: "success", title: "Welcome to Startuphouze!", message: "Your profile is ready." });
       set({ isSubmitting: false });
       return true;
     } catch (error) {

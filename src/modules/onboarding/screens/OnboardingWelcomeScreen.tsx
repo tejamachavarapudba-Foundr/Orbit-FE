@@ -14,7 +14,7 @@ export const OnboardingWelcomeScreen = ({ navigation }: Props) => {
   const { roles, draft, canContinueWelcome, isSubmitting, setMemberRole, saveProgress } = useOnboarding();
 
   const continueNext = async () => {
-    console.log("Continue clicked");
+    await saveProgress();
     navigation.navigate("OnboardingGoals");
   };
 
@@ -22,7 +22,7 @@ export const OnboardingWelcomeScreen = ({ navigation }: Props) => {
     <AppScreen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <AppText size="2xl" weight="bold" className="mt-4">
-          🚀 Welcome to Foundr
+          🚀 Welcome to Startuphouze
         </AppText>
         <AppText tone="muted" className="mt-2 leading-6">
           Connect with founders, investors, advisors and talent.

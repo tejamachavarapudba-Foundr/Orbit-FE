@@ -22,7 +22,8 @@ const emptyGroupedResults = (): SearchGroupedResults => ({
   projects: [],
   jobs: [],
   events: [],
-  posts: []
+  posts: [],
+  messages: []
 });
 
 const countResults = (results: SearchGroupedResults) =>

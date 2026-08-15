@@ -29,13 +29,13 @@ export const InvitationsScreen = () => {
     return (
       <Card className="mb-3 p-4 flex-row items-center justify-between">
         <View className="flex-row items-center flex-1 mr-3">
-          <UserAvatar src={requester.avatarUrl} name={requester.fullName} size="md" />
+          <UserAvatar imageUrl={requester.avatarUrl} name={requester.fullName} size={40} />
           <View className="ml-3 flex-1">
             <AppText weight="bold" size="base">{requester.fullName}</AppText>
             <AppText tone="muted" size="sm" numberOfLines={1}>{requester.headline || "Member"}</AppText>
             {item.note ? (
               <View className="mt-1.5 bg-muted/30 p-2 rounded">
-                <AppText size="xs" tone="secondary">"{item.note}"</AppText>
+                <AppText size="xs" tone="muted">"{item.note}"</AppText>
               </View>
             ) : null}
           </View>

@@ -14,20 +14,6 @@ export const SettingsScreen = () => {
   const scheme = useThemeStore((state) => state.resolvedScheme);
 
   const handleLogout = () => {
-    // #region agent log
-    fetch("http://127.0.0.1:7427/ingest/b69baca5-7169-4c15-b121-a6217c30cb9c", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ac9505" },
-      body: JSON.stringify({
-        sessionId: "ac9505",
-        location: "SettingsScreen.tsx:handleLogout",
-        message: "Sign out pressed from settings",
-        data: {},
-        timestamp: Date.now(),
-        hypothesisId: "H3",
-      }),
-    }).catch(() => {});
-    // #endregion
     void logout();
   };
 
@@ -50,24 +36,7 @@ export const SettingsScreen = () => {
                   Currently using {scheme === "dark" ? "dark" : "light"} mode
                 </AppText>
               </View>
-              <ThemeToggle
-                onToggle={() => {
-                  // #region agent log
-                  fetch("http://127.0.0.1:7427/ingest/b69baca5-7169-4c15-b121-a6217c30cb9c", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ac9505" },
-                    body: JSON.stringify({
-                      sessionId: "ac9505",
-                      location: "SettingsScreen.tsx:ThemeToggle",
-                      message: "Theme toggle pressed in settings",
-                      data: { previousScheme: scheme },
-                      timestamp: Date.now(),
-                      hypothesisId: "H2",
-                    }),
-                  }).catch(() => {});
-                  // #endregion
-                }}
-              />
+              <ThemeToggle />
             </View>
           </CardContent>
         </Card>

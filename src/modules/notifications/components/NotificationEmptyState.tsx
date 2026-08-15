@@ -1,3 +1,7 @@
+import { View } from "react-native";
+
+import { AppText } from "@/components/ui/AppText";
+
 export function NotificationEmptyState() {
     return (
       <View className="items-center py-20">

@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
+import { FilterChip } from "@/components/ui/FilterChip";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
 import { Project } from "@/modules/project/types";
-import { getShadowStyle } from "@/theme/shadows";
 
 type StartupBrowseTab = "new" | "viewed";
 
@@ -39,32 +39,16 @@ export const StartupBrowseSection = ({
 
   return (
     <View className="mt-6">
-      <View className="flex-row rounded-full border border-border bg-background p-1">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.value;
-
-          return (
-            <Pressable
-              key={tab.value}
-              accessibilityRole="button"
-              onPress={() => setActiveTab(tab.value)}
-              className={`flex-1 flex-row items-center justify-center rounded-full px-2 py-2.5 ${
-                isActive ? "bg-surface" : "bg-transparent"
-              }`}
-              style={isActive ? getShadowStyle("card") : undefined}
-            >
-              <AppText
-                tone={isActive ? "default" : "muted"}
-                weight="semibold"
-                size="xs"
-                numberOfLines={1}
-                className="text-center"
-              >
-                {tab.label} ({tab.count})
-              </AppText>
-            </Pressable>
-          );
-        })}
+      <View className="flex-row flex-wrap gap-2">
+        {tabs.map((tab) => (
+          <FilterChip
+            key={tab.value}
+            label={`${tab.label} (${tab.count})`}
+            isActive={activeTab === tab.value}
+            activeTone="primary"
+            onPress={() => setActiveTab(tab.value)}
+          />
+        ))}
       </View>
 
       {activeStartups.length > 0 ? (
@@ -73,8 +57,8 @@ export const StartupBrowseSection = ({
           horizontal
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View className="mr-3 mt-3 w-72">
-              <ProjectCard project={item} onPress={onPress} onBookMeeting={onBookMeeting} />
+            <View className="mr-3 mt-3 w-56">
+              <ProjectCard project={item} compact onPress={onPress} onBookMeeting={onBookMeeting} />
             </View>
           )}
           showsHorizontalScrollIndicator={false}

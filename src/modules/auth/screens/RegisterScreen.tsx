@@ -23,7 +23,7 @@ export const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
           <View className="min-h-full flex-grow px-4 pb-10 pt-2">
           <AuthHeader />
           <View className="flex-1 justify-center">
-            <AuthCard title="Join Foundr" subtitle="Create your account in seconds.">
+            <AuthCard title="Join Startuphouze" subtitle="Create your account in seconds.">
               <AuthErrorBanner message={errorMessage} />
               <AppTextInput
                 label="Full name"

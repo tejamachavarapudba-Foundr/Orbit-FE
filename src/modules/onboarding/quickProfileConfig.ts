@@ -8,6 +8,7 @@ export type QuickFieldConfig = {
   multiline?: boolean;
   keyboardType?: "default" | "url";
   mapsToShared?: "fullName" | "headline" | "location" | "linkedinUrl" | "company" | "website" | "skills";
+  type?: "text" | "specializationDropdown";
 };
 
 export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig[]> = {
@@ -39,6 +40,7 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
   professional: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline" },
+    { key: "specialization", label: "Engineer specialization (if applicable)", required: false, type: "specializationDropdown" },
     { key: "skills", label: "Skills", required: true, mapsToShared: "skills", placeholder: "React, Node.js, UX" },
     { key: "experienceLevel", label: "Experience Level", required: true, placeholder: "Junior, Mid, Senior" },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },

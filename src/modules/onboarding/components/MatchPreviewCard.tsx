@@ -17,6 +17,7 @@ export const MatchPreviewCard = ({ matches }: MatchPreviewCardProps) => (
       <StatPill label="Founders" value={matches.breakdown.founders} />
       <StatPill label="Advisors" value={matches.breakdown.advisors} />
       <StatPill label="Professionals" value={matches.breakdown.professionals} />
+      <StatPill label="Service Providers" value={matches.breakdown.serviceProviders} />
     </View>
   </View>
 );

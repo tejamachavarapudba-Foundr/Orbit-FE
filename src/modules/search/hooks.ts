@@ -80,7 +80,8 @@ export const useGlobalSearch = () => {
       projects: rankedProjects,
       jobs: results.jobs,
       events: results.events,
-      posts: results.posts
+      posts: results.posts,
+      messages: results.messages
     };
   }, [query, results.events, results.jobs, results.posts, results.projects, results.users]);
 

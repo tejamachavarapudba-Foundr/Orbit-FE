@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { FlatList, ListRenderItem, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -12,9 +13,8 @@ import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
-import { ProjectDetailPanel } from "@/modules/project/components/ProjectDetailPanel";
 import { StartupBrowseSection } from "@/modules/project/components/StartupBrowseSection";
-import { projectStageOptions, projectTypeOptions, useProjectDetail, useProjects } from "@/modules/project/hooks";
+import { projectStageOptions, projectTypeOptions, useProjects } from "@/modules/project/hooks";
 import { Project } from "@/modules/project/types";
 import { iconSize } from "@/theme/designTokens";
 import { MeetingRequestModal } from "@/modules/meeting/components/MeetingRequestModal";
@@ -37,8 +37,9 @@ export const ProjectsScreen = () => {
     setStage,
     setProjectType
   } = useProjects();
-  const { selectProject } = useProjectDetail();
-  
+  const navigation = useNavigation<any>();
+  const selectProject = useCallback((id: string) => navigation.navigate("ProjectDetail", { id }), [navigation]);
+
   const [
     meetingVisible,
     setMeetingVisible,
@@ -129,8 +130,6 @@ export const ProjectsScreen = () => {
 
             <ProjectComposer />
 
-            <ProjectDetailPanel />
-
             {trendingStartups.length > 0 ? (
               <View className="mt-6">
                 <AppText weight="semibold" size="sm">
@@ -141,9 +140,11 @@ export const ProjectsScreen = () => {
                   horizontal
                   keyExtractor={(item) => item.id}
                   renderItem={({ item }) => (
-                    <View className="mr-3 w-72">
-                      <ProjectCard 
-                        project={item} onPress={(id) => void selectProject(id)}
+                    <View className="mr-3 w-56">
+                      <ProjectCard
+                        project={item}
+                        compact
+                        onPress={(id) => void selectProject(id)}
                         onBookMeeting={handleBookMeeting}
                       />
                     </View>

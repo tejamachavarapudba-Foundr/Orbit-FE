@@ -53,7 +53,7 @@ export const ChatDetailPanel = ({
     return null;
   }
 
-  const participantName = participant?.fullName || "Foundr member";
+  const participantName = participant?.fullName || "Startuphouze member";
   const isDeleting = deletingChatId === chat.id;
 
   return (

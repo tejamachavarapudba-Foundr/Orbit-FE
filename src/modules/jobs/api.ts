@@ -37,5 +37,24 @@ export const jobsApi = {
   updateApplicationStatus: async (jobId: string, appId: string, status: JobApplicationStatus) => {
     const response = await apiClient.patch<JobApplication>(`/jobs/${jobId}/applications/${appId}`, { status });
     return response.data;
+  },
+  getMyApplications: async () => {
+    const response = await apiClient.get<(JobApplication & { job: Job })[]>("/jobs/mine/applications");
+    return response.data;
+  },
+  getMyPosts: async () => {
+    const response = await apiClient.get<Job[]>("/jobs/mine/posts");
+    return response.data;
+  },
+  getMyAnalytics: async () => {
+    const response = await apiClient.get<{
+      totalPosts: number;
+      totalApplications: number;
+      accepted: number;
+      rejected: number;
+      pending: number;
+      onboardCount: number;
+    }>("/jobs/mine/analytics");
+    return response.data;
   }
 };
