@@ -27,12 +27,6 @@ export const mediaApi = {
       await apiClient.post(
         "/media/upload",
         formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        },
       );
 
     return data;

@@ -21,12 +21,12 @@ const refreshTokens = (refreshToken: string) => {
   return refreshPromise;
 };
 
+// No default Content-Type here — axios sets "application/json" itself for
+// plain object bodies, and needs to be left alone for FormData bodies so it
+// (or React Native) can generate the multipart boundary correctly.
 export const apiClient = axios.create({
   baseURL: appConfig.apiBaseUrl,
-  timeout: 20_000,
-  headers: {
-    "Content-Type": "application/json"
-  }
+  timeout: 20_000
 });
 
 apiClient.interceptors.request.use((config) => {

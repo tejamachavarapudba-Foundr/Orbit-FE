@@ -16,8 +16,13 @@ export const useMatchRecommendations = (query: MatchQuery | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const memberRole = query?.memberRole ?? null;
+  // Goals only affect ranking, not whether a fetch should run — join them into a
+  // stable string so the effect below doesn't depend on the array's identity.
+  const goalsKey = query?.goals?.join(",") ?? "";
+
   const loadMatches = useCallback(async () => {
-    if (!query?.memberRole) {
+    if (!memberRole) {
       return;
     }
 
@@ -25,7 +30,10 @@ export const useMatchRecommendations = (query: MatchQuery | null) => {
     setErrorMessage(null);
 
     try {
-      const result = await recommendationsApi.getMatches(query);
+      const result = await recommendationsApi.getMatches({
+        memberRole,
+        goals: goalsKey ? goalsKey.split(",") : []
+      });
       setMatches(result);
     } catch {
       setErrorMessage("Could not load recommendations right now.");
@@ -33,7 +41,8 @@ export const useMatchRecommendations = (query: MatchQuery | null) => {
     } finally {
       setIsLoading(false);
     }
-  }, [query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberRole, goalsKey]);
 
   useEffect(() => {
     void loadMatches();

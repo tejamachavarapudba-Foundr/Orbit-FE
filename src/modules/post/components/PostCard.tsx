@@ -16,7 +16,7 @@ import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { Post, PostCategory } from "@/modules/post/types";
 import { iconSize, toBadgeCategory } from "@/theme/designTokens";
 import { Video, ResizeMode } from 'expo-av';
-import { getMediaSize } from "@/modules/post/utils/media";
+import { getMediaAspectRatio } from "@/modules/post/utils/media";
 
 type PostCardProps = {
   post: Post;
@@ -45,7 +45,7 @@ const PostVideo = ({
   width?: number | null;
   height?: number | null;
 }) => {
-  const mediaSize = getMediaSize(
+  const aspectRatio = getMediaAspectRatio(
     width ?? null,
     height ?? null,
   );
@@ -53,8 +53,8 @@ const PostVideo = ({
   return (
     <View
       style={{
-        width: mediaSize.width,
-        height: mediaSize.height,
+        width: "100%",
+        aspectRatio,
         borderRadius: 12,
         overflow: "hidden",
         backgroundColor: "#000",
@@ -88,7 +88,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     post.likes,
   );
   
-  const commentsCount = post.comments.length;
+  const { commentsCount } = usePostComments(post.id, post.comments);
   const [isEditing, setIsEditing] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [draftContent, setDraftContent] = useState(post.content);
@@ -107,7 +107,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
   const categoryBadge = toBadgeCategory(post.category);
   const media = post.media?.[0];
-  const mediaSize = getMediaSize(media?.width?? null, media?.height?? null,);
+  const mediaAspectRatio = getMediaAspectRatio(media?.width?? null, media?.height?? null,);
   const submitEdit = useCallback(async () => {
     const didSucceed = await updatePost(post.id, {
       content: draftContent.trim(),
@@ -208,8 +208,8 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               ) : (
                 <View
                   style={{
-                    width: mediaSize.width,
-                    height: mediaSize.height,
+                    width: "100%",
+                    aspectRatio: mediaAspectRatio,
                     borderRadius: 12,
                     overflow: "hidden",
                     backgroundColor: "#000",

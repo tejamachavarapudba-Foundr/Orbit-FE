@@ -6,6 +6,9 @@ import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
 import { useInvestorSnapshot } from "@/modules/investorSnapshot/hooks";
 import { projectApi } from "@/modules/project/api";
+import { OwnershipPieChart } from "@/modules/investorSnapshot/components/OwnershipPieChart";
+import { AppScreen } from "@/components/ui/AppScreen";
+import { ScreenHeader } from "@/components/layout/ScreenHeader";
 
 
 
@@ -60,21 +63,26 @@ export const InvestorSnapshotViewScreen = () => {
 
   if (!snapshot || !project) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <AppText>
-          Loading investor snapshot...
-        </AppText>
-      </View>
+      <AppScreen>
+        <ScreenHeader title="Investor Snapshot" />
+        <View className="flex-1 items-center justify-center">
+          <AppText>
+            Loading investor snapshot...
+          </AppText>
+        </View>
+      </AppScreen>
     );
   }
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{
-        padding: 16,
-      }}
-    >
+    <AppScreen>
+      <ScreenHeader title="Investor Snapshot" />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingBottom: 16,
+        }}
+      >
       <Card>
         <CardContent className="p-4">
 
@@ -301,24 +309,13 @@ export const InvestorSnapshotViewScreen = () => {
          Ownership
         </AppText>
 
-        <View className="mt-3 gap-3">
-
-         <AppText>
-          Founder Ownership: {snapshot.founderOwnership}%
-        </AppText>
-
-        <AppText>
-         ESOP: {snapshot.employeeEsop}%
-        </AppText>
-
-        <AppText>
-          Investor Ownership: {snapshot.investorOwnership}%
-        </AppText>
-
-        <AppText>
-          Available Pool: {snapshot.availablePool}%
-        </AppText>
-
+        <View className="mt-3 items-center">
+          <OwnershipPieChart
+            founderOwnership={snapshot.founderOwnership ?? 0}
+            employeeEsop={snapshot.employeeEsop ?? 0}
+            investorOwnership={snapshot.investorOwnership ?? 0}
+            availablePool={snapshot.availablePool ?? 0}
+          />
         </View>
 
         {/* Business */}
@@ -394,6 +391,7 @@ export const InvestorSnapshotViewScreen = () => {
 
         </CardContent>
       </Card>
-    </ScrollView>
+      </ScrollView>
+    </AppScreen>
   );
 };

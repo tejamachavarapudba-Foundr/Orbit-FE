@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
+import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ScreenHeader } from "@/components/layout/ScreenHeader";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
 import { useProjectStore } from "@/modules/project/store";
 
@@ -23,29 +25,28 @@ export const InvestmentWatchlistScreen = () => {
   }, [loadSavedStartups]);
 
   return (
-    <View className="flex-1 px-4 pt-4">
-      <AppText family="display" weight="bold" size="2xl">
-        Investment Watchlist
-      </AppText>
+    <AppScreen>
+      <ScreenHeader title="Investment Watchlist" />
+      <View className="flex-1">
+        <AppText tone="muted" className="mb-4">
+          Saved startups for review
+        </AppText>
 
-      <AppText tone="muted" className="mt-1 mb-4">
-        Saved startups for review
-      </AppText>
-
-      <FlatList
-        data={savedStartups}
-        keyExtractor={(item) => item.id}
-        refreshing={isRefreshing}
-        onRefresh={() => void handleRefresh()}
-        renderItem={({ item }) => (
-          <ProjectCard
-            project={item}
-            onPress={(id) => navigation.navigate("ProjectDetail", { id })}
-            onBookMeeting={() => {}}
-          />
-        )}
-        ListEmptyComponent={<EmptyState title="No saved startups" message="Startups you save will show up here." />}
-      />
-    </View>
+        <FlatList
+          data={savedStartups}
+          keyExtractor={(item) => item.id}
+          refreshing={isRefreshing}
+          onRefresh={() => void handleRefresh()}
+          renderItem={({ item }) => (
+            <ProjectCard
+              project={item}
+              onPress={(id) => navigation.navigate("ProjectDetail", { id })}
+              onBookMeeting={() => {}}
+            />
+          )}
+          ListEmptyComponent={<EmptyState title="No saved startups" message="Startups you save will show up here." />}
+        />
+      </View>
+    </AppScreen>
   );
 };

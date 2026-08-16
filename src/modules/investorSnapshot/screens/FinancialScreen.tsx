@@ -3,9 +3,11 @@ import { ScrollView, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { AppButton } from "@/components/ui/AppButton";
+import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Card, CardContent } from "@/components/ui/Card";
+import { ScreenHeader } from "@/components/layout/ScreenHeader";
 
 import { useInvestorSnapshot } from "../hooks";
 
@@ -132,10 +134,12 @@ export const FinancialScreen = () => {
   };
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ padding: 16 }}
-    >
+    <AppScreen withHorizontalPadding={false}>
+      <ScreenHeader title="Financial Details" className="px-4" />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, paddingTop: 0 }}
+      >
       <Card>
         <CardContent className="p-4">
 
@@ -298,6 +302,7 @@ export const FinancialScreen = () => {
 
         </CardContent>
       </Card>
-    </ScrollView>
+      </ScrollView>
+    </AppScreen>
   );
 };

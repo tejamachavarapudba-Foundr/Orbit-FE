@@ -138,6 +138,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const isApplying = applyingProjectId === selectedProject.id;
   const isReviewing = reviewingProjectId === selectedProject.id;
   const founder = selectedProject.founder;
+  const myApplication = applications.find((application) => application.applicantId === currentUserId);
 
   return (
     <AppScreen withHorizontalPadding={false}>
@@ -410,46 +411,60 @@ export const ProjectDetailScreen = ({ route }: Props) => {
 
         {!isFounder ? (
           <View className="mt-5 border-t border-border pt-5">
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setApplyExpanded((current) => !current)}
-              className="flex-row items-center justify-between"
-            >
-              <AppText weight="bold">Post review and apply to join</AppText>
-              <Feather name={applyExpanded ? "chevron-up" : "chevron-down"} size={iconSize.md} color={colors.text} />
-            </Pressable>
-
-            {applyExpanded ? (
-              <>
-                <View className="mt-3 flex-row flex-wrap gap-2">
-                  {roleOptions.map((role) => (
-                    <FilterChip
-                      key={role}
-                      label={role.replace(/_/g, " ")}
-                      isActive={applicationRole === role}
-                      onPress={() => setApplicationRole(role)}
-                    />
-                  ))}
+            {myApplication ? (
+              <View className="flex-row items-center justify-between">
+                <AppText weight="bold">Apply to join</AppText>
+                <View className="flex-row items-center gap-2 rounded-md bg-success/10 px-3 py-1.5">
+                  <Feather name="check-circle" size={14} color={colors.success} />
+                  <AppText tone="success" size="xs" weight="semibold">
+                    Applied for {myApplication.role.replace(/_/g, " ")}
+                  </AppText>
                 </View>
-                <TextInput
-                  value={applicationMessage}
-                  onChangeText={setApplicationMessage}
-                  placeholder="Why do you want to join?"
-                  placeholderTextColor={colors.muted}
-                  selectionColor={colors.primary}
-                  multiline
-                  textAlignVertical="top"
-                  className="mt-3 min-h-20 rounded-md border border-input bg-background px-3 py-3 text-sm leading-5 text-text"
-                />
-                <AppButton
-                  label="Send application"
-                  loading={isApplying}
-                  disabled={!applicationMessage.trim()}
-                  onPress={() => void submitApplication()}
-                  className="mt-3"
-                />
+              </View>
+            ) : (
+              <>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setApplyExpanded((current) => !current)}
+                  className="flex-row items-center justify-between"
+                >
+                  <AppText weight="bold">Apply to join</AppText>
+                  <Feather name={applyExpanded ? "chevron-up" : "chevron-down"} size={iconSize.md} color={colors.text} />
+                </Pressable>
+
+                {applyExpanded ? (
+                  <>
+                    <View className="mt-3 flex-row flex-wrap gap-2">
+                      {roleOptions.map((role) => (
+                        <FilterChip
+                          key={role}
+                          label={role.replace(/_/g, " ")}
+                          isActive={applicationRole === role}
+                          onPress={() => setApplicationRole(role)}
+                        />
+                      ))}
+                    </View>
+                    <TextInput
+                      value={applicationMessage}
+                      onChangeText={setApplicationMessage}
+                      placeholder="Why do you want to join?"
+                      placeholderTextColor={colors.muted}
+                      selectionColor={colors.primary}
+                      multiline
+                      textAlignVertical="top"
+                      className="mt-3 min-h-20 rounded-md border border-input bg-background px-3 py-3 text-sm leading-5 text-text"
+                    />
+                    <AppButton
+                      label="Send application"
+                      loading={isApplying}
+                      disabled={!applicationMessage.trim()}
+                      onPress={() => void submitApplication()}
+                      className="mt-3"
+                    />
+                  </>
+                ) : null}
               </>
-            ) : null}
+            )}
           </View>
         ) : null}
       </ScrollView>

@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { useAuthStore } from "@/modules/auth/store";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { StartupBrowseSection } from "@/modules/project/components/StartupBrowseSection";
@@ -21,6 +22,7 @@ import { MeetingRequestModal } from "@/modules/meeting/components/MeetingRequest
 
 export const ProjectsScreen = () => {
   const colors = useThemeTokens();
+  const isInvestor = useAuthStore((state) => state.user?.profile?.role === "investor");
   const {
     projects,
     trendingStartups,
@@ -128,7 +130,7 @@ export const ProjectsScreen = () => {
               </View>
             </View>
 
-            <ProjectComposer />
+            {!isInvestor ? <ProjectComposer /> : null}
 
             {trendingStartups.length > 0 ? (
               <View className="mt-6">

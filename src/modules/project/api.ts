@@ -46,9 +46,9 @@ export const projectApi = {
   updateLogo: async (id: string, file: { uri: string; name: string; type: string }) => {
     const formData = new FormData();
     formData.append("file", { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
-    const response = await apiClient.patch<Project>(`/projects/${id}/logo`, formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
+    // Do not set Content-Type manually — axios/React Native need to generate
+    // the multipart boundary themselves, which a fixed header value prevents.
+    const response = await apiClient.patch<Project>(`/projects/${id}/logo`, formData);
     return response.data;
   },
   getMembers: async (id: string) => {

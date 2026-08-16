@@ -3,8 +3,10 @@ import { ScrollView, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { AppButton } from "@/components/ui/AppButton";
+import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
+import { ScreenHeader } from "@/components/layout/ScreenHeader";
 
 import { useInvestorSnapshot } from "../hooks";
 
@@ -47,10 +49,12 @@ export const ReviewScreen = () => {
     (snapshot?.availablePool || 0);
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ padding: 16 }}
-    >
+    <AppScreen withHorizontalPadding={false}>
+      <ScreenHeader title="Review" className="px-4" />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, paddingTop: 0 }}
+      >
       {/* Header */}
 
       <Card>
@@ -425,6 +429,7 @@ export const ReviewScreen = () => {
 
       </View>
 
-    </ScrollView>
+      </ScrollView>
+    </AppScreen>
   );
 };

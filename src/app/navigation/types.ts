@@ -12,6 +12,7 @@ export type MainTabParamList = {
   Messages: undefined;
   Projects: undefined;
   Jobs: undefined;
+  Meetings: undefined;
   Events: undefined;
 };
 
@@ -35,6 +36,7 @@ export type MainStackParamList = {
 
   InvestmentWatchlist: undefined;
   Notifications: undefined;
+  Community: undefined;
 
     BusinessSummary: {
       projectId: string;

@@ -6,6 +6,7 @@ import { MainTabParamList } from "@/app/navigation/types";
 import { EventsScreen } from "@/modules/events/screens/EventsScreen";
 import { HomeScreen } from "@/app/screens/HomeScreen";
 import { JobsScreen } from "@/modules/jobs/screens/JobsScreen";
+import { InvestorMeetingsScreen } from "@/modules/meeting/screens/InvestorMeetingsScreen";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ChatsScreen } from "@/modules/chat/screens/ChatsScreen";
 import { ProjectsScreen } from "@/modules/project/screens/ProjectsScreen";
@@ -35,6 +36,7 @@ const projectsTabIcon = ({ color, size }: TabIconProps) => (
 export const MainNavigator = () => {
   const colors = useThemeTokens();
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
+  const isInvestor = useAuthStore((state) => state.user?.profile?.role?.toLowerCase() === "investor");
 
   // 1. Connection invitations counter
   const incomingRequestsCount = useConnectionsStore((state) => state.incomingRequests.length);
@@ -42,7 +44,7 @@ export const MainNavigator = () => {
 
   // 2. 🟢 CHAT COUNTER FIX: Filter for UNREAD chats only
   // Adjust 'chat.unread' or 'chat.hasUnread' to match your exact chat schema property name
-  const unreadChatsCount = useChatStore((state) => 
+  const unreadChatsCount = useChatStore((state) =>
     (state.chats || []).filter((chat: any) => chat.messages?.[0]?.senderId !== currentUserId && !chat.messages?.[0]?.isRead).length
   );
   const loadChats = useChatStore((state) => state.loadChats);
@@ -83,7 +85,7 @@ export const MainNavigator = () => {
       }}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Feed", tabBarIcon: tabIcon("home") }} />
-      
+
       <Tab.Screen
         name="Messages"
         component={ChatsScreen}
@@ -108,9 +110,17 @@ export const MainNavigator = () => {
           return options;
         }}
       />
-      
+
       <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />
-      <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
+      {isInvestor ? (
+        <Tab.Screen
+          name="Meetings"
+          component={InvestorMeetingsScreen}
+          options={{ title: "My Meetings", tabBarIcon: tabIcon("video") }}
+        />
+      ) : (
+        <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
+      )}
       <Tab.Screen name="Events" component={EventsScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
     </Tab.Navigator>
   );

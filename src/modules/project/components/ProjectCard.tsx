@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Linking, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { useProjectStore } from "@/modules/project/store";
@@ -100,6 +100,23 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, compact = fa
             </View>
           ) : null}
 
+          {project.pitchVideoUrl ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Watch founder pitch"
+              onPress={(event) => {
+                event.stopPropagation?.();
+                void Linking.openURL(project.pitchVideoUrl);
+              }}
+              className="mt-3 flex-row items-center gap-2 self-start rounded-md bg-primary/10 px-3 py-2"
+            >
+              <Feather name="play-circle" size={16} color={colors.primary} />
+              <AppText tone="primary" size="xs" weight="semibold">
+                Watch Founder Pitch
+              </AppText>
+            </Pressable>
+          ) : null}
+
           <View className="mt-3 flex-row flex-wrap gap-2">
             <Badge label={formatValue(project.stage || "idea")} variant="outline" />
             {project.location ? (
@@ -146,15 +163,6 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, compact = fa
                     <Feather name="globe" size={12} color={colors.muted} />
                     <AppText tone="primary" size="xs" numberOfLines={1}>
                       {project.websiteUrl}
-                    </AppText>
-                  </View>
-                ) : null}
-
-                {project.pitchVideoUrl ? (
-                  <View className="flex-row items-center gap-2">
-                    <Feather name="play-circle" size={12} color={colors.primary} />
-                    <AppText tone="primary" size="xs">
-                      Founder Pitch Available
                     </AppText>
                   </View>
                 ) : null}

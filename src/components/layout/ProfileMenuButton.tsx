@@ -7,7 +7,7 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 
-const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Events"]);
+const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Meetings", "Events"]);
 
 type ProfileMenuItem = {
   label: string;
@@ -21,7 +21,7 @@ const profileMenuItems: ProfileMenuItem[] = [
   { label: "Discover", icon: "compass", route: "Discover" },
   { label: "My network", icon: "users", route: "Network" },
   { label: "My Meetings", icon: "send", action: "meetings" },
-  { label: "Messages", icon: "message-square", route: "Messages" },
+  { label: "Community", icon: "globe", route: "Community" },
 ];
 
 type ProfileMenuButtonProps = {

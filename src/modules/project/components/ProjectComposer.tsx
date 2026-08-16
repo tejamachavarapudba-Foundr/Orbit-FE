@@ -9,7 +9,6 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import {
   FUNDING_STAGE_OPTIONS,
-  PROJECT_CATEGORY_OPTIONS,
   projectStageOptions,
   projectTypeOptions,
   useProjectForm
@@ -87,18 +86,6 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           />
         </View>
 
-        <View className="gap-2">
-          <AppText size="sm" weight="medium">
-            Category
-          </AppText>
-          <Dropdown
-            value={values.category}
-            options={PROJECT_CATEGORY_OPTIONS}
-            onChange={(value) => setField("category", value)}
-            placeholder="Select category"
-          />
-        </View>
-
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
             <AppText size="sm" weight="medium">
@@ -107,7 +94,12 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
             <Dropdown
               value={values.projectType}
               options={typeOptions}
-              onChange={(value) => setField("projectType", value)}
+              onChange={(value) => {
+                setField("projectType", value);
+                // Category was folded into Platform — keep it in sync for anything
+                // that still reads project.category.
+                setField("category", value);
+              }}
               placeholder="Platform"
             />
           </View>

@@ -65,16 +65,12 @@ formData.append(
 );
 });
 
+// Do not set Content-Type manually — axios/React Native need to generate
+// the multipart boundary themselves, which a fixed header value prevents.
 const response =
     await apiClient.post<Post>(
       "/posts",
       formData,
-      {
-        headers: {
-         "Content-Type":
-          "multipart/form-data",
-      },
-    },
   );
 
    return response.data;

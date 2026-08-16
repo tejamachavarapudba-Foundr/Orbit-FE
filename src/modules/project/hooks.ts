@@ -49,12 +49,22 @@ export const projectStageOptions = [
   { label: "Growth", value: "growth" }
 ];
 
+// Platform now doubles as the project's category — the old separate
+// "Category" field in the create form was removed and folded into this list.
+export const PROJECT_PLATFORM_OPTIONS = [
+  { label: "AI", value: "ai" },
+  { label: "SaaS", value: "saas" },
+  { label: "FinTech", value: "fintech" },
+  { label: "HealthTech", value: "healthtech" },
+  { label: "E-commerce", value: "ecommerce" },
+  { label: "DeepTech", value: "deeptech" },
+  { label: "Mobility", value: "mobility" },
+  { label: "Consumer & Social Platforms", value: "consumer_social" }
+] as const;
+
 export const projectTypeOptions = [
   { label: "All", value: "all" },
-  { label: "SaaS", value: "saas" },
-  { label: "App", value: "app" },
-  { label: "Marketplace", value: "marketplace" },
-  { label: "AI", value: "ai" }
+  ...PROJECT_PLATFORM_OPTIONS
 ];
 
 export const FUNDING_STAGE_OPTIONS = [
@@ -66,17 +76,6 @@ export const FUNDING_STAGE_OPTIONS = [
   { label: "Series B", value: "series_b" },
   { label: "Series C", value: "series_c" },
   { label: "Series D", value: "series_d" }
-] as const;
-
-export const PROJECT_CATEGORY_OPTIONS = [
-  { label: "AI", value: "ai" },
-  { label: "SaaS", value: "saas" },
-  { label: "FinTech", value: "fintech" },
-  { label: "HealthTech", value: "healthtech" },
-  { label: "E-commerce", value: "ecommerce" },
-  { label: "DeepTech", value: "deeptech" },
-  { label: "Mobility", value: "mobility" },
-  { label: "Consumer & Social Platforms", value: "consumer_social" }
 ] as const;
 
 const emptyPayload: ProjectPayload = {

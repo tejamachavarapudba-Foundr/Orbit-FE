@@ -27,14 +27,8 @@ export const profileApi = {
       await apiClient.patch<Profile>(
         "/profiles/me/resume",
         payload,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
-        },
       );
-  
+
     return normalizeAuthProfile(
       response.data,
     );
