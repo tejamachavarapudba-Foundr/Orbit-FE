@@ -116,7 +116,7 @@ export const MainNavigator = () => {
         <Tab.Screen
           name="Meetings"
           component={InvestorMeetingsScreen}
-          options={{ title: "My Meetings", tabBarIcon: tabIcon("video") }}
+          options={{ title: "Meetings", tabBarIcon: tabIcon("video") }}
         />
       ) : (
         <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />

@@ -59,7 +59,14 @@
           ]
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Startuphouze to access your photos to attach them to posts.",
+          "videosPermission": "Allow Startuphouze to access your videos to attach them to posts."
+        }
+      ]
     ],
     "extra": {
       "eas": {

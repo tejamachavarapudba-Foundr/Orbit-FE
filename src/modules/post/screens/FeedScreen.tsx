@@ -103,7 +103,7 @@ export const FeedScreen = () => {
   const ItemSeparator = () => <View className="h-2 bg-background" />;
 
   return (
-    <AppScreen withHorizontalPadding={false}>
+    <AppScreen withHorizontalPadding={false} edges={["left", "right"]}>
       <View className="flex-1">
         <Animated.View
           style={{
@@ -112,6 +112,7 @@ export const FeedScreen = () => {
             left: 0,
             right: 0,
             zIndex: 10,
+            elevation: 10,
             paddingTop: insets.top,
             backgroundColor: colors.background,
             borderBottomWidth: 1,
