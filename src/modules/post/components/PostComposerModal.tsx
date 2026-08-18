@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -24,14 +23,10 @@ type PostComposerModalProps = {
 export const PostComposerModal = ({ visible, onClose }: PostComposerModalProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
-  // Android's native image/video picker can conflict with an RN <Modal>'s
-  // own native Dialog window if both are shown at once — hide this modal
-  // for the duration of the picker instead of layering them.
-  const [isPickerActive, setIsPickerActive] = useState(false);
 
   return (
     <Modal
-      visible={visible && !isPickerActive}
+      visible={visible}
       transparent
       animationType="slide"
       statusBarTranslucent
@@ -43,22 +38,10 @@ export const PostComposerModal = ({ visible, onClose }: PostComposerModalProps) 
         <View style={{ width: "100%" }}>
           {Platform.OS === "ios" ? (
             <KeyboardAvoidingView behavior="padding">
-              <SheetContent
-                colors={colors}
-                insets={insets}
-                onClose={onClose}
-                onBeforePickMedia={() => setIsPickerActive(true)}
-                onAfterPickMedia={() => setIsPickerActive(false)}
-              />
+              <SheetContent colors={colors} insets={insets} onClose={onClose} />
             </KeyboardAvoidingView>
           ) : (
-            <SheetContent
-              colors={colors}
-              insets={insets}
-              onClose={onClose}
-              onBeforePickMedia={() => setIsPickerActive(true)}
-              onAfterPickMedia={() => setIsPickerActive(false)}
-            />
+            <SheetContent colors={colors} insets={insets} onClose={onClose} />
           )}
         </View>
       </View>
@@ -70,11 +53,9 @@ type SheetContentProps = {
   colors: ReturnType<typeof useThemeTokens>;
   insets: ReturnType<typeof useSafeAreaInsets>;
   onClose: () => void;
-  onBeforePickMedia: () => void;
-  onAfterPickMedia: () => void;
 };
 
-const SheetContent = ({ colors, insets, onClose, onBeforePickMedia, onAfterPickMedia }: SheetContentProps) => (
+const SheetContent = ({ colors, insets, onClose }: SheetContentProps) => (
   <Card className="rounded-t-3xl" style={{ maxHeight: "92%" }}>
     <View className="flex-row items-center border-b border-border px-5 py-4">
       <View className="flex-1">
@@ -95,12 +76,7 @@ const SheetContent = ({ colors, insets, onClose, onBeforePickMedia, onAfterPickM
       showsVerticalScrollIndicator
       contentContainerStyle={{ padding: 16, paddingBottom: Math.max(insets.bottom, 16) }}
     >
-      <PostComposer
-        embedded
-        onSuccess={onClose}
-        onBeforePickMedia={onBeforePickMedia}
-        onAfterPickMedia={onAfterPickMedia}
-      />
+      <PostComposer embedded onSuccess={onClose} />
     </ScrollView>
   </Card>
 );
