@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { postCategoryOptions, usePostComposer } from "@/modules/post/hooks";
+import { useToastStore } from "@/store/toastStore";
 
 type PostComposerProps = {
   embedded?: boolean;
@@ -21,33 +22,42 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
   const [showExtras, setShowExtras] = useState(false);
   const [selectedFiles, setSelectedFiles] =
   useState<ImagePicker.ImagePickerAsset[]>([]);
+  const showToast = useToastStore((state) => state.show);
   const clearMedia = () => {
     setSelectedFiles([]);
   };
-  
-  const handlePickPhoto = async () => {
-    const result =
-      await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+
+  const pickMedia = async (mediaTypes: ImagePicker.MediaType[]) => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        showToast({
+          type: "error",
+          title: "Permission needed",
+          message: "Allow photo/video library access in your device settings to attach media."
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes,
         quality: 0.8,
       });
-  
-    if (result.canceled) return;
-  
-    setSelectedFiles(result.assets);
+
+      if (result.canceled) return;
+
+      setSelectedFiles(result.assets);
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "Couldn't open media library",
+        message: error instanceof Error ? error.message : "Please try again."
+      });
+    }
   };
 
-  const handlePickVideo = async () => {
-    const result =
-      await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["videos"],
-        quality: 0.8,
-      });
-  
-    if (result.canceled) return;
-  
-    setSelectedFiles(result.assets);
-  };
+  const handlePickPhoto = () => pickMedia(["images"]);
+  const handlePickVideo = () => pickMedia(["videos"]);
   
   const handleSubmit = async () => {
     const didSucceed = await submit(selectedFiles);
