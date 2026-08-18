@@ -53,7 +53,7 @@ export const OnboardingMatchScreen = (_props: Props) => {
                 <AppText tone="muted" size="sm" className="mt-1">
                   {person.headline || person.role}
                 </AppText>
-                {person.matchReasons[0] ? (
+                {person.matchReasons?.[0] ? (
                   <AppText tone="primary" size="xs" className="mt-2">
                     {person.matchReasons[0]}
                   </AppText>

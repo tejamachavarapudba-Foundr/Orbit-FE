@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import {
+  Animated,
   FlatList,
   ListRenderItem,
   NativeScrollEvent,
@@ -21,21 +22,23 @@ import { useAuthStore } from "@/modules/auth/store";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { PostCard } from "@/modules/post/components/PostCard";
 import { PostComposerModal } from "@/modules/post/components/PostComposerModal";
-import { PostComposerPrompt } from "@/modules/post/components/PostComposerPrompt";
 import { PostSkeletonList } from "@/modules/post/components/PostSkeletonList";
 import { postFilterOptions, useFeed } from "@/modules/post/hooks";
 import { Post, PostCategory } from "@/modules/post/types";
 
-const SCROLL_THRESHOLD = 120;
-const TAB_BAR_HEIGHT = 80;
+const HEADER_HEIGHT = 52;
+const SCROLL_DELTA_THRESHOLD = 8;
 
 export const FeedScreen = () => {
   const user = useAuthStore((state) => state.user);
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
   const [composerOpen, setComposerOpen] = useState(false);
-  const [showFab, setShowFab] = useState(false);
-  const showFabRef = useRef(false);
+
+  const headerTranslate = useRef(new Animated.Value(0)).current;
+  const headerVisible = useRef(true);
+  const lastScrollY = useRef(0);
+  const lastDirectionY = useRef(0);
 
   const {
     posts,
@@ -51,7 +54,7 @@ export const FeedScreen = () => {
     setActiveCategory,
   } = useFeed();
 
-  const openComposer = useCallback((_source: "prompt" | "fab") => {
+  const openComposer = useCallback(() => {
     setComposerOpen(true);
   }, []);
 
@@ -59,33 +62,89 @@ export const FeedScreen = () => {
     setComposerOpen(false);
   }, []);
 
-  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollY = event.nativeEvent.contentOffset.y;
-    const shouldShowFab = scrollY > SCROLL_THRESHOLD;
+  const setHeaderVisible = useCallback(
+    (visible: boolean) => {
+      if (headerVisible.current === visible) return;
+      headerVisible.current = visible;
+      Animated.timing(headerTranslate, {
+        toValue: visible ? 0 : -(HEADER_HEIGHT + insets.top),
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    },
+    [headerTranslate, insets.top],
+  );
 
-    if (shouldShowFab !== showFabRef.current) {
-      showFabRef.current = shouldShowFab;
-      setShowFab(shouldShowFab);
-    }
-  }, []);
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const scrollY = Math.max(0, event.nativeEvent.contentOffset.y);
+      const delta = scrollY - lastScrollY.current;
+
+      if (scrollY <= 0) {
+        setHeaderVisible(true);
+      } else if (delta > SCROLL_DELTA_THRESHOLD) {
+        setHeaderVisible(false);
+        lastDirectionY.current = scrollY;
+      } else if (delta < -SCROLL_DELTA_THRESHOLD) {
+        setHeaderVisible(true);
+        lastDirectionY.current = scrollY;
+      }
+
+      lastScrollY.current = scrollY;
+    },
+    [setHeaderVisible],
+  );
 
   const renderPost = useCallback<ListRenderItem<Post>>(
-    ({ item }) => (
-      <View className="w-full max-w-2xl self-center">
-        <PostCard post={item} />
-      </View>
-    ),
+    ({ item }) => <PostCard post={item} />,
     [],
   );
   const keyExtractor = useCallback((item: Post) => item.id, []);
-  const ITEM_SEPARATOR_HEIGHT = 16;
-  const ItemSeparator = () => <View style={{ height: ITEM_SEPARATOR_HEIGHT }} />;
-
-  const fabBottom = insets.bottom + TAB_BAR_HEIGHT + 16;
+  const ItemSeparator = () => <View className="h-2 bg-background" />;
 
   return (
     <AppScreen withHorizontalPadding={false}>
       <View className="flex-1">
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            paddingTop: insets.top,
+            backgroundColor: colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            transform: [{ translateY: headerTranslate }],
+          }}
+        >
+          <View
+            className="flex-row items-center justify-between px-4"
+            style={{ height: HEADER_HEIGHT }}
+          >
+            {user ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Create a new post"
+                onPress={openComposer}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="h-9 w-9 items-center justify-center rounded-full"
+              >
+                <Feather name="plus" size={26} color={colors.text} />
+              </Pressable>
+            ) : (
+              <View className="h-9 w-9" />
+            )}
+
+            <AppText family="display" size="xl" weight="bold" className="tracking-tight">
+              Startuphouze
+            </AppText>
+
+            {user ? <ProfileMenuButton /> : <View className="h-9 w-9" />}
+          </View>
+        </Animated.View>
+
         <FlatList
           initialNumToRender={5}
           maxToRenderPerBatch={5}
@@ -102,25 +161,11 @@ export const FeedScreen = () => {
           onEndReachedThreshold={0.2}
           onScroll={handleScroll}
           scrollEventThrottle={16}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32, paddingTop: 8 }}
+          contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top, paddingBottom: 32 }}
           ListHeaderComponent={
-            <View className="w-full max-w-2xl self-center py-4">
-              <View className="mb-5 flex-row items-start justify-between gap-3">
-                <View className="min-w-0 flex-1">
-                  <AppText family="display" size="2xl" weight="bold" className="tracking-tight">
-                    Community Feed
-                  </AppText>
-                  <AppText tone="muted" size="sm" className="mt-1 leading-5">
-                    Share updates, launches, ads, and what your startup is working on.
-                  </AppText>
-                </View>
-                {user ? <ProfileMenuButton /> : null}
-              </View>
-
-              {user ? <PostComposerPrompt onPress={() => openComposer("prompt")} /> : null}
-
+            <View className="px-4 py-3">
               {!user ? (
-                <Card className="mb-5">
+                <Card className="mb-3">
                   <CardContent className="py-4">
                     <AppText tone="muted" size="sm">
                       Sign in to share an update.
@@ -129,10 +174,7 @@ export const FeedScreen = () => {
                 </Card>
               ) : null}
 
-              <View className="mb-3 mt-2">
-                <AppText tone="muted" size="xs" weight="medium" className="mb-2">
-                  Filter by category
-                </AppText>
+              <View className="mb-1">
                 <CategoryDropdown
                   value={activeCategory}
                   options={postFilterOptions}
@@ -142,7 +184,7 @@ export const FeedScreen = () => {
               </View>
 
               {totalCount > 0 ? (
-                <AppText tone="muted" size="xs" className="mb-2">
+                <AppText tone="muted" size="xs" className="mt-2">
                   Showing {posts.length} of {totalCount} posts
                 </AppText>
               ) : null}
@@ -152,11 +194,11 @@ export const FeedScreen = () => {
             isLoading ? (
               <PostSkeletonList />
             ) : errorMessage ? (
-              <View className="w-full max-w-2xl self-center">
+              <View className="px-4">
                 <ErrorState message={errorMessage} onRetry={() => void loadPosts()} />
               </View>
             ) : (
-              <View className="w-full max-w-2xl self-center">
+              <View className="px-4">
                 <Card>
                   <CardContent className="items-center py-10">
                     <AppText tone="muted" size="sm" className="text-center">
@@ -169,7 +211,7 @@ export const FeedScreen = () => {
           }
           ListFooterComponent={
             hasMore ? (
-              <View className="w-full max-w-2xl self-center">
+              <View className="px-4">
                 <AppButton
                   label="Load more"
                   variant="outline"
@@ -181,32 +223,6 @@ export const FeedScreen = () => {
             ) : null
           }
         />
-
-        {user && showFab ? (
-          <Pressable
-            onPress={() => openComposer("fab")}
-            accessibilityRole="button"
-            accessibilityLabel="Create a new post"
-            style={{
-              position: "absolute",
-              right: 20,
-              bottom: fabBottom,
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              backgroundColor: colors.primary,
-              alignItems: "center",
-              justifyContent: "center",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 6,
-            }}
-          >
-            <Feather name="edit-3" size={24} color={colors.onPrimary} />
-          </Pressable>
-        ) : null}
 
         {user ? <PostComposerModal visible={composerOpen} onClose={closeComposer} /> : null}
       </View>

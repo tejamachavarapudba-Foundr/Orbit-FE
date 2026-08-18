@@ -5,7 +5,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
-import { Card, CardContent } from "@/components/ui/Card";
+import { CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { CommentsModal } from "@/modules/comments/components/CommentsModal";
@@ -13,6 +13,7 @@ import { usePostComments } from "@/modules/comments/hooks";
 import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
+import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
 import { iconSize, toBadgeCategory } from "@/theme/designTokens";
 import { Video, ResizeMode } from 'expo-av';
@@ -89,6 +90,8 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   );
   
   const { commentsCount } = usePostComments(post.id, post.comments);
+  const isSaved = useSavedPostsStore((state) => state.savedPostIds.has(post.id));
+  const toggleSaved = useSavedPostsStore((state) => state.toggleSaved);
   const [isEditing, setIsEditing] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [draftContent, setDraftContent] = useState(post.content);
@@ -136,8 +139,8 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   }, [post.content, post.linkUrl]);
 
   return (
-    <Card className="overflow-hidden">
-      <View className="px-4 pb-0 pt-4">
+    <View className="bg-card">
+      <View className="px-4 pb-0 pt-3">
         <View className="flex-row items-start gap-3">
           <Avatar name={authorName} imageUrl={post.author.avatarUrl} size="md" fallback="mesh" />
           <View className="min-w-0 flex-1 pr-24">
@@ -160,6 +163,31 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           </View>
         </View>
       </View>
+
+      {!isEditing && media ? (
+        <View className="mt-3 w-full">
+          {media.type === "VIDEO" ? (
+            <PostVideo uri={media.url} width={media.width ?? null} height={media.height ?? null} />
+          ) : (
+            <View
+              style={{
+                width: "100%",
+                aspectRatio: mediaAspectRatio,
+                backgroundColor: "#000",
+              }}
+            >
+              <Image
+                source={{ uri: media.url }}
+                resizeMode="cover"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
+            </View>
+          )}
+        </View>
+      ) : null}
 
       <CardContent className="gap-3 px-4 pb-4 pt-3">
         {isEditing ? (
@@ -202,30 +230,6 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             <AppText size="sm" className="leading-relaxed">
               {post.content}
             </AppText>
-            {media ? (
-              media.type === "VIDEO" ? (
-                <PostVideo uri={media.url} width={media.width?? null} height={media.height?? null} />
-              ) : (
-                <View
-                  style={{
-                    width: "100%",
-                    aspectRatio: mediaAspectRatio,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    backgroundColor: "#000",
-                  }}
-                >
-                  <Image
-                    source={{ uri: media.url }}
-                    resizeMode="cover"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  />
-                </View>
-              )
-            ) : null}
             {post.linkUrl ? (
               <Pressable
                 accessibilityRole="link"
@@ -243,7 +247,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
         {!isEditing ? (
           <>
-            <View className="flex-row items-center justify-between border-t border-border pt-2">
+            <View className="flex-row items-center justify-between pt-1">
               <View className="flex-row items-center">
                 <Pressable
                   accessibilityRole="button"
@@ -281,29 +285,40 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 </Pressable>
               </View>
 
-              {isOwnPost ? (
-                <View className="flex-row items-center gap-1">
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => setIsEditing(true)}
-                    hitSlop={actionHitSlop}
-                    className="h-9 w-9 items-center justify-center rounded-md"
-                    accessibilityLabel="Edit post"
-                  >
-                    <Feather name="edit-2" size={iconSize.md} color={colors.text} />
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    disabled={isDeleting}
-                    onPress={confirmDelete}
-                    hitSlop={actionHitSlop}
-                    className="h-9 w-9 items-center justify-center rounded-md"
-                    accessibilityLabel="Delete post"
-                  >
-                    <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
-                  </Pressable>
-                </View>
-              ) : null}
+              <View className="flex-row items-center gap-1">
+                {isOwnPost ? (
+                  <>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => setIsEditing(true)}
+                      hitSlop={actionHitSlop}
+                      className="h-9 w-9 items-center justify-center rounded-md"
+                      accessibilityLabel="Edit post"
+                    >
+                      <Feather name="edit-2" size={iconSize.md} color={colors.text} />
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      disabled={isDeleting}
+                      onPress={confirmDelete}
+                      hitSlop={actionHitSlop}
+                      className="h-9 w-9 items-center justify-center rounded-md"
+                      accessibilityLabel="Delete post"
+                    >
+                      <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
+                    </Pressable>
+                  </>
+                ) : null}
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => toggleSaved(post.id)}
+                  hitSlop={actionHitSlop}
+                  className="h-9 w-9 items-center justify-center rounded-md"
+                  accessibilityLabel={isSaved ? "Remove from saved" : "Save post"}
+                >
+                  <Feather name="bookmark" size={iconSize.md} color={isSaved ? colors.primary : colors.text} />
+                </Pressable>
+              </View>
             </View>
             <CommentsModal
               visible={showComments}
@@ -314,7 +329,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           </>
         ) : null}
       </CardContent>
-    </Card>
+    </View>
   );
 });
 
