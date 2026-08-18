@@ -22,15 +22,18 @@ import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { vars } from "nativewind";
 import { RootNavigator } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/services/api/queryClient";
 import { useAuthStore } from "@/modules/auth/store";
 import { useThemeStore } from "@/store/themeStore";
+import { darkThemeVars, lightThemeVars } from "@/theme/nativeThemeVars";
 
 export default function App() {
   const bootstrapTheme = useThemeStore((state) => state.bootstrap);
   const bootstrapAuth = useAuthStore((state) => state.bootstrap);
   const colorScheme = useThemeStore((state) => state.resolvedScheme);
+  const themeVarsStyle = vars(colorScheme === "dark" ? darkThemeVars : lightThemeVars);
 
   const [manropeLoaded, manropeError] = useManropeFonts({
     Manrope_400Regular,
@@ -66,7 +69,7 @@ export default function App() {
 
   if (!fontsLoaded && !fontLoadError) {
     return (
-      <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={{ flex: 1 }}>
+      <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
         <SafeAreaProvider>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
             <ActivityIndicator size="large" color="#0A66C2" />
@@ -77,7 +80,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={{ flex: 1 }}>
+    <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <RootNavigator />

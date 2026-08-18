@@ -14,9 +14,11 @@ import { useToastStore } from "@/store/toastStore";
 type PostComposerProps = {
   embedded?: boolean;
   onSuccess?: () => void;
+  onBeforePickMedia?: () => void;
+  onAfterPickMedia?: () => void;
 };
 
-export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps) => {
+export const PostComposer = ({ embedded = false, onSuccess, onBeforePickMedia, onAfterPickMedia }: PostComposerProps) => {
   const colors = useThemeTokens();
   const { values, isSubmitting, setField, submit, canSubmit } = usePostComposer();
   const [showExtras, setShowExtras] = useState(false);
@@ -28,6 +30,11 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
   };
 
   const pickMedia = async (mediaTypes: ImagePicker.MediaType[]) => {
+    // Launching the native picker while this composer is hosted inside an
+    // RN <Modal> can fail on Android — the Modal's own native Dialog window
+    // conflicts with the picker's window. Hide the modal for the duration.
+    onBeforePickMedia?.();
+
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
@@ -53,6 +60,8 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
         title: "Couldn't open media library",
         message: error instanceof Error ? error.message : "Please try again."
       });
+    } finally {
+      onAfterPickMedia?.();
     }
   };
 
