@@ -12,7 +12,7 @@ import { ROLE_LABEL, normalizeMemberRole } from "@/constants/memberRoles";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { UserActivitySection } from "@/modules/user/components/UserActivitySection";
 import { UserAvatar } from "@/modules/user/components/UserAvatar";
-import { ConnectionCountLabel } from "@/modules/connections/components/ConnectionCountLabel";
+import { ProfileStatsRow } from "@/modules/connections/components/ProfileStatsRow";
 import { UserConnectActions } from "@/modules/user/components/UserConnectActions";
 import { UserRoleDetails } from "@/modules/user/components/UserRoleDetails";
 import { userApi } from "@/modules/user/api";
@@ -113,7 +113,7 @@ export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
             <AppText tone="primary" weight="semibold" className="mt-1">
               {roleLabel}
             </AppText>
-            <ConnectionCountLabel userId={profile.id} className="mt-1" />
+            <ProfileStatsRow userId={profile.id} className="mt-3" />
             {profile.headline ? (
               <AppText tone="muted" className="mt-2 leading-6">
                 {profile.headline}

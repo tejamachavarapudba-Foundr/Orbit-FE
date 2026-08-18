@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 import { followsApi } from "@/modules/follows/api";
-import { FollowProfile } from "@/modules/follows/types";
+import { FollowCounts, FollowProfile } from "@/modules/follows/types";
 import { toAppError } from "@/utils/errors";
 
 type FollowState = {
@@ -9,12 +9,14 @@ type FollowState = {
   following: FollowProfile[];
   statusByUserId: Record<string, boolean>;
   mutatingByUserId: Record<string, boolean>;
+  countsByUserId: Record<string, FollowCounts>;
   isLoadingNetwork: boolean;
   isRefreshingNetwork: boolean;
   networkErrorMessage: string | null;
   loadNetwork: (userId: string) => Promise<void>;
   refreshNetwork: (userId: string) => Promise<void>;
   checkStatus: (userId: string) => Promise<void>;
+  fetchCounts: (userId: string) => Promise<void>;
   followUser: (user: FollowProfile) => Promise<boolean>;
   unfollowUser: (userId: string) => Promise<boolean>;
 };
@@ -31,6 +33,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
   following: [],
   statusByUserId: {},
   mutatingByUserId: {},
+  countsByUserId: {},
   isLoadingNetwork: false,
   isRefreshingNetwork: false,
   networkErrorMessage: null,
@@ -123,6 +126,19 @@ export const useFollowStore = create<FollowState>((set, get) => ({
     }
   },
   
+  fetchCounts: async (userId) => {
+    try {
+      const counts = await followsApi.getCounts(userId);
+      set((state) => ({
+        countsByUserId: { ...state.countsByUserId, [userId]: counts }
+      }));
+    } catch {
+      set((state) => ({
+        countsByUserId: { ...state.countsByUserId, [userId]: { followers: 0, following: 0 } }
+      }));
+    }
+  },
+
   followUser: async (user) => {
     if (!user?.id) return false;
     set((state) => setMutating(state, user.id, true));

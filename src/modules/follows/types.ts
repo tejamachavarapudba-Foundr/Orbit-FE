@@ -13,4 +13,9 @@ export type FollowStatusResponse = {
   isFollowing: boolean;
 };
 
+export type FollowCounts = {
+  followers: number;
+  following: number;
+};
+
 export type NetworkTab = "feed" | "following" | "followers";

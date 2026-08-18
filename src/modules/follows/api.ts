@@ -1,7 +1,11 @@
 import { apiClient } from "@/services/api/client";
-import { FollowProfile, FollowRelationship, FollowStatusResponse } from "@/modules/follows/types";
+import { FollowCounts, FollowProfile, FollowRelationship, FollowStatusResponse } from "@/modules/follows/types";
 
 export const followsApi = {
+  getCounts: async (userId: string) => {
+    const response = await apiClient.get<FollowCounts>(`/follows/counts/${userId}`);
+    return response.data;
+  },
   getFollowers: async (userId: string) => {
     const response = await apiClient.get<FollowProfile[]>(`/follows/followers/${userId}`);
     return response.data;

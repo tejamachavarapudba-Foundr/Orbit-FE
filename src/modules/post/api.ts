@@ -82,5 +82,13 @@ const response =
   deletePost: async (id: string) => {
     const response = await apiClient.delete<Post>(`/posts/${id}`, { data: { id } });
     return response.data;
+  },
+  getSavedPosts: async () => {
+    const response = await apiClient.get<Post[]>("/posts/saved");
+    return response.data;
+  },
+  toggleSavePost: async (id: string) => {
+    const response = await apiClient.post<{ saved: boolean }>(`/posts/${id}/save`);
+    return response.data;
   }
 };

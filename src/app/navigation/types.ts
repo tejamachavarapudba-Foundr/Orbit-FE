@@ -21,6 +21,11 @@ export type MainStackParamList = {
 
   Profile: undefined;
   Settings: undefined;
+  SavedPosts: undefined;
+  Subscription: undefined;
+  DataPrivacy: undefined;
+  FAQ: undefined;
+  Support: undefined;
   Discover: undefined;
   Network: undefined;
   Search: undefined;

@@ -1,4 +1,6 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
@@ -8,8 +10,25 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/modules/auth/store";
 import { useThemeStore } from "@/store/themeStore";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { MainStackParamList } from "@/app/navigation/types";
+
+type SettingsRoute = keyof Pick<
+  MainStackParamList,
+  "SavedPosts" | "Subscription" | "DataPrivacy" | "FAQ" | "Support"
+>;
+
+const settingsRows: { route: SettingsRoute; icon: keyof typeof Feather.glyphMap; label: string; description: string }[] = [
+  { route: "SavedPosts", icon: "bookmark", label: "Saved", description: "Posts you've saved" },
+  { route: "Subscription", icon: "star", label: "Subscription", description: "Manage your plan" },
+  { route: "DataPrivacy", icon: "shield", label: "Data & Privacy", description: "What we collect and why" },
+  { route: "FAQ", icon: "help-circle", label: "FAQ", description: "Common questions" },
+  { route: "Support", icon: "life-buoy", label: "Support", description: "Get help from our team" }
+];
 
 export const SettingsScreen = () => {
+  const colors = useThemeTokens();
+  const navigation = useNavigation<any>();
   const logout = useAuthStore((state) => state.logout);
   const scheme = useThemeStore((state) => state.resolvedScheme);
 
@@ -39,6 +58,30 @@ export const SettingsScreen = () => {
               <ThemeToggle />
             </View>
           </CardContent>
+        </Card>
+
+        <Card>
+          {settingsRows.map((row, index) => (
+            <Pressable
+              key={row.route}
+              accessibilityRole="button"
+              onPress={() => navigation.navigate(row.route)}
+              className={`flex-row items-center gap-4 px-4 py-3.5 ${
+                index < settingsRows.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-muted-bg">
+                <Feather name={row.icon} size={18} color={colors.text} />
+              </View>
+              <View className="flex-1">
+                <AppText weight="semibold">{row.label}</AppText>
+                <AppText tone="muted" size="sm" className="mt-0.5">
+                  {row.description}
+                </AppText>
+              </View>
+              <Feather name="chevron-right" size={18} color={colors.muted} />
+            </Pressable>
+          ))}
         </Card>
 
         <AppButton label="Sign out" variant="outline" onPress={handleLogout} className="mt-4" />

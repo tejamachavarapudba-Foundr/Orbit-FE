@@ -10,6 +10,11 @@ import { NotificationsScreen } from "@/modules/notifications/screens/Notificatio
 import { CommunityScreen } from "@/modules/community/screens/CommunityScreen";
 import { ProfileScreen } from "@/modules/profile/screens/ProfileScreen";
 import { SettingsScreen } from "@/modules/settings/screens/SettingsScreen";
+import { SavedPostsScreen } from "@/modules/settings/screens/SavedPostsScreen";
+import { SubscriptionScreen } from "@/modules/settings/screens/SubscriptionScreen";
+import { DataPrivacyScreen } from "@/modules/settings/screens/DataPrivacyScreen";
+import { FAQScreen } from "@/modules/settings/screens/FAQScreen";
+import { SupportScreen } from "@/modules/settings/screens/SupportScreen";
 import { DiscoverScreen } from "@/modules/user/screens/DiscoverScreen";
 import { NetworkScreen } from "@/modules/user/screens/NetworkScreen";
 import { SearchScreen } from "@/modules/search/screens/SearchScreen";
@@ -42,6 +47,31 @@ export const MainStackNavigator = () => (
     <Stack.Screen
       name="Settings"
       component={SettingsScreen}
+    />
+
+    <Stack.Screen
+      name="SavedPosts"
+      component={SavedPostsScreen}
+    />
+
+    <Stack.Screen
+      name="Subscription"
+      component={SubscriptionScreen}
+    />
+
+    <Stack.Screen
+      name="DataPrivacy"
+      component={DataPrivacyScreen}
+    />
+
+    <Stack.Screen
+      name="FAQ"
+      component={FAQScreen}
+    />
+
+    <Stack.Screen
+      name="Support"
+      component={SupportScreen}
     />
 
     <Stack.Screen

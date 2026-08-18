@@ -47,6 +47,19 @@ export const useNetwork = (activeTab: NetworkTab) => {
   };
 };
 
+export const useFollowCounts = (userId: string | undefined) => {
+  const counts = useFollowStore((state) => (userId ? state.countsByUserId[userId] : undefined));
+  const fetchCounts = useFollowStore((state) => state.fetchCounts);
+
+  useEffect(() => {
+    if (userId) {
+      void fetchCounts(userId);
+    }
+  }, [fetchCounts, userId]);
+
+  return counts;
+};
+
 export const useNetworkSuggestions = () => {
   const viewer = useAuthStore((state) => state.user?.profile);
   const following = useFollowStore((state) => state.following);

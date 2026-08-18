@@ -26,6 +26,11 @@ export const AppHeader = () => {
     "Settings",
     "Search",
     "Admin",
+    "SavedPosts",
+    "Subscription",
+    "DataPrivacy",
+    "FAQ",
+    "Support",
   ].includes(route.name as string);
 
   return (

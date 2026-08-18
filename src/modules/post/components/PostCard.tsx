@@ -311,7 +311,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 ) : null}
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => toggleSaved(post.id)}
+                  onPress={() => void toggleSaved(post.id)}
                   hitSlop={actionHitSlop}
                   className="h-9 w-9 items-center justify-center rounded-md"
                   accessibilityLabel={isSaved ? "Remove from saved" : "Save post"}

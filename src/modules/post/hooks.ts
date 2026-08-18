@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/modules/auth/store";
 import { usePostStore } from "@/modules/post/store";
+import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { CreatePostPayload, PostCategory, PostFormValues, PostMediaType } from "@/modules/post/types";
 
 export const postCategoryOptions: { label: string; value: PostCategory }[] = [
@@ -54,6 +55,10 @@ export const useFeed = () => {
   const errorMessage = usePostStore((state) => state.errorMessage);
   const loadPosts = usePostStore((state) => state.loadPosts);
   const refreshPosts = usePostStore((state) => state.refreshPosts);
+  const user = useAuthStore((state) => state.user);
+  const savedPostIdsCount = useSavedPostsStore((state) => state.savedPostIds.size);
+  const isSavedPostsLoading = useSavedPostsStore((state) => state.isLoading);
+  const loadSavedPosts = useSavedPostsStore((state) => state.loadSavedPosts);
   const [visibleCount, setVisibleCount] = useState(pageSize);
   const [activeCategory, setActiveCategory] = useState<PostCategory | "all">("all");
 
@@ -62,6 +67,12 @@ export const useFeed = () => {
       void loadPosts();
     }
   }, [isLoading, loadPosts, posts.length]);
+
+  useEffect(() => {
+    if (user && savedPostIdsCount === 0 && !isSavedPostsLoading) {
+      void loadSavedPosts();
+    }
+  }, [isSavedPostsLoading, loadSavedPosts, savedPostIdsCount, user]);
 
   const filteredPosts = useMemo(
     () => (activeCategory === "all" ? posts : posts.filter((post) => post.category === activeCategory)),
