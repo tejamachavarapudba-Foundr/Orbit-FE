@@ -69,24 +69,33 @@ export default function App() {
 
   if (!fontsLoaded && !fontLoadError) {
     return (
-      <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
-        <SafeAreaProvider>
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <ActivityIndicator size="large" color="#0A66C2" />
-          </View>
-        </SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {/* NativeWind only propagates CSS variables (vars()/dark:) to
+            descendants through components it instruments (plain View,
+            Text, ...) — third-party wrappers like GestureHandlerRootView
+            aren't auto-instrumented, so the theme has to be applied here
+            on a plain View, not on the root above. */}
+        <View className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
+          <SafeAreaProvider>
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+              <ActivityIndicator size="large" color="#0A66C2" />
+            </View>
+          </SafeAreaProvider>
+        </View>
       </GestureHandlerRootView>
     );
   }
 
   return (
-    <GestureHandlerRootView className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <RootNavigator />
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-        </QueryClientProvider>
-      </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <RootNavigator />
+            <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </View>
     </GestureHandlerRootView>
   );
 }
