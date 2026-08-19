@@ -1,5 +1,5 @@
-import { memo, useCallback, useMemo, useEffect, useRef, useState } from "react";
-import { Alert, Image, Linking, Pressable, Share, TextInput, View } from "react-native";
+import { memo, useCallback, useState } from "react";
+import { Alert, Linking, Pressable, Share, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
@@ -12,12 +12,11 @@ import { CommentsModal } from "@/modules/comments/components/CommentsModal";
 import { usePostComments } from "@/modules/comments/hooks";
 import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
+import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
 import { iconSize, toBadgeCategory } from "@/theme/designTokens";
-import { Video, ResizeMode } from 'expo-av';
-import { getMediaAspectRatio } from "@/modules/post/utils/media";
 
 type PostCardProps = {
   post: Post;
@@ -35,116 +34,6 @@ const formatRelativeTime = (date: string) => {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(date));
-};
-
-const PostVideo = ({
-  uri,
-  width,
-  height,
-}: {
-  uri: string;
-  width?: number | null;
-  height?: number | null;
-}) => {
-  const aspectRatio = getMediaAspectRatio(
-    width ?? null,
-    height ?? null,
-  );
-  const videoRef = useRef<Video>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-
-  const togglePlay = useCallback(() => {
-    if (isPlaying) {
-      void videoRef.current?.pauseAsync();
-    } else {
-      void videoRef.current?.playAsync();
-    }
-    setIsPlaying((current) => !current);
-  }, [isPlaying]);
-
-  const toggleMute = useCallback(() => {
-    setIsMuted((current) => !current);
-  }, []);
-
-  return (
-    <Pressable
-      onPress={togglePlay}
-      accessibilityRole="button"
-      accessibilityLabel={isPlaying ? "Pause video" : "Play video"}
-      style={{
-        width: "100%",
-        aspectRatio,
-        backgroundColor: "#000",
-      }}
-    >
-      <Video
-        ref={videoRef}
-        source={{ uri }}
-        resizeMode={ResizeMode.COVER}
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-        shouldPlay={false}
-        isLooping
-        isMuted={isMuted}
-        onPlaybackStatusUpdate={(status) => {
-          if (status.isLoaded) {
-            setIsPlaying(status.isPlaying);
-          }
-        }}
-      />
-
-      {!isPlaying ? (
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              backgroundColor: "rgba(0,0,0,0.5)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Feather name="play" size={28} color="#fff" style={{ marginLeft: 3 }} />
-          </View>
-        </View>
-      ) : null}
-
-      <Pressable
-        onPress={toggleMute}
-        accessibilityRole="button"
-        accessibilityLabel={isMuted ? "Unmute video" : "Mute video"}
-        hitSlop={8}
-        style={{
-          position: "absolute",
-          right: 10,
-          bottom: 10,
-          width: 32,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Feather name={isMuted ? "volume-x" : "volume-2"} size={16} color="#fff" />
-      </Pressable>
-    </Pressable>
-  );
 };
 
 export const PostCard = memo(({ post }: PostCardProps) => {
@@ -180,8 +69,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   )?.label ?? post.category;
 
   const categoryBadge = toBadgeCategory(post.category);
-  const media = post.media?.[0];
-  const mediaAspectRatio = getMediaAspectRatio(media?.width?? null, media?.height?? null,);
+  const hasMedia = post.media && post.media.length > 0;
   const submitEdit = useCallback(async () => {
     const didSucceed = await updatePost(post.id, {
       content: draftContent.trim(),
@@ -235,28 +123,9 @@ export const PostCard = memo(({ post }: PostCardProps) => {
         </View>
       </View>
 
-      {!isEditing && media ? (
+      {!isEditing && hasMedia ? (
         <View className="mt-3 w-full">
-          {media.type === "VIDEO" ? (
-            <PostVideo uri={media.url} width={media.width ?? null} height={media.height ?? null} />
-          ) : (
-            <View
-              style={{
-                width: "100%",
-                aspectRatio: mediaAspectRatio,
-                backgroundColor: "#000",
-              }}
-            >
-              <Image
-                source={{ uri: media.url }}
-                resizeMode="cover"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
-            </View>
-          )}
+          <PostMediaCarousel postId={post.id} media={post.media} />
         </View>
       ) : null}
 

@@ -7,8 +7,10 @@ import {
   NativeSyntheticEvent,
   Pressable,
   View,
+  ViewToken,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/AppButton";
@@ -23,6 +25,7 @@ import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { PostCard } from "@/modules/post/components/PostCard";
 import { PostComposerModal } from "@/modules/post/components/PostComposerModal";
 import { PostSkeletonList } from "@/modules/post/components/PostSkeletonList";
+import { useFeedVisibilityStore } from "@/modules/post/feedVisibilityStore";
 import { postFilterOptions, useFeed } from "@/modules/post/hooks";
 import { Post, PostCategory } from "@/modules/post/types";
 
@@ -102,6 +105,21 @@ export const FeedScreen = () => {
   const keyExtractor = useCallback((item: Post) => item.id, []);
   const ItemSeparator = () => <View className="h-2 bg-background" />;
 
+  const setActivePostId = useFeedVisibilityStore((state) => state.setActivePostId);
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 65 }).current;
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    const mostVisible = viewableItems.find((token) => token.isViewable && token.item);
+    setActivePostId(mostVisible ? (mostVisible.item as Post).id : null);
+  }).current;
+
+  // Stop any playing video when this tab loses focus (e.g. switching tabs)
+  // rather than letting it keep playing off-screen.
+  useFocusEffect(
+    useCallback(() => {
+      return () => setActivePostId(null);
+    }, [setActivePostId]),
+  );
+
   return (
     <AppScreen withHorizontalPadding={false} edges={["left", "right"]}>
       <View className="flex-1">
@@ -162,6 +180,8 @@ export const FeedScreen = () => {
           onEndReachedThreshold={0.2}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          viewabilityConfig={viewabilityConfig}
+          onViewableItemsChanged={onViewableItemsChanged}
           contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top, paddingBottom: 32 }}
           ListHeaderComponent={
             <View className="px-4 py-3">

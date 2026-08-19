@@ -40,7 +40,12 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   return (
     <KeyboardAvoidingView
       className="min-h-[400px] flex-1 bg-card"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      // Android already resizes the window for the keyboard via
+      // android:windowSoftInputMode="adjustResize" — layering RN's own
+      // "height" behavior on top double-compensates and squishes this
+      // input off-screen. Only iOS needs KeyboardAvoidingView to do
+      // anything here.
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? HEADER_HEIGHT + insets.top : 0}
     >
       <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Pressable, TextInput, View } from "react-native";
+import { FlatList, Image, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { ResizeMode, Video } from "expo-av";
@@ -23,11 +23,24 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
   const [selectedFiles, setSelectedFiles] =
   useState<ImagePicker.ImagePickerAsset[]>([]);
   const showToast = useToastStore((state) => state.show);
+  const MAX_FILES = 10;
   const clearMedia = () => {
     setSelectedFiles([]);
   };
+  const removeFileAt = (index: number) => {
+    setSelectedFiles((current) => current.filter((_, i) => i !== index));
+  };
 
   const pickMedia = async (mediaTypes: ImagePicker.MediaType[]) => {
+    if (selectedFiles.length >= MAX_FILES) {
+      showToast({
+        type: "error",
+        title: "Limit reached",
+        message: `You can attach up to ${MAX_FILES} files per post.`
+      });
+      return;
+    }
+
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
@@ -42,11 +55,13 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes,
         quality: 0.8,
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_FILES - selectedFiles.length,
       });
 
       if (result.canceled) return;
 
-      setSelectedFiles(result.assets);
+      setSelectedFiles((current) => [...current, ...result.assets].slice(0, MAX_FILES));
     } catch (error) {
       showToast({
         type: "error",
@@ -82,30 +97,47 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
           className="min-h-[88px] rounded-md border border-input bg-background px-3 py-3 text-base leading-6 text-text"
         />
 
-        {selectedFiles.length > 0 && selectedFiles[0] ? (
-          <View className="relative overflow-hidden rounded-md bg-black" style={{ width: "100%", height: 220 }}>
-            {selectedFiles[0].type === "video" ? (
-              <Video
-                source={{ uri: selectedFiles[0].uri }}
-                useNativeControls
-                resizeMode={ResizeMode.COVER}
-                style={{ width: "100%", height: "100%" }}
-              />
-            ) : (
-              <Image
-                source={{ uri: selectedFiles[0].uri }}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-            )}
+        {selectedFiles.length > 0 ? (
+          <View className="gap-2">
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={selectedFiles}
+              keyExtractor={(item, index) => `${item.assetId ?? item.uri}-${index}`}
+              contentContainerStyle={{ gap: 8 }}
+              renderItem={({ item, index }) => (
+                <View className="relative overflow-hidden rounded-md bg-black" style={{ width: 120, height: 160 }}>
+                  {item.type === "video" ? (
+                    <Video
+                      source={{ uri: item.uri }}
+                      resizeMode={ResizeMode.COVER}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  ) : (
+                    <Image source={{ uri: item.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                  )}
 
-            <Pressable
-              accessibilityRole="button"
-              onPress={clearMedia}
-              className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-md border border-border bg-card"
-            >
-              <Feather name="x" size={16} color={colors.text} />
-            </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove"
+                    onPress={() => removeFileAt(index)}
+                    className="absolute right-1.5 top-1.5 h-6 w-6 items-center justify-center rounded-full bg-black/60"
+                  >
+                    <Feather name="x" size={14} color="#fff" />
+                  </Pressable>
+                </View>
+              )}
+            />
+            <View className="flex-row items-center justify-between">
+              <AppText tone="muted" size="xs">
+                {selectedFiles.length}/{MAX_FILES} attached
+              </AppText>
+              <Pressable accessibilityRole="button" onPress={clearMedia}>
+                <AppText tone="danger" size="xs" weight="medium">
+                  Remove all
+                </AppText>
+              </Pressable>
+            </View>
           </View>
         ) : null}
 
