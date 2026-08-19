@@ -37,6 +37,7 @@ export type MainStackParamList = {
 
   ProjectDetail: {
     id: string;
+    edit?: boolean;
   };
 
   InvestmentWatchlist: undefined;

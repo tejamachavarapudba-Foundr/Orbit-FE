@@ -25,7 +25,7 @@ const roleOptions = ["co_founder", "software_engineer", "designer", "business_op
 type Props = NativeStackScreenProps<MainStackParamList, "ProjectDetail">;
 
 export const ProjectDetailScreen = ({ route }: Props) => {
-  const { id } = route.params;
+  const { id, edit } = route.params;
   const colors = useThemeTokens();
   const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
@@ -56,7 +56,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
     submitReview
   } = useProjectDetail();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(!!edit);
   const [reviewsExpanded, setReviewsExpanded] = useState(false);
   const [applyExpanded, setApplyExpanded] = useState(false);
 

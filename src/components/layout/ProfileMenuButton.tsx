@@ -36,20 +36,27 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
   const initial = user?.profile.fullName?.charAt(0).toUpperCase() || "S";
   const isAdmin = user?.role === "ADMIN";
   const isInvestor = user?.profile?.role?.toLowerCase() === "investor";
+  const isFounder = user?.profile?.role?.toLowerCase() === "founder";
 
   const menuItems = [
     ...profileMenuItems,
-    isInvestor
-      ? {
-          label: "Investment Watchlist",
-          icon: "bookmark" as const,
-          route: "InvestmentWatchlist",
-        }
-      : {
-          label: "New Project",
-          icon: "plus" as const,
-          route: "Projects",
-        },
+    ...(isInvestor
+      ? [
+          {
+            label: "Investment Watchlist",
+            icon: "bookmark" as const,
+            route: "InvestmentWatchlist",
+          },
+        ]
+      : isFounder
+        ? [
+            {
+              label: "New Project",
+              icon: "plus" as const,
+              route: "Projects",
+            },
+          ]
+        : []),
     ...(isAdmin
       ? [
           {

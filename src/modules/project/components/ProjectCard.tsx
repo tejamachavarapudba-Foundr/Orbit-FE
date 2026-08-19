@@ -14,12 +14,13 @@ type ProjectCardProps = {
   project: Project;
   onPress: (id: string) => void;
   onBookMeeting: (project: Project) => void;
+  onEdit?: (id: string) => void;
   compact?: boolean;
 };
 
 const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-export const ProjectCard = memo(({ project, onPress, onBookMeeting, compact = false }: ProjectCardProps) => {
+export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, compact = false }: ProjectCardProps) => {
   const colors = useThemeTokens();
   const savedStartupIds = useProjectStore((state) => state.savedStartupIds);
   const toggleSaveStartup = useProjectStore((state) => state.toggleSaveStartup);
@@ -63,7 +64,7 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, compact = fa
                   accessibilityLabel="Edit project"
                   onPress={(event) => {
                     event.stopPropagation?.();
-                    onPress(project.id);
+                    (onEdit ?? onPress)(project.id);
                   }}
                 >
                   <Feather name="edit-2" size={16} color={colors.muted} />
