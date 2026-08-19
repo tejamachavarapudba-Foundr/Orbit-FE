@@ -14,6 +14,7 @@ import { useAuthStore } from "@/modules/auth/store";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { ProjectFilterModal } from "@/modules/project/components/ProjectFilterModal";
+import { StartupBrowseSection } from "@/modules/project/components/StartupBrowseSection";
 import { useProjects } from "@/modules/project/hooks";
 import { Project } from "@/modules/project/types";
 import { iconSize } from "@/theme/designTokens";
@@ -25,6 +26,8 @@ export const ProjectsScreen = () => {
   const {
     projects,
     trendingStartups,
+    newStartups,
+    viewedStartups,
     totalCount,
     filters,
     isLoading,
@@ -154,6 +157,14 @@ export const ProjectsScreen = () => {
                 />
               </View>
             ) : null}
+
+            <StartupBrowseSection
+              newStartups={newStartups}
+              viewedStartups={viewedStartups}
+              onPress={(id) => void selectProject(id)}
+              onEdit={editProject}
+              onBookMeeting={handleBookMeeting}
+            />
 
             {totalCount > 0 ? (
               <AppText tone="muted" size="xs" className="mb-2 mt-5">

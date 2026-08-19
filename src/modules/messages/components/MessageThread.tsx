@@ -40,12 +40,14 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   return (
     <KeyboardAvoidingView
       className="min-h-[400px] flex-1 bg-card"
-      // Android already resizes the window for the keyboard via
-      // android:windowSoftInputMode="adjustResize" — layering RN's own
-      // "height" behavior on top double-compensates and squishes this
-      // input off-screen. Only iOS needs KeyboardAvoidingView to do
-      // anything here.
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      // "height" (the previous Android behavior) left the input
+      // effectively invisible behind the keyboard, and disabling
+      // KeyboardAvoidingView entirely on Android (assuming adjustResize
+      // alone would handle it) didn't fix it either. PostComposerModal
+      // uses plain "padding" unconditionally with no such issue, so
+      // match that proven-working behavior here instead of Android's
+      // "height" mode.
+      behavior="padding"
       keyboardVerticalOffset={Platform.OS === "ios" ? HEADER_HEIGHT + insets.top : 0}
     >
       <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>

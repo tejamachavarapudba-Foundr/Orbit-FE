@@ -105,6 +105,18 @@ const emptyPayload: ProjectPayload = {
   isPublished: true
 };
 
+// The full Project object also carries relations, timestamps, and other
+// server-owned fields (id, ownerId, founder, investorSnapshot, ...) that
+// aren't part of an update payload — whitelist just the editable fields
+// so they never get spread into a PATCH request.
+const pickProjectPayload = (project: import("@/modules/project/types").Project): ProjectPayload => {
+  const picked = {} as ProjectPayload;
+  (Object.keys(emptyPayload) as (keyof ProjectPayload)[]).forEach((key) => {
+    (picked[key] as unknown) = project[key] ?? emptyPayload[key];
+  });
+  return picked;
+};
+
 const normalize = (value: string) => value.trim().toLowerCase();
 
 const csvToArray = (value: string) =>
@@ -219,8 +231,7 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
 
   const initialValues = existingProject
     ? {
-        ...emptyPayload,
-        ...existingProject,
+        ...pickProjectPayload(existingProject),
         industryTagsText: existingProject.industryTags.join(", "),
         techStackText: existingProject.techStack.join(", "),
         lookingForText: existingProject.lookingFor.join(", ")
@@ -238,8 +249,10 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
       return false;
     }
 
-    const payload = {
-      ...values,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { industryTagsText, techStackText, lookingForText, ...projectFields } = values;
+    const payload: ProjectPayload = {
+      ...projectFields,
       name: values.name.trim(),
       tagline: values.tagline.trim(),
       description: values.description.trim(),
