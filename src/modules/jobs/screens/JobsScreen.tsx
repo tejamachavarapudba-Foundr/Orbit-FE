@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { FlatList, ListRenderItem, TextInput, View } from "react-native";
+import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { useAuthStore } from "@/modules/auth/store";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -12,9 +13,11 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { JobCard } from "@/modules/jobs/components/JobCard";
 import { JobComposer } from "@/modules/jobs/components/JobComposer";
 import { JobDetailPanel } from "@/modules/jobs/components/JobDetailPanel";
+import { JobFilterModal } from "@/modules/jobs/components/JobFilterModal";
 import { MyApplicationsPanel, MyPostsAnalyticsPanel } from "@/modules/jobs/components/MyJobsPanel";
-import { jobRoleOptions, useJobs } from "@/modules/jobs/hooks";
+import { useJobs } from "@/modules/jobs/hooks";
 import { Job } from "@/modules/jobs/types";
+import { iconSize } from "@/theme/designTokens";
 
 type JobsTab = "browse" | "mine";
 
@@ -53,8 +56,11 @@ export const JobsScreen = () => {
     profile?.role === "hr";
 
   const [activeTab, setActiveTab] = useState<JobsTab>("browse");
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const hasActiveFilters = filters.role !== "all";
 
   return (
+    <>
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
       <FlatList
@@ -97,25 +103,27 @@ export const JobsScreen = () => {
 
             {activeTab === "browse" ? (
               <>
-                <TextInput
-                  value={filters.query}
-                  onChangeText={setQuery}
-                  placeholder="Search jobs, startups, skills..."
-                  placeholderTextColor={colors.muted}
-                  selectionColor={colors.primary}
-                  className="mt-5 h-11 rounded-md border border-input bg-background px-3 text-sm text-text"
-                />
+                <View className="mt-5 flex-row items-center gap-2">
+                  <TextInput
+                    value={filters.query}
+                    onChangeText={setQuery}
+                    placeholder="Search jobs, startups, skills..."
+                    placeholderTextColor={colors.muted}
+                    selectionColor={colors.primary}
+                    className="h-11 flex-1 rounded-md border border-input bg-background px-3 text-sm text-text"
+                  />
 
-                <View className="mt-4 flex-row flex-wrap gap-2">
-                  {jobRoleOptions.map((role) => (
-                    <FilterChip
-                      key={role}
-                      label={role === "all" ? "All roles" : role}
-                      isActive={filters.role === role}
-                      activeTone="primary"
-                      onPress={() => setRole(role)}
-                    />
-                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Filter & sort"
+                    onPress={() => setFilterModalVisible(true)}
+                    className="relative h-11 w-11 items-center justify-center rounded-md border border-input bg-background"
+                  >
+                    <Feather name="sliders" size={iconSize.md} color={colors.text} />
+                    {hasActiveFilters ? (
+                      <View className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+                    ) : null}
+                  </Pressable>
                 </View>
                 {canPostJobs && (
                   <View className="mt-4">
@@ -149,5 +157,12 @@ export const JobsScreen = () => {
         }
       />
     </AppScreen>
+    <JobFilterModal
+      visible={filterModalVisible}
+      onClose={() => setFilterModalVisible(false)}
+      role={filters.role}
+      onSetRole={setRole}
+    />
+    </>
   );
 };

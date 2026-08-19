@@ -2,7 +2,17 @@ import { useEffect, useMemo } from "react";
 
 import { useJobsStore } from "@/modules/jobs/store";
 
-export const jobRoleOptions = ["all", "engineer", "designer", "marketing", "sales", "operations", "product"] as const;
+export const jobRoleOptions = [
+  "all",
+  "engineer",
+  "designer",
+  "marketing",
+  "sales",
+  "operations",
+  "product",
+  "advisor",
+  "mentor"
+] as const;
 
 export const useJobs = () => {
   const jobs = useJobsStore((state) => state.jobs);

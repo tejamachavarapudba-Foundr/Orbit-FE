@@ -110,7 +110,6 @@ export const JobDetailPanel = () => {
             label="Apply for job"
             loading={isMutating}
             onPress={() => void submitApply()}
-            disabled={!applicationMessage.trim()}
             className="mt-3"
             size="sm"
           />
@@ -154,6 +153,7 @@ export const JobDetailPanel = () => {
           </View>
         </View>
         )}
+        {isOwner && (
         <View>
           <AppText weight="semibold" size="sm">
             Applications ({applications.length})
@@ -192,6 +192,7 @@ export const JobDetailPanel = () => {
             )}
           </View>
         </View>
+        )}
       </CardContent>
     </Card>
   );

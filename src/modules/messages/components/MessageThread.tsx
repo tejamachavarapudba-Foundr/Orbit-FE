@@ -40,14 +40,12 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   return (
     <KeyboardAvoidingView
       className="min-h-[400px] flex-1 bg-card"
-      // "height" (the previous Android behavior) left the input
-      // effectively invisible behind the keyboard, and disabling
-      // KeyboardAvoidingView entirely on Android (assuming adjustResize
-      // alone would handle it) didn't fix it either. PostComposerModal
-      // uses plain "padding" unconditionally with no such issue, so
-      // match that proven-working behavior here instead of Android's
-      // "height" mode.
-      behavior="padding"
+      // Root cause turned out to be the Activity's own configChanges
+      // blocking adjustResize from actually resizing the window for the
+      // keyboard (see AndroidManifest.xml) — no KeyboardAvoidingView
+      // behavior could compensate for that. Now that adjustResize should
+      // work correctly, avoid double-compensating on Android.
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? HEADER_HEIGHT + insets.top : 0}
     >
       <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>
