@@ -112,13 +112,25 @@ export const ProposalResponseScreen = () => {
                     className="min-h-[70px] rounded-md border border-input bg-background p-3 text-sm text-text"
                     textAlignVertical="top"
                   />
-                  <AppButton
-                    label="Decline this request"
-                    variant="outline"
-                    size="sm"
-                    loading={mutatingId === proposalId}
-                    onPress={() => void decline()}
-                  />
+                  <View className="flex-row gap-2">
+                    <AppButton
+                      label="Send"
+                      size="sm"
+                      loading={mutatingId === proposalId}
+                      onPress={() => void decline()}
+                      className="flex-1"
+                    />
+                    <AppButton
+                      label="Cancel"
+                      variant="outline"
+                      size="sm"
+                      onPress={() => {
+                        setShowDecline(false);
+                        setReplyMessage("");
+                      }}
+                      className="flex-1"
+                    />
+                  </View>
                 </View>
               )}
             </CardContent>
