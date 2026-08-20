@@ -38,6 +38,12 @@ export const jobsApi = {
     const response = await apiClient.patch<JobApplication>(`/jobs/${jobId}/applications/${appId}`, { status });
     return response.data;
   },
+  getApplicationResumeUrl: async (jobId: string, appId: string) => {
+    const response = await apiClient.get<{ url: string; fileName: string | null }>(
+      `/jobs/${jobId}/applications/${appId}/resume`
+    );
+    return response.data;
+  },
   getMyApplications: async () => {
     const response = await apiClient.get<(JobApplication & { job: Job })[]>("/jobs/mine/applications");
     return response.data;

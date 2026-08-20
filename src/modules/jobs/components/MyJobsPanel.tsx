@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
@@ -8,12 +8,47 @@ import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { jobsApi } from "@/modules/jobs/api";
 import { useJobsStore } from "@/modules/jobs/store";
-import { Job, JobApplication } from "@/modules/jobs/types";
+import { Job, JobApplication, JobApplicationStatus } from "@/modules/jobs/types";
 import { iconSize } from "@/theme/designTokens";
+import { toAppError } from "@/utils/errors";
+import { useToastStore } from "@/store/toastStore";
+
+type StatusFilter = "all" | JobApplicationStatus;
+
+const STATUS_FILTERS: { label: string; value: StatusFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "Pending", value: "pending" },
+  { label: "Accepted", value: "accepted" },
+  { label: "Rejected", value: "rejected" }
+];
+
+const formatAppliedAt = (date: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(date));
+
+const StatusFilterRow = ({ value, onChange }: { value: StatusFilter; onChange: (next: StatusFilter) => void }) => (
+  <View className="flex-row flex-wrap gap-2">
+    {STATUS_FILTERS.map((filter) => (
+      <FilterChip
+        key={filter.value}
+        label={filter.label}
+        isActive={value === filter.value}
+        activeTone="primary"
+        onPress={() => onChange(filter.value)}
+      />
+    ))}
+  </View>
+);
 
 type MyApplicationsPanelProps = {
   visible: boolean;
@@ -22,6 +57,7 @@ type MyApplicationsPanelProps = {
 export const MyApplicationsPanel = ({ visible }: MyApplicationsPanelProps) => {
   const [applications, setApplications] = useState<(JobApplication & { job: Job })[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   useEffect(() => {
     if (!visible) return;
@@ -43,29 +79,39 @@ export const MyApplicationsPanel = ({ visible }: MyApplicationsPanelProps) => {
     );
   }
 
-  if (applications.length === 0) {
-    return (
-      <View className="mt-4">
-        <EmptyState title="No applications yet" message="Jobs you apply to will show up here with their status." />
-      </View>
-    );
-  }
+  const filtered = statusFilter === "all" ? applications : applications.filter((item) => item.status === statusFilter);
 
   return (
     <View className="mt-4 gap-3">
-      {applications.map((application) => (
-        <Card key={application.id} className="p-4">
-          <View className="flex-row items-start justify-between gap-2">
-            <View className="min-w-0 flex-1">
-              <AppText weight="semibold">{application.job.heading}</AppText>
-              <AppText tone="muted" size="sm" className="mt-1">
-                {application.job.startupName}
-              </AppText>
+      <StatusFilterRow value={statusFilter} onChange={setStatusFilter} />
+
+      {filtered.length === 0 ? (
+        <EmptyState
+          title={applications.length === 0 ? "No applications yet" : "No applications here"}
+          message={
+            applications.length === 0
+              ? "Jobs you apply to will show up here with their status."
+              : "Try a different status filter."
+          }
+        />
+      ) : (
+        filtered.map((application) => (
+          <Card key={application.id} className="p-4">
+            <View className="flex-row items-start justify-between gap-2">
+              <View className="min-w-0 flex-1">
+                <AppText weight="semibold">{application.job.heading}</AppText>
+                <AppText tone="muted" size="sm" className="mt-1">
+                  {application.job.startupName}
+                </AppText>
+              </View>
+              <Badge label={application.status} variant="outline" />
             </View>
-            <Badge label={application.status} variant="outline" />
-          </View>
-        </Card>
-      ))}
+            <AppText tone="muted" size="xs" className="mt-2">
+              Applied {formatAppliedAt(application.createdAt)}
+            </AppText>
+          </Card>
+        ))
+      )}
     </View>
   );
 };
@@ -76,23 +122,98 @@ const splitCsv = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
-type MyJobPostCardProps = {
-  post: Job;
+type ApplicationRowProps = {
+  jobId: string;
+  application: JobApplication;
   onChanged: () => void;
 };
 
-const MyJobPostCard = ({ post, onChanged }: MyJobPostCardProps) => {
+const ApplicationRow = ({ jobId, application, onChanged }: ApplicationRowProps) => {
+  const mutatingId = useJobsStore((state) => state.mutatingId);
+  const updateApplicationStatus = useJobsStore((state) => state.updateApplicationStatus);
+  const [isFetchingResume, setIsFetchingResume] = useState(false);
+
+  const openResume = async () => {
+    setIsFetchingResume(true);
+    try {
+      const { url } = await jobsApi.getApplicationResumeUrl(jobId, application.id);
+      await Linking.openURL(url);
+    } catch (error) {
+      const appError = toAppError(error);
+      useToastStore.getState().show({ type: "error", title: "Couldn't open resume", message: appError.message });
+    } finally {
+      setIsFetchingResume(false);
+    }
+  };
+
+  return (
+    <View className="rounded-md border border-border bg-card p-3">
+      <View className="flex-row items-center justify-between">
+        <AppText weight="medium" size="sm">
+          {application.applicant?.fullName ?? "Applicant"}
+        </AppText>
+        <Badge label={application.status} variant="outline" />
+      </View>
+      <AppText tone="muted" size="sm" className="mt-1 leading-5">
+        {application.message}
+      </AppText>
+      <AppText tone="muted" size="xs" className="mt-1">
+        Applied {formatAppliedAt(application.createdAt)}
+      </AppText>
+
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void openResume()}
+        disabled={isFetchingResume}
+        className="mt-2 flex-row items-center gap-2 rounded-md border border-border bg-muted-bg px-3 py-2"
+      >
+        <Feather name="file-text" size={iconSize.sm} />
+        <AppText size="sm" className="flex-1" numberOfLines={1}>
+          {application.resumeFileName ?? "Resume"}
+        </AppText>
+        {isFetchingResume ? <ActivityIndicator size="small" /> : <Feather name="download" size={iconSize.sm} />}
+      </Pressable>
+
+      {application.status === "pending" ? (
+        <View className="mt-2 flex-row gap-2">
+          <AppButton
+            label="Accept"
+            size="sm"
+            loading={mutatingId === application.id}
+            onPress={() => void updateApplicationStatus(jobId, application.id, "accepted").then((success) => success && onChanged())}
+          />
+          <AppButton
+            label="Reject"
+            variant="outline"
+            size="sm"
+            loading={mutatingId === application.id}
+            onPress={() => void updateApplicationStatus(jobId, application.id, "rejected").then((success) => success && onChanged())}
+          />
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
+type MyJobPostCardProps = {
+  post: Job;
+  statusFilter: StatusFilter;
+  onChanged: () => void;
+};
+
+const MyJobPostCard = ({ post, statusFilter, onChanged }: MyJobPostCardProps) => {
   const colors = useThemeTokens();
   const mutatingId = useJobsStore((state) => state.mutatingId);
   const updateJob = useJobsStore((state) => state.updateJob);
   const deleteJob = useJobsStore((state) => state.deleteJob);
-  const updateApplicationStatus = useJobsStore((state) => state.updateApplicationStatus);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editHeading, setEditHeading] = useState(post.heading);
   const [editSkills, setEditSkills] = useState((post.skills ?? []).join(", "));
 
   const applications = post.applications ?? [];
+  const visibleApplications =
+    statusFilter === "all" ? applications : applications.filter((item) => item.status === statusFilter);
   const isMutating = mutatingId === post.id;
 
   const submitUpdate = async () => {
@@ -116,6 +237,10 @@ const MyJobPostCard = ({ post, onChanged }: MyJobPostCardProps) => {
       }
     ]);
   };
+
+  if (statusFilter !== "all" && visibleApplications.length === 0) {
+    return null;
+  }
 
   return (
     <Card className="p-4">
@@ -161,45 +286,10 @@ const MyJobPostCard = ({ post, onChanged }: MyJobPostCardProps) => {
         </View>
       ) : null}
 
-      {applications.length > 0 ? (
+      {visibleApplications.length > 0 ? (
         <View className="mt-3 gap-2">
-          {applications.map((application) => (
-            <View key={application.id} className="rounded-md border border-border bg-card p-3">
-              <View className="flex-row items-center justify-between">
-                <AppText weight="medium" size="sm">
-                  {application.applicant?.fullName ?? "Applicant"}
-                </AppText>
-                <Badge label={application.status} variant="outline" />
-              </View>
-              <AppText tone="muted" size="sm" className="mt-1 leading-5">
-                {application.message}
-              </AppText>
-              {application.status === "pending" ? (
-                <View className="mt-2 flex-row gap-2">
-                  <AppButton
-                    label="Accept"
-                    size="sm"
-                    loading={mutatingId === application.id}
-                    onPress={() =>
-                      void updateApplicationStatus(post.id, application.id, "accepted").then(
-                        (success) => success && onChanged()
-                      )
-                    }
-                  />
-                  <AppButton
-                    label="Reject"
-                    variant="outline"
-                    size="sm"
-                    loading={mutatingId === application.id}
-                    onPress={() =>
-                      void updateApplicationStatus(post.id, application.id, "rejected").then(
-                        (success) => success && onChanged()
-                      )
-                    }
-                  />
-                </View>
-              ) : null}
-            </View>
+          {visibleApplications.map((application) => (
+            <ApplicationRow key={application.id} jobId={post.id} application={application} onChanged={onChanged} />
           ))}
         </View>
       ) : null}
@@ -222,6 +312,7 @@ export const MyPostsAnalyticsPanel = ({ visible }: MyPostsAnalyticsPanelProps) =
     onboardCount: number;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const reload = () => {
     Promise.all([jobsApi.getMyPosts(), jobsApi.getMyAnalytics()]).then(([myPosts, myAnalytics]) => {
@@ -251,6 +342,11 @@ export const MyPostsAnalyticsPanel = ({ visible }: MyPostsAnalyticsPanelProps) =
       </View>
     );
   }
+
+  const visiblePosts =
+    statusFilter === "all"
+      ? posts
+      : posts.filter((post) => (post.applications ?? []).some((application) => application.status === statusFilter));
 
   return (
     <View className="mt-4 gap-4">
@@ -295,10 +391,15 @@ export const MyPostsAnalyticsPanel = ({ visible }: MyPostsAnalyticsPanelProps) =
         <AppText weight="bold" size="sm">
           My posts ({posts.length})
         </AppText>
+        <StatusFilterRow value={statusFilter} onChange={setStatusFilter} />
         {posts.length === 0 ? (
           <EmptyState title="No job posts yet" message="Jobs you post will show up here." />
+        ) : visiblePosts.length === 0 ? (
+          <EmptyState title="No applications here" message="Try a different status filter." />
         ) : (
-          posts.map((post) => <MyJobPostCard key={post.id} post={post} onChanged={reload} />)
+          visiblePosts.map((post) => (
+            <MyJobPostCard key={post.id} post={post} statusFilter={statusFilter} onChanged={reload} />
+          ))
         )}
       </View>
     </View>
