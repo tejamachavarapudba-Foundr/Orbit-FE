@@ -79,19 +79,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
     }
 
     if (item.action === "meetings") {
-      if (user?.role === "ADMIN") {
-        navigation.navigate("AdminMeetings");
-        return;
-      }
-
-      if (user?.profile?.role?.toLowerCase() === "founder") {
-        navigation.navigate("FounderMeetings", {
-          startupId: "",
-        });
-        return;
-      }
-
-      navigation.navigate("InvestorMeetings");
+      navigation.navigate("Meetings");
       return;
     }
 

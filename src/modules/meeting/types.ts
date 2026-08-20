@@ -1,99 +1,121 @@
-// src/modules/meeting/types.ts
+export type InviteMode = "startup" | "people";
+export type SchedulingMode = "availability_pick" | "date_push";
+export type ProposalStatus = "pending" | "confirmed" | "declined" | "cancelled";
+export type InviteeResponse = "pending" | "accepted" | "rejected";
+export type MeetingStatus = "upcoming" | "completed" | "cancelled";
 
-import { AuthProfile } from "@/modules/auth/types";
-import { Project } from "@/modules/project/types";
+export const meetingPurposeOptions: { label: string; value: string }[] = [
+  { label: "Investment Discussion", value: "Investment Discussion" },
+  { label: "Product Demo", value: "Product Demo" },
+  { label: "Partnership", value: "Partnership" },
+  { label: "Technical Discussion", value: "Technical Discussion" },
+  { label: "Mentorship", value: "Mentorship" },
+  { label: "General Discussion", value: "General Discussion" },
+  { label: "Other", value: "Other" }
+];
 
-export type MeetingStatus =
-  | "pending"
-  | "founder_contacted"
-  | "approved"
-  | "rejected"
-  | "completed";
+export type ProposedSlot = {
+  date: string; // "YYYY-MM-DD"
+  time: string; // "HH:mm"
+};
 
-export type MeetingPurpose =
-  | "Investment Discussion"
-  | "Product Demo"
-  | "Partnership"
-  | "Technical Discussion"
-  | "Mentorship"
-  | "General Discussion"
-  | "Other";
-
-export type MeetingRequest = {
+export type ProfileSummary = {
   id: string;
+  fullName: string;
+  headline?: string;
+  avatarUrl?: string;
+};
 
-  startupId: string;
-  investorId: string;
+export type AvailabilitySlot = {
+  id: string;
+  profileId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  timezone: string;
+  isActive: boolean;
+};
 
+export type ProposalInvitee = {
+  id: string;
+  proposalId: string;
+  userId: string;
+  response: InviteeResponse;
+  selectedSlot: ProposedSlot | null;
+  respondedAt: string | null;
+  user?: ProfileSummary;
+};
+
+export type MeetingProposal = {
+  id: string;
+  organizerId: string;
+  inviteMode: InviteMode;
+  targetStartupId: string | null;
   purpose: string;
-
-  preferredDate1: string;
-  preferredTime1: string;
-
-  preferredDate2: string;
-  preferredTime2: string;
-
-  expectedInvestment: string;
-
-  message: string;
-
-  status: MeetingStatus;
-
+  message: string | null;
+  schedulingMode: SchedulingMode;
+  proposedSlots: ProposedSlot[] | null;
+  timezone: string | null;
+  status: ProposalStatus;
   createdAt: string;
-  updatedAt: string;
-
-  startup?: Project;
-  investor?: AuthProfile;
+  invitees: ProposalInvitee[];
+  organizer?: ProfileSummary;
 };
 
-export type MeetingRequestPayload = {
-  startupId: string;
+export type Meeting = {
+  id: string;
+  proposalId: string;
+  confirmedAt: string;
+  timezone: string;
+  durationMins: number;
+  meetLink: string;
+  googleEventId: string;
+  status: MeetingStatus;
+  cancelledBy: string | null;
+  cancelReason: string | null;
+  cancelledAt: string | null;
+  createdAt: string;
+  proposal: MeetingProposal;
+};
 
+export type MeetingsTab = "upcoming" | "completed" | "cancelled";
+
+export type UpcomingListResponse = {
+  meetings: Meeting[];
+  pendingProposals: MeetingProposal[];
+};
+
+export type CancelledListResponse = {
+  meetings: Meeting[];
+  proposals: MeetingProposal[];
+};
+
+export type GoogleConnectionStatus = { connected: false } | { connected: true; email: string };
+
+export type SaveAvailabilityPayload = {
+  timezone: string;
+  slots: { dayOfWeek: number; startTime: string; endTime: string }[];
+};
+
+export type OpenSlotsResponse = {
+  timezone: string | null;
+  slots: ProposedSlot[];
+};
+
+export type CreateProposalPayload = {
+  inviteMode: InviteMode;
+  targetStartupId?: string | undefined;
+  inviteeUserIds?: string[] | undefined;
   purpose: string;
-
-  preferredDate1: string;
-  preferredTime1: string;
-
-  preferredDate2: string;
-  preferredTime2: string;
-
-  expectedInvestment: string;
-
-  message?: string;
+  message?: string | undefined;
+  schedulingMode: SchedulingMode;
+  selectedSlot?: ProposedSlot | undefined;
+  proposedSlots?: ProposedSlot[] | undefined;
+  timezone?: string | undefined;
 };
 
-export type MeetingStatusPayload = {
-  status: MeetingStatus;
+export type RespondProposalPayload = {
+  action: "accept" | "reject";
+  selectedSlot?: ProposedSlot | undefined;
+  replyMessage?: string | undefined;
 };
-
-export type MeetingFilters = {
-  query: string;
-  status: "all" | MeetingStatus;
-};
-
-export type MeetingResponse = MeetingRequest;
-
-export type MeetingCounts = {
-  pending: number;
-  approved: number;
-  rejected: number;
-  founder_contacted: number;
-  completed: number;
-};
-
-export type MeetingTimelineItem = {
-  title: string;
-  description: string;
-  createdAt: string;
-};
-
-export type MeetingCardAction =
-  | "approve"
-  | "reject"
-  | "contact"
-  | "details";
-
-export type MeetingRole =
-  | "investor"
-  | "founder"
-  | "admin";

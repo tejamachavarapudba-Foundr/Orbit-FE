@@ -1,294 +1,144 @@
 import { create } from "zustand";
 
-import { meetingApi } from "@/modules/meeting/api";
-
+import { googleApi, meetingApi } from "@/modules/meeting/api";
 import {
-  MeetingRequest,
-  MeetingRequestPayload,
-  MeetingStatus,
+  CancelledListResponse,
+  CreateProposalPayload,
+  GoogleConnectionStatus,
+  Meeting,
+  MeetingProposal,
+  MeetingsTab,
+  RespondProposalPayload,
+  UpcomingListResponse
 } from "@/modules/meeting/types";
-
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 
-type MeetingStore = {
-  myMeetings: MeetingRequest[];
-  founderMeetings: MeetingRequest[];
-  adminMeetings: MeetingRequest[];
-
-  selectedMeeting: MeetingRequest | null;
-
+type MeetingsState = {
+  googleStatus: GoogleConnectionStatus | null;
+  tab: MeetingsTab;
   isLoading: boolean;
-  isRefreshing: boolean;
-  isSubmitting: boolean;
-
+  mutatingId: string | null;
   errorMessage: string | null;
-
-  loadMyMeetings: () => Promise<void>;
-
-  loadFounderMeetings: (
-    startupId: string,
-  ) => Promise<void>;
-
-  loadAdminMeetings: () => Promise<void>;
-
-  createMeeting: (
-    payload: MeetingRequestPayload,
-  ) => Promise<boolean>;
-
-  updateMeetingStatus: (
-    id: string,
-    status: MeetingStatus,
-  ) => Promise<boolean>;
-
-  clearSelectedMeeting: () => void;
-
-  selectMeeting: (
-    meeting: MeetingRequest,
-  ) => void;
+  meetings: Meeting[];
+  pendingProposals: MeetingProposal[];
+  cancelledProposals: MeetingProposal[];
+  loadGoogleStatus: () => Promise<void>;
+  setTab: (tab: MeetingsTab) => void;
+  loadMine: (tab: MeetingsTab) => Promise<void>;
+  createProposal: (payload: CreateProposalPayload) => Promise<boolean>;
+  respondToProposal: (id: string, payload: RespondProposalPayload) => Promise<boolean>;
+  withdrawProposal: (id: string) => Promise<boolean>;
+  cancelMeeting: (id: string, reason?: string) => Promise<boolean>;
 };
 
-const sortMeetings = (
-  meetings: MeetingRequest[],
-) =>
-  [...meetings].sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime(),
-  );
+export const useMeetingsStore = create<MeetingsState>((set, get) => ({
+  googleStatus: null,
+  tab: "upcoming",
+  isLoading: false,
+  mutatingId: null,
+  errorMessage: null,
+  meetings: [],
+  pendingProposals: [],
+  cancelledProposals: [],
 
-export const useMeetingStore =
-  create<MeetingStore>((set) => ({
-    myMeetings: [],
-    founderMeetings: [],
-    adminMeetings: [],
+  loadGoogleStatus: async () => {
+    try {
+      const status = await googleApi.getStatus();
+      set({ googleStatus: status });
+    } catch {
+      set({ googleStatus: { connected: false } });
+    }
+  },
 
-    selectedMeeting: null,
+  setTab: (tab) => set({ tab }),
 
-    isLoading: false,
-    isRefreshing: false,
-    isSubmitting: false,
-
-    errorMessage: null,
-
-    loadMyMeetings: async () => {
-      set({
-        isLoading: true,
-        errorMessage: null,
-      });
-
-      try {
-        const meetings =
-          await meetingApi.getMyMeetings();
-
-        set({
-          myMeetings:
-            sortMeetings(meetings),
-          isLoading: false,
-        });
-      } catch (error) {
-        const appError =
-          toAppError(error);
-
-        set({
-          errorMessage:
-            appError.message,
-          isLoading: false,
-        });
+  loadMine: async (tab) => {
+    set({ isLoading: true, errorMessage: null });
+    try {
+      const data = await meetingApi.listMine(tab);
+      if (tab === "completed") {
+        set({ meetings: data as Meeting[], pendingProposals: [], cancelledProposals: [], isLoading: false });
+      } else if (tab === "cancelled") {
+        const { meetings, proposals } = data as CancelledListResponse;
+        set({ meetings, cancelledProposals: proposals, pendingProposals: [], isLoading: false });
+      } else {
+        const { meetings, pendingProposals } = data as UpcomingListResponse;
+        set({ meetings, pendingProposals, cancelledProposals: [], isLoading: false });
       }
-    },
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isLoading: false });
+    }
+  },
 
-    loadFounderMeetings:
-      async (startupId) => {
-        set({
-          isLoading: true,
-          errorMessage: null,
-        });
+  createProposal: async (payload) => {
+    set({ isLoading: true, errorMessage: null });
+    try {
+      await meetingApi.createProposal(payload);
+      set({ isLoading: false });
+      useToastStore.getState().show({
+        type: "success",
+        title: payload.schedulingMode === "availability_pick" ? "Meeting booked" : "Meeting request sent"
+      });
+      await get().loadMine(get().tab);
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isLoading: false });
+      useToastStore.getState().show({ type: "error", title: "Couldn't create meeting", message: appError.message });
+      return false;
+    }
+  },
 
-        try {
-          const meetings =
-            await meetingApi.getFounderMeetings(
-              startupId,
-            );
+  respondToProposal: async (id, payload) => {
+    set({ mutatingId: id });
+    try {
+      await meetingApi.respondToProposal(id, payload);
+      set({ mutatingId: null });
+      useToastStore.getState().show({
+        type: "success",
+        title: payload.action === "accept" ? "Meeting confirmed" : "Response sent"
+      });
+      await get().loadMine(get().tab);
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ mutatingId: null });
+      useToastStore.getState().show({ type: "error", title: "Couldn't respond", message: appError.message });
+      return false;
+    }
+  },
 
-          set({
-            founderMeetings:
-              sortMeetings(meetings),
-            isLoading: false,
-          });
-        } catch (error) {
-          const appError =
-            toAppError(error);
+  withdrawProposal: async (id) => {
+    set({ mutatingId: id });
+    try {
+      await meetingApi.withdrawProposal(id);
+      set({ mutatingId: null });
+      useToastStore.getState().show({ type: "success", title: "Request withdrawn" });
+      await get().loadMine(get().tab);
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ mutatingId: null });
+      useToastStore.getState().show({ type: "error", title: "Couldn't withdraw", message: appError.message });
+      return false;
+    }
+  },
 
-          set({
-            errorMessage:
-              appError.message,
-            isLoading: false,
-          });
-        }
-      },
-
-    loadAdminMeetings:
-      async () => {
-        set({
-          isLoading: true,
-          errorMessage: null,
-        });
-
-        try {
-          const meetings =
-            await meetingApi.getAdminMeetings();
-
-          set({
-            adminMeetings:
-              sortMeetings(meetings),
-            isLoading: false,
-          });
-        } catch (error) {
-          const appError =
-            toAppError(error);
-
-          set({
-            errorMessage:
-              appError.message,
-            isLoading: false,
-          });
-        }
-      },
-
-    createMeeting:
-      async (payload) => {
-        set({
-          isSubmitting: true,
-          errorMessage: null,
-        });
-
-        try {
-          const meeting =
-            await meetingApi.createMeeting(
-              payload,
-            );
-
-          set((state) => ({
-            myMeetings:
-              sortMeetings([
-                meeting,
-                ...state.myMeetings,
-              ]),
-            isSubmitting: false,
-          }));
-
-          useToastStore
-            .getState()
-            .show({
-              type: "success",
-              title:
-                "Meeting Request Sent",
-              message:
-                "Founder will review your request.",
-            });
-
-          return true;
-        } catch (error) {
-          const appError =
-            toAppError(error);
-
-          set({
-            errorMessage:
-              appError.message,
-            isSubmitting: false,
-          });
-
-          useToastStore
-            .getState()
-            .show({
-              type: "error",
-              title:
-                "Meeting Request Failed",
-              message:
-                appError.message,
-            });
-
-          return false;
-        }
-      },
-
-    updateMeetingStatus:
-      async (
-        id,
-        status,
-      ) => {
-        try {
-          const updated =
-            await meetingApi.updateMeetingStatus(
-              id,
-              status,
-            );
-
-          set((state) => ({
-            adminMeetings:
-              state.adminMeetings.map(
-                (item) =>
-                  item.id === id
-                    ? updated
-                    : item,
-              ),
-
-            founderMeetings:
-              state.founderMeetings.map(
-                (item) =>
-                  item.id === id
-                    ? updated
-                    : item,
-              ),
-
-            myMeetings:
-              state.myMeetings.map(
-                (item) =>
-                  item.id === id
-                    ? updated
-                    : item,
-              ),
-          }));
-
-          useToastStore
-            .getState()
-            .show({
-              type: "success",
-              title:
-                "Status Updated",
-            });
-
-          return true;
-        } catch (error) {
-          const appError =
-            toAppError(error);
-
-          useToastStore
-            .getState()
-            .show({
-              type: "error",
-              title:
-                "Update Failed",
-              message:
-                appError.message,
-            });
-
-          return false;
-        }
-      },
-
-    clearSelectedMeeting:
-      () =>
-        set({
-          selectedMeeting:
-            null,
-        }),
-
-    selectMeeting:
-      (meeting) =>
-        set({
-          selectedMeeting:
-            meeting,
-        }),
-  }));
+  cancelMeeting: async (id, reason) => {
+    set({ mutatingId: id });
+    try {
+      await meetingApi.cancelMeeting(id, reason);
+      set({ mutatingId: null });
+      useToastStore.getState().show({ type: "success", title: "Meeting cancelled" });
+      await get().loadMine(get().tab);
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ mutatingId: null });
+      useToastStore.getState().show({ type: "error", title: "Couldn't cancel", message: appError.message });
+      return false;
+    }
+  }
+}));

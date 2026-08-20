@@ -1,113 +1,72 @@
 import { apiClient } from "@/services/api/client";
-
 import {
-  MeetingRequest,
-  MeetingRequestPayload,
-  MeetingStatus,
+  CancelledListResponse,
+  CreateProposalPayload,
+  GoogleConnectionStatus,
+  Meeting,
+  MeetingProposal,
+  MeetingsTab,
+  OpenSlotsResponse,
+  RespondProposalPayload,
+  SaveAvailabilityPayload,
+  UpcomingListResponse
 } from "@/modules/meeting/types";
 
+export const googleApi = {
+  getAuthUrl: async () => {
+    const response = await apiClient.get<{ url: string }>("/google/oauth/url");
+    return response.data.url;
+  },
+  getStatus: async () => {
+    const response = await apiClient.get<GoogleConnectionStatus>("/google/oauth/status");
+    return response.data;
+  },
+  disconnect: async () => {
+    const response = await apiClient.delete<{ success: boolean }>("/google/oauth/disconnect");
+    return response.data;
+  }
+};
+
 export const meetingApi = {
-  /**
-   * Investor
-   * Create Meeting Request
-   */
-  createMeeting: async (
-    payload: MeetingRequestPayload,
-  ) => {
-    const response =
-      await apiClient.post<MeetingRequest>(
-        "/meeting-requests",
-        payload,
-      );
-
+  getMyAvailability: async () => {
+    const response = await apiClient.get("/meetings/availability/me");
     return response.data;
   },
-
-  /**
-   * Investor
-   * My Requests
-   */
-  getMyMeetings: async () => {
-    const response =
-      await apiClient.get<MeetingRequest[]>(
-        "/meeting-requests/my",
-      );
-
+  saveAvailability: async (payload: SaveAvailabilityPayload) => {
+    const response = await apiClient.put("/meetings/availability", payload);
     return response.data;
   },
-
-  /**
-   * Founder
-   * Incoming Requests
-   */
-  getFounderMeetings: async (
-    startupId: string,
-  ) => {
-    const response =
-      await apiClient.get<MeetingRequest[]>(
-        `/meeting-requests/startup/${startupId}`,
-      );
-
+  getOpenSlotsFor: async (profileId: string) => {
+    const response = await apiClient.get<OpenSlotsResponse>(`/meetings/availability/${profileId}/open-slots`);
     return response.data;
   },
-
-  /**
-   * Admin
-   * All Requests
-   */
-  getAdminMeetings: async () => {
-    const response =
-      await apiClient.get<MeetingRequest[]>(
-        "/meeting-requests/admin",
-      );
-
+  createProposal: async (payload: CreateProposalPayload) => {
+    const response = await apiClient.post<{ proposal: MeetingProposal; meeting?: Meeting } | MeetingProposal>(
+      "/meetings/proposals",
+      payload
+    );
     return response.data;
   },
-
-  /**
-   * Admin
-   * Update Status
-   */
-  updateMeetingStatus: async (
-    id: string,
-    status: MeetingStatus,
-  ) => {
-    const response =
-      await apiClient.patch<MeetingRequest>(
-        `/meeting-requests/${id}/status`,
-        {
-          status,
-        },
-      );
-
+  getProposal: async (id: string) => {
+    const response = await apiClient.get<MeetingProposal>(`/meetings/proposals/${id}`);
     return response.data;
   },
-
-  /**
-   * Optional (future backend)
-   */
-  getMeetingById: async (
-    id: string,
-  ) => {
-    const response =
-      await apiClient.get<MeetingRequest>(
-        `/meeting-requests/${id}`,
-      );
-
+  respondToProposal: async (id: string, payload: RespondProposalPayload) => {
+    const response = await apiClient.post(`/meetings/proposals/${id}/respond`, payload);
     return response.data;
   },
-
-  /**
-   * Optional (future backend)
-   */
-  deleteMeeting: async (
-    id: string,
-  ) => {
-    const response =
-      await apiClient.delete(
-        `/meeting-requests/${id}`,
-      );
-
+  withdrawProposal: async (id: string) => {
+    const response = await apiClient.delete(`/meetings/proposals/${id}`);
     return response.data;
   },
+  cancelMeeting: async (id: string, reason?: string) => {
+    const response = await apiClient.post<Meeting>(`/meetings/${id}/cancel`, { reason });
+    return response.data;
+  },
+  listMine: async (tab: MeetingsTab) => {
+    const response = await apiClient.get<Meeting[] | UpcomingListResponse | CancelledListResponse>("/meetings/mine", {
+      params: { tab }
+    });
+    return response.data;
+  }
 };

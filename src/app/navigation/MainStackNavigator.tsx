@@ -24,9 +24,9 @@ import { TractionScreen } from "@/modules/investorSnapshot/screens/TractionScree
 import { FinancialScreen } from "@/modules/investorSnapshot/screens/FinancialScreen";
 import { OwnershipScreen } from "@/modules/investorSnapshot/screens/OwnershipScreen";
 import { ReviewScreen } from "@/modules/investorSnapshot/screens/ReviewScreen";
-import { InvestorMeetingsScreen } from "@/modules/meeting/screens/InvestorMeetingsScreen";
-import { FounderMeetingRequestsScreen } from "@/modules/meeting/screens/FounderMeetingRequestsScreen";
-import { AdminMeetingRequestsScreen } from "@/modules/meeting/screens/AdminMeetingRequestsScreen";
+import { MeetingsScreen } from "@/modules/meeting/screens/MeetingsScreen";
+import { ProposalResponseScreen } from "@/modules/meeting/screens/ProposalResponseScreen";
+import { AvailabilityScreen } from "@/modules/meeting/screens/AvailabilityScreen";
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -154,18 +154,18 @@ export const MainStackNavigator = () => (
     />
 
       <Stack.Screen
-        name="InvestorMeetings"
-        component={InvestorMeetingsScreen}
+        name="Meetings"
+        component={MeetingsScreen}
     />
 
       <Stack.Screen
-        name="FounderMeetings"
-        component={FounderMeetingRequestsScreen}
+        name="MeetingResponse"
+        component={ProposalResponseScreen}
     />
 
       <Stack.Screen
-        name="AdminMeetings"
-        component={AdminMeetingRequestsScreen}
+        name="MeetingAvailability"
+        component={AvailabilityScreen}
     />
   </Stack.Navigator>
 );

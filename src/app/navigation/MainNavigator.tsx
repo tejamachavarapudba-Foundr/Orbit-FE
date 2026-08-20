@@ -6,7 +6,7 @@ import { MainTabParamList } from "@/app/navigation/types";
 import { EventsScreen } from "@/modules/events/screens/EventsScreen";
 import { HomeScreen } from "@/app/screens/HomeScreen";
 import { JobsScreen } from "@/modules/jobs/screens/JobsScreen";
-import { InvestorMeetingsScreen } from "@/modules/meeting/screens/InvestorMeetingsScreen";
+import { MeetingsScreen } from "@/modules/meeting/screens/MeetingsScreen";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ChatsScreen } from "@/modules/chat/screens/ChatsScreen";
 import { ProjectsScreen } from "@/modules/project/screens/ProjectsScreen";
@@ -115,7 +115,7 @@ export const MainNavigator = () => {
       {isInvestor ? (
         <Tab.Screen
           name="Meetings"
-          component={InvestorMeetingsScreen}
+          component={MeetingsScreen}
           options={{ title: "Meetings", tabBarIcon: tabIcon("video") }}
         />
       ) : (

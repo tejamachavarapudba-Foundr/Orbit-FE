@@ -18,7 +18,7 @@ import { StartupBrowseSection } from "@/modules/project/components/StartupBrowse
 import { useProjects } from "@/modules/project/hooks";
 import { Project } from "@/modules/project/types";
 import { iconSize } from "@/theme/designTokens";
-import { MeetingRequestModal } from "@/modules/meeting/components/MeetingRequestModal";
+import { CreateMeetingModal } from "@/modules/meeting/components/CreateMeetingModal";
 
 export const ProjectsScreen = () => {
   const colors = useThemeTokens();
@@ -190,10 +190,9 @@ export const ProjectsScreen = () => {
         }
       />
     </AppScreen>
-    <MeetingRequestModal
+    <CreateMeetingModal
       visible={meetingVisible}
-      startupId={selectedProject?.id ?? ""}
-      startupName={selectedProject?.name ?? ""}
+      startupId={selectedProject?.id}
       onClose={() => {
         setMeetingVisible(false);
         setSelectedProject(null);

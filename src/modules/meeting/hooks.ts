@@ -1,366 +1,84 @@
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-  } from "react";
-  
-  import { useMeetingStore } from "@/modules/meeting/store";
-  
-  import {
-    MeetingPurpose,
-    MeetingRequestPayload,
-    MeetingStatus,
-  } from "@/modules/meeting/types";
-  
- 
-  
-  export const meetingPurposeOptions = [
-    {
-      label: "Investment Discussion",
-      value: "Investment Discussion",
-    },
-    {
-      label: "Product Demo",
-      value: "Product Demo",
-    },
-    {
-      label: "Partnership",
-      value: "Partnership",
-    },
-    {
-      label: "Technical Discussion",
-      value: "Technical Discussion",
-    },
-    {
-      label: "Mentorship",
-      value: "Mentorship",
-    },
-    {
-      label: "General Discussion",
-      value: "General Discussion",
-    },
-    {
-      label: "Other",
-      value: "Other",
-    },
-  ];
-  
-  const emptyPayload: MeetingRequestPayload = {
-    startupId: "",
-  
-    purpose: "Investment Discussion",
-  
-    preferredDate1: "",
-    preferredTime1: "",
-  
-    preferredDate2: "",
-    preferredTime2: "",
-  
-    expectedInvestment: "",
-  
-    message: "",
+import { useCallback, useEffect, useRef } from "react";
+import { Linking } from "react-native";
+
+import { googleApi } from "@/modules/meeting/api";
+import { useMeetingsStore } from "@/modules/meeting/store";
+import { MeetingsTab } from "@/modules/meeting/types";
+import { useToastStore } from "@/store/toastStore";
+
+export const getDeviceTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+export const useGoogleConnection = () => {
+  const googleStatus = useMeetingsStore((state) => state.googleStatus);
+  const loadGoogleStatus = useMeetingsStore((state) => state.loadGoogleStatus);
+  const isConnecting = useRef(false);
+
+  useEffect(() => {
+    void loadGoogleStatus();
+  }, [loadGoogleStatus]);
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      if (!url.includes("oauth-callback")) return;
+      isConnecting.current = false;
+      void loadGoogleStatus();
+      if (url.includes("status=error")) {
+        useToastStore.getState().show({ type: "error", title: "Google connection failed", message: "Please try again." });
+      } else {
+        useToastStore.getState().show({ type: "success", title: "Google Meet connected" });
+      }
+    });
+    return () => subscription.remove();
+  }, [loadGoogleStatus]);
+
+  const connect = useCallback(async () => {
+    try {
+      isConnecting.current = true;
+      const url = await googleApi.getAuthUrl();
+      await Linking.openURL(url);
+    } catch {
+      isConnecting.current = false;
+      useToastStore.getState().show({ type: "error", title: "Couldn't start Google connection" });
+    }
+  }, []);
+
+  const disconnect = useCallback(async () => {
+    await googleApi.disconnect();
+    await loadGoogleStatus();
+  }, [loadGoogleStatus]);
+
+  return {
+    isConnected: googleStatus?.connected === true,
+    email: googleStatus?.connected === true ? googleStatus.email : null,
+    connect,
+    disconnect
   };
-  
-  export const useMeetingForm = (
-    startupId: string,
-  ) => {
-    const createMeeting =
-      useMeetingStore(
-        (state) => state.createMeeting,
-      );
+};
 
-    const isSubmitting =
-      useMeetingStore(
-        (state) => state.isSubmitting,
-      );
-  
-    const [values, setValues] =
-      useState({
-        ...emptyPayload,
-        startupId,
-      });
-  
-    useEffect(() => {
-      setValues((current: typeof values) => ({
-        ...current,
-        startupId,
-      }));
-    }, [startupId]);
+export const useMyMeetings = (tab: MeetingsTab) => {
+  const meetings = useMeetingsStore((state) => state.meetings);
+  const pendingProposals = useMeetingsStore((state) => state.pendingProposals);
+  const cancelledProposals = useMeetingsStore((state) => state.cancelledProposals);
+  const isLoading = useMeetingsStore((state) => state.isLoading);
+  const errorMessage = useMeetingsStore((state) => state.errorMessage);
+  const loadMine = useMeetingsStore((state) => state.loadMine);
+  const mutatingId = useMeetingsStore((state) => state.mutatingId);
+  const withdrawProposal = useMeetingsStore((state) => state.withdrawProposal);
+  const cancelMeeting = useMeetingsStore((state) => state.cancelMeeting);
 
-    const setField =
-      useCallback(
-        <
-          Key extends keyof typeof values,
-        >(
-          key: Key,
-          value: (typeof values)[Key],
-        ) => {
-          setValues((current: typeof values) => ({
-            ...current,
-            [key]: value,
-          }));
-        },
-        [],
-      );
-  
-    const submit = 
-      useCallback(async () => {
-        if (
-          !values.purpose.trim() ||
-          !values.preferredDate1 ||
-          !values.preferredTime1
-        ) {
-          return false;
-        }
-  
-        const success =
-          await createMeeting({
-            ...values,
-          });
-  
-        if (success) {
-          setValues({
-            ...emptyPayload,
-            startupId,
-          });
-        }
-  
-        return success;
-      }, [
-        values,
-        startupId,
-        createMeeting,
-      ]);
-  
-    return {
-      values,
+  useEffect(() => {
+    void loadMine(tab);
+  }, [tab, loadMine]);
 
-      setField,
-
-      submit,
-
-      isSubmitting,
-
-      canSubmit: Boolean(
-        values.purpose &&
-          values.preferredDate1 &&
-          values.preferredTime1,
-      ),
-    };
+  return {
+    meetings,
+    pendingProposals,
+    cancelledProposals,
+    isLoading,
+    errorMessage,
+    mutatingId,
+    reload: () => loadMine(tab),
+    withdrawProposal,
+    cancelMeeting
   };
-  
-  export const useInvestorMeetings =
-    () => {
-      const meetings =
-        useMeetingStore(
-          (state) => state.myMeetings,
-        );
-  
-      const loadMeetings =
-        useMeetingStore(
-          (state) =>
-            state.loadMyMeetings,
-        );
-  
-      const isLoading =
-        useMeetingStore(
-          (state) => state.isLoading,
-        );
-  
-      const errorMessage =
-        useMeetingStore(
-          (state) =>
-            state.errorMessage,
-        );
-  
-      useEffect(() => {
-        void loadMeetings();
-      }, []);
-  
-      return {
-        meetings,
-  
-        isLoading,
-  
-        errorMessage,
-  
-        refresh: loadMeetings,
-      };
-    };
-  
-  export const useFounderMeetings =
-    (startupId: string) => {
-      const meetings =
-        useMeetingStore(
-          (state) =>
-            state.founderMeetings,
-        );
-  
-      const loadMeetings =
-        useMeetingStore(
-          (state) =>
-            state.loadFounderMeetings,
-        );
-  
-      const isLoading =
-        useMeetingStore(
-          (state) => state.isLoading,
-        );
-  
-      useEffect(() => {
-        if (startupId) {
-          void loadMeetings(
-            startupId,
-          );
-        }
-      }, [startupId]);
-  
-      return {
-        meetings,
-  
-        isLoading,
-  
-        refresh: () =>
-          loadMeetings(startupId),
-      };
-    };
-  
-  export const useAdminMeetings =
-    () => {
-      const meetings =
-        useMeetingStore(
-          (state) =>
-            state.adminMeetings,
-        );
-  
-      const loadMeetings =
-        useMeetingStore(
-          (state) =>
-            state.loadAdminMeetings,
-        );
-  
-      const updateStatus =
-        useMeetingStore(
-          (state) =>
-            state.updateMeetingStatus,
-        );
-  
-      const isLoading =
-        useMeetingStore(
-          (state) => state.isLoading,
-        );
-  
-      useEffect(() => {
-        void loadMeetings();
-      }, []);
-  
-      return {
-        meetings,
-  
-        isLoading,
-  
-        refresh: loadMeetings,
-  
-        updateStatus,
-      };
-    };
-  
-  export const useMeetingDetail =
-    () => {
-      const selectedMeeting =
-        useMeetingStore(
-          (state) =>
-            state.selectedMeeting,
-        );
-  
-      const selectMeeting =
-        useMeetingStore(
-          (state) =>
-            state.selectMeeting,
-        );
-  
-      const clearSelectedMeeting =
-        useMeetingStore(
-          (state) =>
-            state.clearSelectedMeeting,
-        );
-  
-      return {
-        selectedMeeting,
-  
-        selectMeeting,
-  
-        clearSelectedMeeting,
-      };
-    };
-  
-  export const meetingStatusOptions =
-    [
-      {
-        label: "Pending",
-        value: "pending",
-      },
-      {
-        label:
-          "Founder Contacted",
-        value:
-          "founder_contacted",
-      },
-      {
-        label: "Approved",
-        value: "approved",
-      },
-      {
-        label: "Rejected",
-        value: "rejected",
-      },
-      {
-        label: "Completed",
-        value: "completed",
-      },
-    ];
-  
-  export const useMeetingStatistics =
-    () => {
-      const meetings =
-        useMeetingStore(
-          (state) =>
-            state.myMeetings,
-        );
-  
-      return useMemo(() => {
-        return {
-          total:
-            meetings.length,
-  
-          pending:
-            meetings.filter(
-              (m) =>
-                m.status ===
-                "pending",
-            ).length,
-  
-          approved:
-            meetings.filter(
-              (m) =>
-                m.status ===
-                "approved",
-            ).length,
-  
-          rejected:
-            meetings.filter(
-              (m) =>
-                m.status ===
-                "rejected",
-            ).length,
-  
-          contacted:
-            meetings.filter(
-              (m) =>
-                m.status ===
-                "founder_contacted",
-            ).length,
-        };
-      }, [meetings]);
-    };
+};
