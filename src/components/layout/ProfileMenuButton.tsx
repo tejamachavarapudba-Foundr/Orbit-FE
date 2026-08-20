@@ -79,7 +79,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
     }
 
     if (item.action === "meetings") {
-      navigation.navigate("Meetings");
+      navigation.navigate("MyMeetings");
       return;
     }
 

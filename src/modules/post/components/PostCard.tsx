@@ -12,6 +12,7 @@ import { CommentsModal } from "@/modules/comments/components/CommentsModal";
 import { usePostComments } from "@/modules/comments/hooks";
 import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
+import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
 import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
@@ -167,9 +168,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           </View>
         ) : (
           <>
-            <AppText size="sm" className="leading-relaxed">
-              {post.content}
-            </AppText>
+            <ExpandableCaption text={post.content} />
             {post.linkUrl ? (
               <Pressable
                 accessibilityRole="link"

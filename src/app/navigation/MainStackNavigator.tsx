@@ -154,7 +154,7 @@ export const MainStackNavigator = () => (
     />
 
       <Stack.Screen
-        name="Meetings"
+        name="MyMeetings"
         component={MeetingsScreen}
     />
 

@@ -31,6 +31,7 @@ export const AppHeader = () => {
     "DataPrivacy",
     "FAQ",
     "Support",
+    "MyMeetings",
     "MeetingResponse",
     "MeetingAvailability",
   ].includes(route.name as string);

@@ -68,7 +68,7 @@ export type MainStackParamList = {
       projectId: string;
     };
     
-    Meetings: undefined;
+    MyMeetings: undefined;
     MeetingResponse: { proposalId: string };
     MeetingAvailability: undefined;
 };
