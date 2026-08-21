@@ -1,11 +1,15 @@
 import { Pressable, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { AppText } from "@/components/ui/AppText";
-import { OnboardingMemberRole } from "@/constants/memberRoles";
+import { OnboardingMemberRole, ROLE_ACCENT_COLORS } from "@/constants/memberRoles";
+import { useThemeStore } from "@/store/themeStore";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { getShadowStyle } from "@/theme/shadows";
+import { iconSize } from "@/theme/designTokens";
 
 type RoleCardProps = {
-  emoji: string;
+  icon: React.ComponentProps<typeof Feather>["name"];
   label: string;
   description: string;
   value: OnboardingMemberRole;
@@ -13,53 +17,38 @@ type RoleCardProps = {
   onSelect: (value: OnboardingMemberRole) => void;
 };
 
-export const RoleCard = ({ emoji, label, description, value, selected, onSelect }: RoleCardProps) => {
-  if (selected) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ selected: true }}
-        onPress={() => onSelect(value)}
-        className="rounded-xl border-2 border-primary bg-primary/5 p-4"
-        style={getShadowStyle("card")}
-      >
-        <RoleCardContent emoji={emoji} label={label} description={description} selected />
-      </Pressable>
-    );
-  }
+export const RoleCard = ({ icon, label, description, value, selected, onSelect }: RoleCardProps) => {
+  const colors = useThemeTokens();
+  const scheme = useThemeStore((state) => state.resolvedScheme);
+  const accent = ROLE_ACCENT_COLORS[value][scheme];
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected: false }}
+      accessibilityState={{ selected }}
       onPress={() => onSelect(value)}
-      className="rounded-xl border border-border bg-surface p-4"
+      className={selected ? "flex-row items-center gap-3 rounded-2xl border-2 border-primary bg-primary/5 p-3.5" : "flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"}
+      style={selected ? getShadowStyle("card") : undefined}
     >
-      <RoleCardContent emoji={emoji} label={label} description={description} selected={false} />
+      <View
+        className="h-11 w-11 items-center justify-center rounded-full"
+        style={{ backgroundColor: accent.bg }}
+      >
+        <Feather name={icon} size={iconSize.lg} color={accent.icon} />
+      </View>
+      <View className="min-w-0 flex-1">
+        <AppText weight="semibold" tone={selected ? "primary" : "default"}>
+          {label}
+        </AppText>
+        <AppText tone="muted" size="sm" className="mt-0.5 leading-5">
+          {description}
+        </AppText>
+      </View>
+      {selected ? (
+        <View className="h-6 w-6 items-center justify-center rounded-full bg-primary">
+          <Feather name="check" size={14} color={colors.onPrimary} />
+        </View>
+      ) : null}
     </Pressable>
   );
 };
-
-const RoleCardContent = ({
-  emoji,
-  label,
-  description,
-  selected
-}: {
-  emoji: string;
-  label: string;
-  description: string;
-  selected: boolean;
-}) => (
-  <View className="flex-row items-center gap-3">
-    <AppText size="2xl">{emoji}</AppText>
-    <View className="flex-1">
-      <AppText weight="bold" tone={selected ? "primary" : "default"}>
-        {label}
-      </AppText>
-      <AppText tone="muted" size="sm" className="mt-1 leading-5">
-        {description}
-      </AppText>
-    </View>
-  </View>
-);

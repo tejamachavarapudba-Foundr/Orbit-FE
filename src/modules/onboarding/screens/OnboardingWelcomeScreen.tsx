@@ -21,20 +21,23 @@ export const OnboardingWelcomeScreen = ({ navigation }: Props) => {
   return (
     <AppScreen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-        <AppText size="2xl" weight="bold" className="mt-4">
-          🚀 Welcome to Startuphouze
+        <View className="mt-4 flex-row gap-1">
+          <View className="h-[3px] flex-1 rounded-full bg-primary" />
+          <View className="h-[3px] flex-1 rounded-full bg-border" />
+          <View className="h-[3px] flex-1 rounded-full bg-border" />
+          <View className="h-[3px] flex-1 rounded-full bg-border" />
+        </View>
+        <AppText size="2xl" weight="bold" className="mt-5">
+          Who are you on Orbit?
         </AppText>
         <AppText tone="muted" className="mt-2 leading-6">
-          Connect with founders, investors, advisors and talent.
+          Pick the role that fits best — you can add more detail next.
         </AppText>
-        <AppText weight="semibold" className="mt-8">
-          I am a...
-        </AppText>
-        <View className="mt-4 gap-3">
+        <View className="mt-6 gap-2.5">
           {roles.map((role) => (
             <RoleCard
               key={role.value}
-              emoji={role.emoji}
+              icon={role.icon}
               label={role.label}
               description={role.description}
               value={role.value}

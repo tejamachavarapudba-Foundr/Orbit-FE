@@ -1,3 +1,8 @@
+import { ComponentProps } from "react";
+import { Feather } from "@expo/vector-icons";
+
+type FeatherIconName = ComponentProps<typeof Feather>["name"];
+
 /** Primary onboarding roles — maps 1:1 to `member_role` enum after migration. */
 export type OnboardingMemberRole =
   | "founder"
@@ -11,40 +16,48 @@ export type OnboardingGoal = string;
 export const ONBOARDING_ROLES: {
   value: OnboardingMemberRole;
   label: string;
-  emoji: string;
+  icon: FeatherIconName;
   description: string;
 }[] = [
   {
     value: "founder",
     label: "Founder",
-    emoji: "👨‍💼",
+    icon: "zap",
     description: "Build and grow your startup"
   },
   {
     value: "investor",
     label: "Investor",
-    emoji: "💰",
+    icon: "trending-up",
     description: "Discover promising startups"
   },
   {
     value: "advisor",
     label: "Advisor",
-    emoji: "🎯",
+    icon: "target",
     description: "Guide founders and teams"
   },
   {
     value: "professional",
     label: "Professional",
-    emoji: "💻",
+    icon: "briefcase",
     description: "Find roles and opportunities"
   },
   {
     value: "service_provider",
     label: "Service Provider",
-    emoji: "🏢",
+    icon: "tool",
     description: "Offer services to startups"
   }
 ];
+
+export const ROLE_ACCENT_COLORS: Record<OnboardingMemberRole, { light: { bg: string; icon: string }; dark: { bg: string; icon: string } }> = {
+  founder: { light: { bg: "#FAECE7", icon: "#712B13" }, dark: { bg: "#712B13", icon: "#F5C4B3" } },
+  investor: { light: { bg: "#FAEEDA", icon: "#633806" }, dark: { bg: "#633806", icon: "#FAC775" } },
+  advisor: { light: { bg: "#EEEDFE", icon: "#3C3489" }, dark: { bg: "#3C3489", icon: "#CECBF6" } },
+  professional: { light: { bg: "#E6F1FB", icon: "#0C447C" }, dark: { bg: "#0C447C", icon: "#B5D4F4" } },
+  service_provider: { light: { bg: "#E1F5EE", icon: "#085041" }, dark: { bg: "#085041", icon: "#9FE1CB" } }
+};
 
 export const ROLE_GOALS: Record<OnboardingMemberRole, { label: string; value: string }[]> = {
   founder: [
