@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { Meeting, MeetingProposal, ProfileSummary } from "@/modules/meeting/types";
+import { useToastStore } from "@/store/toastStore";
 import { iconSize } from "@/theme/designTokens";
 
 const formatWhen = (iso: string) =>
@@ -39,8 +40,18 @@ type ConfirmedCardProps = {
 export const ConfirmedMeetingCard = ({ meeting, currentUserId, mutatingId, onCancel, readOnly }: ConfirmedCardProps) => {
   const colors = useThemeTokens();
   const people = otherPeople(meeting.proposal, currentUserId);
-  const startsInMs = new Date(meeting.confirmedAt).getTime() - Date.now();
-  const canJoin = meeting.status === "upcoming" && startsInMs < 10 * 60 * 1000;
+
+  const joinMeeting = async () => {
+    if (!meeting.meetLink) {
+      useToastStore.getState().show({ type: "error", title: "No meeting link", message: "This meeting doesn't have a Google Meet link yet." });
+      return;
+    }
+    try {
+      await Linking.openURL(meeting.meetLink);
+    } catch {
+      useToastStore.getState().show({ type: "error", title: "Couldn't open Google Meet" });
+    }
+  };
 
   const confirmCancel = () => {
     Alert.alert("Cancel meeting", `Cancel "${meeting.proposal.purpose}"?`, [
@@ -74,8 +85,7 @@ export const ConfirmedMeetingCard = ({ meeting, currentUserId, mutatingId, onCan
           <AppButton
             label="Join on Google Meet"
             size="sm"
-            disabled={!canJoin}
-            onPress={() => void Linking.openURL(meeting.meetLink)}
+            onPress={() => void joinMeeting()}
             className="flex-1"
           />
           <Pressable
