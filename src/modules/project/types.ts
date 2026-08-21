@@ -27,6 +27,8 @@ export type Project = {
   techStack: string[];
   lookingFor: string[];
   isPublished: boolean;
+  cinNumber: string;
+  dpiitNumber: string;
   createdAt: string;
   updatedAt: string;
 
@@ -116,6 +118,8 @@ export type ProjectPayload = {
   techStack: string[];
   lookingFor: string[];
   isPublished: boolean;
+  cinNumber: string;
+  dpiitNumber: string;
 };
 
 export type ProjectMember = {

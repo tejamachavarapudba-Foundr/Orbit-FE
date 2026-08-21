@@ -20,7 +20,7 @@ import { useProjectDetail } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
 import { iconSize } from "@/theme/designTokens";
 
-const roleOptions = ["co_founder", "software_engineer", "designer", "business_operations"];
+const roleOptions = ["co_founder", "software_engineer", "designer", "business_operations", "other"];
 
 type Props = NativeStackScreenProps<MainStackParamList, "ProjectDetail">;
 
@@ -236,7 +236,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
           </View>
           <View className="flex-1 rounded-md bg-background p-3">
             <AppText tone="muted" size="sm">
-              Members
+              Team members
             </AppText>
             <AppText weight="bold" size="xl" className="mt-1">
               {members.length}
@@ -332,7 +332,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
         ) : null}
 
         <AppText weight="bold" className="mt-5">
-          Members ({members.length})
+          Team members ({members.length})
         </AppText>
         <View className="mt-2 gap-2">
           {members.length > 0 ? (

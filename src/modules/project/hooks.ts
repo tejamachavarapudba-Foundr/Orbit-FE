@@ -102,7 +102,9 @@ const emptyPayload: ProjectPayload = {
   coverUrl: "",
   techStack: [],
   lookingFor: [],
-  isPublished: true
+  isPublished: true,
+  cinNumber: "",
+  dpiitNumber: ""
 };
 
 // The full Project object also carries relations, timestamps, and other
@@ -258,6 +260,8 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
       description: values.description.trim(),
       location: values.location.trim(),
       websiteUrl: values.websiteUrl.trim(),
+      cinNumber: values.cinNumber.trim(),
+      dpiitNumber: values.dpiitNumber.trim(),
       industryTags: csvToArray(values.industryTagsText),
       techStack: csvToArray(values.techStackText),
       lookingFor: csvToArray(values.lookingForText)
