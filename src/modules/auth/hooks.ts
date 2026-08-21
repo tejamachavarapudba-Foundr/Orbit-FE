@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { authApi } from "@/modules/auth/api";
-import { ForgotPasswordPayload, LoginPayload, RegisterPayload } from "@/modules/auth/types";
+import { ForgotPasswordPayload, LoginPayload, RegisterPayload, ResetPasswordPayload } from "@/modules/auth/types";
 import { useAuthStore } from "@/modules/auth/store";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
@@ -144,5 +144,55 @@ export const useForgotPasswordForm = () => {
   return useMemo(
     () => ({ values, fieldErrors, isSubmitting, errorMessage, setValue, submit }),
     [errorMessage, fieldErrors, isSubmitting, setValue, submit, values]
+  );
+};
+
+export const useResetPasswordForm = (token: string) => {
+  const showToast = useToastStore((state) => state.show);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors<{ newPassword: string; confirmPassword: string }>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const validate = useCallback(() => {
+    const nextErrors: FieldErrors<{ newPassword: string; confirmPassword: string }> = {};
+
+    if (newPassword.length < 8) {
+      nextErrors.newPassword = "Use at least 8 characters.";
+    }
+
+    if (confirmPassword !== newPassword) {
+      nextErrors.confirmPassword = "Passwords don't match.";
+    }
+
+    setFieldErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }, [confirmPassword, newPassword]);
+
+  const submit = useCallback(async () => {
+    if (!validate()) {
+      return false;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await authApi.resetPassword({ token, newPassword });
+      showToast({ type: "success", title: "Password updated", message: response.message });
+      setIsSubmitting(false);
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      setErrorMessage(appError.message);
+      setIsSubmitting(false);
+      return false;
+    }
+  }, [newPassword, showToast, token, validate]);
+
+  return useMemo(
+    () => ({ newPassword, confirmPassword, fieldErrors, isSubmitting, errorMessage, setNewPassword, setConfirmPassword, submit }),
+    [confirmPassword, errorMessage, fieldErrors, isSubmitting, newPassword, submit]
   );
 };

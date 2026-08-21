@@ -3,6 +3,7 @@ import { useProjectStore } from "@/modules/project/store";
 import { authApi } from "@/modules/auth/api";
 import { AuthProfile, AuthUser, LoginPayload, RegisterPayload } from "@/modules/auth/types";
 import { tokenService } from "@/services/api/tokenService";
+import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 import { logger } from "@/utils/logger";
 
@@ -91,6 +92,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       const user = await authApi.me();
       set({ isSubmitting: false, status: "authenticated", user });
+      useToastStore.getState().show({
+        type: "success",
+        title: "Check your email",
+        message: "We sent a link to confirm your email address."
+      });
       return true;
     } catch (error) {
       const appError = toAppError(error);

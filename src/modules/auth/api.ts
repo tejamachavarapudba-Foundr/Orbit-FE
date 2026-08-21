@@ -6,7 +6,9 @@ import {
   ForgotPasswordPayload,
   LoginPayload,
   LogoutResponse,
-  RegisterPayload
+  RegisterPayload,
+  ResetPasswordPayload,
+  VerifyEmailPayload
 } from "@/modules/auth/types";
 import { normalizeAuthProfile } from "@/modules/profile/normalizeProfile";
 
@@ -32,6 +34,18 @@ export const authApi = {
   },
   forgotPassword: async (payload: ForgotPasswordPayload) => {
     const response = await apiClient.post<{ message: string }>("/auth/forgot-password", payload);
+    return response.data;
+  },
+  resetPassword: async (payload: ResetPasswordPayload) => {
+    const response = await apiClient.post<{ message: string }>("/auth/reset-password", payload);
+    return response.data;
+  },
+  verifyEmail: async (payload: VerifyEmailPayload) => {
+    const response = await apiClient.post<{ message: string }>("/auth/verify-email", payload);
+    return response.data;
+  },
+  resendVerification: async (payload: ForgotPasswordPayload) => {
+    const response = await apiClient.post<{ message: string }>("/auth/resend-verification", payload);
     return response.data;
   },
   me: async () => {

@@ -5,6 +5,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  ResetPassword: { token: string };
 };
 
 export type MainTabParamList = {
@@ -71,6 +72,7 @@ export type MainStackParamList = {
     MyMeetings: undefined;
     MeetingResponse: { proposalId: string };
     MeetingAvailability: undefined;
+    VerifyEmail: { token: string };
 };
 
 

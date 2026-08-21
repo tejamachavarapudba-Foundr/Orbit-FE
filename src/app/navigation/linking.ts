@@ -11,7 +11,8 @@ export const linking: LinkingOptions<RootStackParamList> = {
           Welcome: "",
           Login: "login",
           Register: "register",
-          ForgotPassword: "forgot-password"
+          ForgotPassword: "forgot-password",
+          ResetPassword: "reset-password"
         }
       },
       Main: {
@@ -30,7 +31,8 @@ export const linking: LinkingOptions<RootStackParamList> = {
               Profile: "profile"
             }
           },
-          UserProfile: "user/:userId"
+          UserProfile: "user/:userId",
+          VerifyEmail: "verify-email"
         }
       }
     }

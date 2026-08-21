@@ -50,6 +50,15 @@ export type ForgotPasswordPayload = {
   email: string;
 };
 
+export type ResetPasswordPayload = {
+  token: string;
+  newPassword: string;
+};
+
+export type VerifyEmailPayload = {
+  token: string;
+};
+
 export type AuthTokenResponse = {
   accessToken: string;
   refreshToken: string;
