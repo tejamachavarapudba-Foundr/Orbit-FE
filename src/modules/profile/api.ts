@@ -17,7 +17,7 @@ export const profileApi = {
     return normalizeAuthProfile(response.data);
   },
   updateAvatar: async (payload: UpdateAvatarPayload) => {
-    const response = await apiClient.post<Profile>("/profiles/me/avatar", payload);
+    const response = await apiClient.patch<Profile>("/profiles/me/avatar", payload);
     return normalizeAuthProfile(response.data);
   },
   updateResume: async (

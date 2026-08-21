@@ -1,11 +1,14 @@
 import { useEffect } from "react";
-import { Alert, ScrollView, Switch, View } from "react-native";
+import { Alert, Pressable, ScrollView, Switch, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { Avatar } from "@/components/ui/Avatar";
 import { ONBOARDING_ROLES } from "@/constants/memberRoles";
 import { AuthErrorBanner } from "@/modules/auth/components/AuthErrorBanner";
 import { useAuthStore } from "@/modules/auth/store";
@@ -16,6 +19,7 @@ import { useUserStore } from "@/modules/user/store";
 import { useToastStore } from "@/store/toastStore";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ResumeCard } from "@/components/profile/ResumeCard";
+import { iconSize } from "@/theme/designTokens";
 import * as DocumentPicker from 'expo-document-picker';
 
 export const ProfileScreen = () => {
@@ -62,6 +66,48 @@ export const ProfileScreen = () => {
       { text: "Delete", style: "destructive", onPress: () => void handleDeleteAccount() }
     ]);
   };
+  const handleAvatarUpload = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        showToast({
+          type: "error",
+          title: "Permission needed",
+          message: "Allow photo library access in your device settings to update your photo."
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: [1, 1]
+      });
+
+      const asset = result.canceled ? undefined : result.assets[0];
+      if (!asset) return;
+
+      const formData = new FormData();
+      formData.append(
+        "file",
+        {
+          uri: asset.uri,
+          name: asset.fileName ?? "avatar.jpg",
+          type: asset.mimeType ?? "image/jpeg"
+        } as any
+      );
+
+      const success = await submitAvatar(formData);
+      if (!success) {
+        showToast({ type: "error", title: "Photo upload failed" });
+      }
+    } catch (error) {
+      console.error(error);
+      showToast({ type: "error", title: "Photo upload failed" });
+    }
+  };
+
   const handleResumeUpload = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -140,6 +186,19 @@ export const ProfileScreen = () => {
           {user?.email ?? "Complete your Startuphouze profile."}
         </AppText>
 
+        <View className="mt-5 items-center">
+          <Pressable accessibilityRole="button" accessibilityLabel="Change profile photo" onPress={() => void handleAvatarUpload()}>
+            <Avatar name={values.fullName || "?"} imageUrl={values.avatarUrl} size="xl" fallback="mesh" />
+            <View className="absolute bottom-0 right-0 h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-primary">
+              {isAvatarSaving ? (
+                <Feather name="loader" size={14} color={colors.onPrimary} />
+              ) : (
+                <Feather name="camera" size={14} color={colors.onPrimary} />
+              )}
+            </View>
+          </Pressable>
+        </View>
+
         <View className="mt-6">
           <ProfileCompletionBar percent={profileCompletion} />
         </View>
@@ -207,21 +266,6 @@ export const ProfileScreen = () => {
 
         <View className="mt-4">
           <AppButton label="Save profile" loading={isSaving} onPress={() => void submit()} />
-        </View>
-
-        <View className="mt-4 gap-4 rounded-md border border-border bg-surface p-4">
-          <AppText size="lg" weight="bold">
-            Avatar
-          </AppText>
-          <AppTextInput
-            label="Avatar URL"
-            value={values.avatarUrl}
-            autoCapitalize="none"
-            keyboardType="url"
-            placeholder="https://dicebear.com/..."
-            onChangeText={(value) => setValue("avatarUrl", value)}
-          />
-          <AppButton label="Update avatar" variant="outline" loading={isAvatarSaving} onPress={() => void submitAvatar()} />
         </View>
 
         <ResumeCard

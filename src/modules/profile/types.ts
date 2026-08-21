@@ -23,9 +23,7 @@ export type UpdateProfilePayload = {
   resume?: File | null;
 };
 
-export type UpdateAvatarPayload = {
-  avatarUrl: string;
-};
+export type UpdateAvatarPayload = FormData;
 
 export type UpdateResumePayload = FormData;
   

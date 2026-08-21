@@ -159,17 +159,20 @@ export const useProfileForm = () => {
     return true;
   }, [showToast, updateAuthProfile, updateProfile, values]);
 
-  const submitAvatar = useCallback(async () => {
-    const updated = await updateAvatar({ avatarUrl: values.avatarUrl.trim() });
-    if (!updated) {
-      return false;
-    }
+  const submitAvatar = useCallback(
+    async (formData: FormData) => {
+      const updated = await updateAvatar(formData);
+      if (!updated) {
+        return false;
+      }
 
-    updateAuthProfile(updated);
-    setValues(fromProfile(updated));
-    showToast({ type: "success", title: "Avatar updated" });
-    return true;
-  }, [showToast, updateAuthProfile, updateAvatar, values.avatarUrl]);
+      updateAuthProfile(updated);
+      setValues(fromProfile(updated));
+      showToast({ type: "success", title: "Avatar updated" });
+      return true;
+    },
+    [showToast, updateAuthProfile, updateAvatar]
+  );
 
   const submitResume = useCallback(
     async (payload: FormData) => {
