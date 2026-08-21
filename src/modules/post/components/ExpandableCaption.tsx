@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Pressable, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
 
@@ -25,17 +26,20 @@ export const ExpandableCaption = ({ text }: ExpandableCaptionProps) => {
   }
 
   return (
-    <AppText size="sm" className="leading-relaxed" numberOfLines={expanded ? undefined : 2}>
-      {expanded ? text : `${text.slice(0, TRUNCATE_AT).trimEnd()}… `}
-      <AppText
-        size="sm"
-        tone="muted"
-        weight="semibold"
-        onPress={() => setExpanded((current) => !current)}
-        suppressHighlighting
-      >
-        {expanded ? " less" : "more"}
+    <View>
+      <AppText size="sm" className="leading-relaxed" numberOfLines={expanded ? undefined : 2}>
+        {text}
       </AppText>
-    </AppText>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setExpanded((current) => !current)}
+        hitSlop={8}
+        className="mt-1 self-start py-0.5"
+      >
+        <AppText size="sm" tone="muted" weight="semibold">
+          {expanded ? "less" : "more"}
+        </AppText>
+      </Pressable>
+    </View>
   );
 };

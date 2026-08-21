@@ -17,6 +17,8 @@ import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
+import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
+import { FullPhotoModal } from "@/components/ui/FullPhotoModal";
 import { iconSize, toBadgeCategory } from "@/theme/designTokens";
 
 type PostCardProps = {
@@ -39,6 +41,8 @@ const formatRelativeTime = (date: string) => {
 
 export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
+  const openUserProfile = useOpenUserProfile();
+  const [showFullPhoto, setShowFullPhoto] = useState(false);
   const { currentUserId, isSubmitting, deletingPostId, updatePost, deletePost } = usePostActions();
   const {
     likesCount,
@@ -102,8 +106,18 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     <View className="bg-card">
       <View className="px-4 pb-0 pt-3">
         <View className="flex-row items-start gap-3">
-          <Avatar name={authorName} imageUrl={post.author.avatarUrl} size="md" fallback="mesh" />
-          <View className="min-w-0 flex-1 pr-24">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${authorName}'s photo`}
+            onPress={() => (post.author.avatarUrl ? setShowFullPhoto(true) : openUserProfile(post.author.id))}
+          >
+            <Avatar name={authorName} imageUrl={post.author.avatarUrl} size="md" fallback="mesh" />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => openUserProfile(post.author.id)}
+            className="min-w-0 flex-1 pr-24"
+          >
             <AppText weight="medium" numberOfLines={1}>
               {authorName}
             </AppText>
@@ -113,7 +127,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             <AppText tone="muted" size="xs" className="mt-0.5">
               {formatRelativeTime(post.createdAt)}
             </AppText>
-          </View>
+          </Pressable>
           <View className="absolute right-0 top-0 items-end">
             {categoryBadge ? (
               <Badge label={categoryLabel} variant="outline" category={categoryBadge} />
@@ -268,6 +282,9 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           </>
         ) : null}
       </CardContent>
+      {post.author.avatarUrl ? (
+        <FullPhotoModal visible={showFullPhoto} imageUrl={post.author.avatarUrl} onClose={() => setShowFullPhoto(false)} />
+      ) : null}
     </View>
   );
 });
