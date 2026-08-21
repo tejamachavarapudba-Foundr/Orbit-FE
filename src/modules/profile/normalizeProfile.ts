@@ -54,6 +54,8 @@ const normalizeProfessionalData = (raw: RawRecord = {}): ProfessionalProfile => 
   ...emptyProfessionalProfile(),
   skills: asStringArray(raw.skills),
   experienceLevel: asString(raw.experienceLevel ?? raw.experience_level),
+  specialization: asString(raw.specialization),
+  specializationOther: asString(raw.specializationOther ?? raw.specialization_other),
   portfolio: asString(raw.portfolio),
   resume: asString(raw.resume),
   goals: asStringArray(raw.goals)

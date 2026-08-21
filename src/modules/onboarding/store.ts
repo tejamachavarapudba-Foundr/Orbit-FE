@@ -126,12 +126,15 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         quickProfile: draft.quickProfile,
         roleProfile: draft.roleProfile
       });
+      // draft.roleProfile is only ever seeded (empty) by setMemberRole and never
+      // updated as the user types — patch.roleProfile is the actual merge of
+      // quickProfile.roleFields into it, and is what must go over the wire.
       const updated = await onboardingApi.saveProgress({
         step: draft.step,
         memberRole: draft.memberRole,
         goals: draft.goals,
         quickProfile: draft.quickProfile,
-        roleProfile: draft.roleProfile
+        roleProfile: patch.roleProfile ?? draft.roleProfile
       });
       const currentProfile = useAuthStore.getState().user?.profile;
 
@@ -155,11 +158,22 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
     set({ isSubmitting: true, errorMessage: null });
 
-    const payload: CompleteOnboardingPayload = {
+    // Same staleness issue as saveProgress: compute the merged roleProfile once
+    // and use it both for the outgoing payload and the local optimistic patch,
+    // instead of the empty seed still sitting in draft.roleProfile.
+    const mergedPatch = buildProfilePatchFromOnboarding({
+      step: "matches",
       memberRole: draft.memberRole,
       goals: draft.goals,
       quickProfile: draft.quickProfile,
       roleProfile: draft.roleProfile
+    });
+
+    const payload: CompleteOnboardingPayload = {
+      memberRole: draft.memberRole,
+      goals: draft.goals,
+      quickProfile: draft.quickProfile,
+      roleProfile: mergedPatch.roleProfile ?? draft.roleProfile
     };
 
     try {
@@ -168,7 +182,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
       useAuthStore.getState().updateProfile({
         ...authProfile,
-        ...buildProfilePatchFromOnboarding({ step: "matches", ...payload }),
+        ...mergedPatch,
         ...updated,
         onboardingCompleted: true
       });
