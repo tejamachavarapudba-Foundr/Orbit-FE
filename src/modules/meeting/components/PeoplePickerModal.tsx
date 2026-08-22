@@ -43,7 +43,7 @@ export const PeoplePickerModal = ({ visible, selectedIds, onClose, onDone }: Peo
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end">
-        <Pressable accessibilityRole="button" className="absolute inset-0 bg-black/50" onPress={onClose} />
+        <Pressable accessibilityRole="button" className="absolute bottom-0 left-0 right-0 top-0 bg-black/50" onPress={onClose} />
         <View className="max-h-[80%] rounded-t-2xl bg-card p-4">
           <View className="flex-row items-center justify-between">
             <AppText weight="bold" size="lg">

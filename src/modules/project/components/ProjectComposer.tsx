@@ -137,7 +137,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         <AppTextInput label="Location" value={values.location} onChangeText={(value) => setField("location", value)} />
         <View className="flex-row gap-3">
           <AppTextInput
-            label="CIN number (optional)"
+            label="CIN number"
             value={values.cinNumber}
             onChangeText={(value) => setField("cinNumber", value)}
             autoCapitalize="characters"
@@ -145,7 +145,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
             className="flex-1"
           />
           <AppTextInput
-            label="DPIIT number (optional)"
+            label="DPIIT number"
             value={values.dpiitNumber}
             onChangeText={(value) => setField("dpiitNumber", value)}
             autoCapitalize="characters"

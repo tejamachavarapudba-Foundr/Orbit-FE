@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppText } from "@/components/ui/AppText";
+import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 
@@ -102,26 +103,24 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
         accessibilityRole="button"
         accessibilityLabel="Open profile menu"
         onPress={handleToggleMenu}
-        className="h-12 w-12 items-center justify-center rounded-full bg-primary"
+        className="h-12 w-12"
       >
-        <AppText tone="onPrimary" weight="bold" size="lg">
-          {initial}
-        </AppText>
+        <Avatar name={user?.profile.fullName ?? initial} imageUrl={user?.profile.avatarUrl ?? ""} size="lg" fallback="mesh" className="h-12 w-12" />
       </Pressable>
 
       {isProfileMenuOpen ? (
         <Modal visible transparent animationType="fade" onRequestClose={closeMenu}>
           <View className="flex-1">
-            <Pressable accessibilityRole="button" className="absolute inset-0 bg-black/20" onPress={closeMenu} />
+            <Pressable
+              accessibilityRole="button"
+              className="absolute bottom-0 left-0 right-0 top-0 bg-black/20"
+              onPress={closeMenu}
+            />
             <View className="absolute right-4 top-16 w-72 rounded-md border border-border bg-surface py-3 shadow-sm">
               <ScrollView keyboardShouldPersistTaps="handled" bounces={false}>
                 <View className="border-b border-border px-5 pb-3">
                   <View className="flex-row items-center gap-3">
-                    <View className="h-10 w-10 items-center justify-center rounded-full bg-primary">
-                      <AppText tone="onPrimary" weight="bold">
-                        {initial}
-                      </AppText>
-                    </View>
+                    <Avatar name={user?.profile.fullName ?? initial} imageUrl={user?.profile.avatarUrl ?? ""} size="md" fallback="mesh" />
                     <View className="flex-1">
                       <View className="flex-row items-center gap-2">
                         <AppText weight="bold" numberOfLines={1}>
