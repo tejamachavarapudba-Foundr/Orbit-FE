@@ -6,13 +6,16 @@ import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ScreenHeader } from "@/components/layout/ScreenHeader";
+import { CreateMeetingModal } from "@/modules/meeting/components/CreateMeetingModal";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
+import { Project } from "@/modules/project/types";
 import { useProjectStore } from "@/modules/project/store";
 
 export const InvestmentWatchlistScreen = () => {
   const navigation = useNavigation<any>();
   const { savedStartups, loadSavedStartups } = useProjectStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [meetingProject, setMeetingProject] = useState<Project | null>(null);
 
   useEffect(() => {
     void loadSavedStartups();
@@ -41,12 +44,17 @@ export const InvestmentWatchlistScreen = () => {
             <ProjectCard
               project={item}
               onPress={(id) => navigation.navigate("ProjectDetail", { id })}
-              onBookMeeting={() => {}}
+              onBookMeeting={() => setMeetingProject(item)}
             />
           )}
           ListEmptyComponent={<EmptyState title="No saved startups" message="Startups you save will show up here." />}
         />
       </View>
+      <CreateMeetingModal
+        visible={Boolean(meetingProject)}
+        startupId={meetingProject?.id}
+        onClose={() => setMeetingProject(null)}
+      />
     </AppScreen>
   );
 };

@@ -4,11 +4,12 @@ import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
+import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { userApi } from "@/modules/user/api";
 import { iconSize } from "@/theme/designTokens";
 
-type PersonOption = { id: string; fullName: string; headline: string };
+type PersonOption = { id: string; fullName: string; headline: string; avatarUrl: string };
 
 type PeoplePickerModalProps = {
   visible: boolean;
@@ -27,7 +28,9 @@ export const PeoplePickerModal = ({ visible, selectedIds, onClose, onDone }: Peo
     if (!visible) return;
     setPicked(selectedIds);
     userApi.getUsers().then((users) =>
-      setPeople(users.map((u) => ({ id: u.id, fullName: u.profile.fullName, headline: u.profile.headline })))
+      setPeople(
+        users.map((u) => ({ id: u.id, fullName: u.profile.fullName, headline: u.profile.headline, avatarUrl: u.profile.avatarUrl }))
+      )
     );
   }, [visible, selectedIds]);
 
@@ -73,15 +76,18 @@ export const PeoplePickerModal = ({ visible, selectedIds, onClose, onDone }: Peo
                   onPress={() => toggle(person.id)}
                   className="flex-row items-center justify-between border-b border-border py-3"
                 >
-                  <View className="min-w-0 flex-1 pr-3">
-                    <AppText weight="medium" numberOfLines={1}>
-                      {person.fullName}
-                    </AppText>
-                    {person.headline ? (
-                      <AppText tone="muted" size="xs" numberOfLines={1} className="mt-0.5">
-                        {person.headline}
+                  <View className="min-w-0 flex-1 flex-row items-center gap-3 pr-3">
+                    <Avatar name={person.fullName} imageUrl={person.avatarUrl} size="sm" fallback="mesh" />
+                    <View className="min-w-0 flex-1">
+                      <AppText weight="medium" numberOfLines={1}>
+                        {person.fullName}
                       </AppText>
-                    ) : null}
+                      {person.headline ? (
+                        <AppText tone="muted" size="xs" numberOfLines={1} className="mt-0.5">
+                          {person.headline}
+                        </AppText>
+                      ) : null}
+                    </View>
                   </View>
                   <Feather
                     name={isSelected ? "check-circle" : "circle"}

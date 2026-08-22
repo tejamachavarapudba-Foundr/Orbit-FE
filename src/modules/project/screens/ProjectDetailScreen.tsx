@@ -227,33 +227,27 @@ export const ProjectDetailScreen = ({ route }: Props) => {
 
         <View className="mt-5 flex-row gap-3">
           <View className="flex-1 rounded-md bg-background p-3">
-            <View className="h-10 justify-end">
-              <AppText tone="muted" size="sm">
-                Applications
-              </AppText>
-            </View>
-            <AppText weight="bold" size="xl" className="mt-1">
+            <AppText weight="bold" size="xl">
               {applications.length}
             </AppText>
-          </View>
-          <View className="flex-1 rounded-md bg-background p-3">
-            <View className="h-10 justify-end">
-              <AppText tone="muted" size="sm">
-                Team members
-              </AppText>
-            </View>
-            <AppText weight="bold" size="xl" className="mt-1">
-              {members.length}
+            <AppText tone="muted" size="sm" className="mt-1">
+              Applications
             </AppText>
           </View>
           <View className="flex-1 rounded-md bg-background p-3">
-            <View className="h-10 justify-end">
-              <AppText tone="muted" size="sm">
-                Reviews
-              </AppText>
-            </View>
-            <AppText weight="bold" size="xl" className="mt-1">
+            <AppText weight="bold" size="xl">
+              {members.length}
+            </AppText>
+            <AppText tone="muted" size="sm" className="mt-1">
+              Team members
+            </AppText>
+          </View>
+          <View className="flex-1 rounded-md bg-background p-3">
+            <AppText weight="bold" size="xl">
               {reviews.length}
+            </AppText>
+            <AppText tone="muted" size="sm" className="mt-1">
+              Reviews
             </AppText>
           </View>
         </View>

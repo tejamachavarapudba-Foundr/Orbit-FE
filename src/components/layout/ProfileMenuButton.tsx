@@ -20,7 +20,6 @@ type ProfileMenuItem = {
 const profileMenuItems: ProfileMenuItem[] = [
   { label: "My profile", icon: "user", route: "Profile" },
   { label: "Discover", icon: "compass", route: "Discover" },
-  { label: "My network", icon: "users", route: "Network" },
   { label: "My Meetings", icon: "send", action: "meetings" },
   { label: "Community", icon: "globe", route: "Community" },
 ];
