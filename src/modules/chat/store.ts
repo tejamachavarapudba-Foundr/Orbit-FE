@@ -22,6 +22,7 @@ type ChatState = {
   clearSelectedChat: () => void;
   deleteChat: (id: string) => Promise<boolean>;
   patchLastMessage: (chatId: string, message: { id?: string; senderId?: string; content?: string; createdAt?: string }) => void;
+  markLastMessageRead: (chatId: string, messageId: string) => void;
 };
 
 const sortChats = (chats: Chat[]) =>
@@ -129,6 +130,26 @@ export const useChatStore = create<ChatState>((set) => ({
 
       return {
         chats: sortChats(state.chats.map(applyPatch)),
+        selectedChat: state.selectedChat ? applyPatch(state.selectedChat) : state.selectedChat
+      };
+    });
+  },
+  markLastMessageRead: (chatId, messageId) => {
+    set((state) => {
+      const applyPatch = (chat: Chat): Chat => {
+        if (chat.id !== chatId) {
+          return chat;
+        }
+        return {
+          ...chat,
+          messages: (chat.messages ?? []).map((item) =>
+            item.id === messageId ? { ...item, readAt: new Date().toISOString() } : item
+          )
+        };
+      };
+
+      return {
+        chats: state.chats.map(applyPatch),
         selectedChat: state.selectedChat ? applyPatch(state.selectedChat) : state.selectedChat
       };
     });

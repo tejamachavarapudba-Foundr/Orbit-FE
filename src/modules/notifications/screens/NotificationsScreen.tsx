@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +17,7 @@ import {
 
 import { NotificationCard } from '../components/NotificationCard';
 import { NotificationEmptyState } from '../components/NotificationEmptyState';
+import type { Notification } from '../types';
 
 export const NotificationsScreen = () => {
   const colors = useThemeTokens();
@@ -24,6 +26,19 @@ export const NotificationsScreen = () => {
 
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const hasAutoMarkedRef = useRef(false);
+
+  // Clear the bell badge just by opening this screen, like most apps do,
+  // instead of requiring an explicit tap on "Read All" or every item.
+  useEffect(() => {
+    if (hasAutoMarkedRef.current || isLoading) {
+      return;
+    }
+    if (data.some((item: Notification) => !item.isRead)) {
+      hasAutoMarkedRef.current = true;
+      markAll.mutate();
+    }
+  }, [data, isLoading, markAll]);
 
   return (
     <AppScreen>

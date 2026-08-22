@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +26,7 @@ const HEADER_HEIGHT = 60;
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
   const {
     currentUserId,
     messages,
@@ -40,15 +42,21 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   return (
     <KeyboardAvoidingView
       className="min-h-[400px] flex-1 bg-card"
-      // Root cause turned out to be the Activity's own configChanges
-      // blocking adjustResize from actually resizing the window for the
-      // keyboard (see AndroidManifest.xml) — no KeyboardAvoidingView
-      // behavior could compensate for that. Now that adjustResize should
-      // work correctly, avoid double-compensating on Android.
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      // Android's adjustResize (see AndroidManifest.xml) doesn't reliably
+      // propagate through react-native-screens' fragment-based navigation on
+      // every device/OS version — the input row can end up hidden behind the
+      // keyboard even with adjustResize set. "height" behavior compensates in
+      // JS via the Keyboard event listeners instead of depending on the OS to
+      // resize the window, so it works regardless.
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? HEADER_HEIGHT + insets.top : 0}
     >
-      <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1 px-4 py-4"
+        contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
+        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+      >
         {isLoading ? (
           <View className="gap-3">
             <Skeleton className="h-12 w-3/4 rounded-2xl" />

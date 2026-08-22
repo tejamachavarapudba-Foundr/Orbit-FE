@@ -42,10 +42,15 @@ export const MainNavigator = () => {
   const incomingRequestsCount = useConnectionsStore((state) => state.incomingRequests.length);
   const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
 
-  // 2. 🟢 CHAT COUNTER FIX: Filter for UNREAD chats only
-  // Adjust 'chat.unread' or 'chat.hasUnread' to match your exact chat schema property name
+  // Unread chats: has a last message, it wasn't sent by me, and it hasn't
+  // been marked read yet (backend field is `readAt`, not `isRead` — a
+  // mismatched field name here meant this always evaluated to unread
+  // regardless of actual state, and chats with zero messages counted too).
   const unreadChatsCount = useChatStore((state) =>
-    (state.chats || []).filter((chat: any) => chat.messages?.[0]?.senderId !== currentUserId && !chat.messages?.[0]?.isRead).length
+    (state.chats || []).filter((chat) => {
+      const lastMessage = chat.messages?.[0];
+      return Boolean(lastMessage) && lastMessage!.senderId !== currentUserId && !lastMessage!.readAt;
+    }).length
   );
   const loadChats = useChatStore((state) => state.loadChats);
 

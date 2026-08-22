@@ -132,6 +132,7 @@ export const useMessageStore = create<MessageState>((set) => ({
         },
         readingMessageId: null
       }));
+      useChatStore.getState().markLastMessageRead(conversationId, message.id);
       return true;
     } catch (error) {
       const appError = toAppError(error);
