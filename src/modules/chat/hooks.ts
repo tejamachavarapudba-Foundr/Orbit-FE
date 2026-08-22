@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useAuthStore } from "@/modules/auth/store";
 import { Chat } from "@/modules/chat/types";
@@ -32,6 +32,7 @@ export const useChats = () => {
   const users = useUserStore((state) => state.users) || []; // Guard fallback
   const isUsersLoading = useUserStore((state) => state.isLoading);
   const loadUsers = useUserStore((state) => state.loadUsers);
+  const hasRequestedUsersRef = useRef(false);
 
   // High-risk store array references injected with fallback primitives
   const rawFollowers = useFollowStore((state) => state.followers);
@@ -47,17 +48,16 @@ export const useChats = () => {
   const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
   const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
 
+  // Chats are loaded once at the navigator level (MainNavigator), keyed off
+  // currentUserId rather than "chats.length === 0" — the latter would never
+  // converge for an account with no conversations yet.
   useEffect(() => {
-    if (chats.length === 0 && !isLoading) {
-      // void loadChats();
+    if (hasRequestedUsersRef.current || isUsersLoading) {
+      return;
     }
-  }, [chats.length, isLoading, loadChats]);
-
-  useEffect(() => {
-    if (users.length === 0 && !isUsersLoading) {
-      void loadUsers();
-    }
-  }, [isUsersLoading, loadUsers, users.length]);
+    hasRequestedUsersRef.current = true;
+    void loadUsers();
+  }, [isUsersLoading, loadUsers]);
 
   useEffect(() => {
     if (currentUserId) {

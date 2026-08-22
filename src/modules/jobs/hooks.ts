@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useJobsStore } from "@/modules/jobs/store";
 
@@ -28,12 +28,18 @@ export const useJobs = () => {
   const refreshJobs = useJobsStore((state) => state.refreshJobs);
   const createJob = useJobsStore((state) => state.createJob);
   const selectJob = useJobsStore((state) => state.selectJob);
+  const hasRequestedRef = useRef(false);
 
+  // Fires once per mount — gating on "jobs.length === 0" instead would never
+  // converge when there are genuinely zero jobs, since every load resolves
+  // back to length 0 and re-triggers the request forever.
   useEffect(() => {
-    if (!jobs.length && !isLoading) {
-      void loadJobs();
+    if (hasRequestedRef.current || isLoading) {
+      return;
     }
-  }, [isLoading, jobs.length, loadJobs]);
+    hasRequestedRef.current = true;
+    void loadJobs();
+  }, [isLoading, loadJobs]);
 
   const filteredJobs = useMemo(() => {
     const query = filters.query.trim().toLowerCase();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/modules/auth/store";
 import { usePostStore } from "@/modules/post/store";
@@ -56,23 +56,34 @@ export const useFeed = () => {
   const loadPosts = usePostStore((state) => state.loadPosts);
   const refreshPosts = usePostStore((state) => state.refreshPosts);
   const user = useAuthStore((state) => state.user);
-  const savedPostIdsCount = useSavedPostsStore((state) => state.savedPostIds.size);
   const isSavedPostsLoading = useSavedPostsStore((state) => state.isLoading);
   const loadSavedPosts = useSavedPostsStore((state) => state.loadSavedPosts);
   const [visibleCount, setVisibleCount] = useState(pageSize);
   const [activeCategory, setActiveCategory] = useState<PostCategory | "all">("all");
+  const hasRequestedPostsRef = useRef(false);
+  const requestedSavedPostsForUserRef = useRef<string | null>(null);
 
+  // Fires once per mount — gating on "posts.length === 0" instead would
+  // never converge when the feed is genuinely empty, since every load
+  // resolves back to length 0 and re-triggers the request forever.
   useEffect(() => {
-    if (posts.length === 0 && !isLoading) {
-      void loadPosts();
+    if (hasRequestedPostsRef.current || isLoading) {
+      return;
     }
-  }, [isLoading, loadPosts, posts.length]);
+    hasRequestedPostsRef.current = true;
+    void loadPosts();
+  }, [isLoading, loadPosts]);
 
+  // Same fix, keyed per signed-in user: an account with zero saved posts
+  // would otherwise re-trigger this fetch forever (this was hammering
+  // /api/posts/saved continuously in practice).
   useEffect(() => {
-    if (user && savedPostIdsCount === 0 && !isSavedPostsLoading) {
-      void loadSavedPosts();
+    if (!user || requestedSavedPostsForUserRef.current === user.id || isSavedPostsLoading) {
+      return;
     }
-  }, [isSavedPostsLoading, loadSavedPosts, savedPostIdsCount, user]);
+    requestedSavedPostsForUserRef.current = user.id;
+    void loadSavedPosts();
+  }, [isSavedPostsLoading, loadSavedPosts, user]);
 
   const filteredPosts = useMemo(
     () => (activeCategory === "all" ? posts : posts.filter((post) => post.category === activeCategory)),

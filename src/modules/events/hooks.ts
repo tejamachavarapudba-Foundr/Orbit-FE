@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { EventFilter } from "@/modules/events/types";
 import { useEventsStore } from "@/modules/events/store";
@@ -27,12 +27,19 @@ export const useEvents = () => {
   const createEvent = useEventsStore((state) => state.createEvent);
   const selectEvent = useEventsStore((state) => state.selectEvent);
   const rsvpEvent = useEventsStore((state) => state.rsvpEvent);
+  const hasRequestedRef = useRef(false);
 
+  // Fires once per mount — gating on "events.length === 0" instead would
+  // never converge for an account with genuinely zero events: every load
+  // resolves back to length 0, re-satisfying the condition and firing the
+  // request again forever.
   useEffect(() => {
-    if (!events.length && !isLoading) {
-      void loadEvents();
+    if (hasRequestedRef.current || isLoading) {
+      return;
     }
-  }, [events.length, isLoading, loadEvents]);
+    hasRequestedRef.current = true;
+    void loadEvents();
+  }, [isLoading, loadEvents]);
 
   const filteredEvents = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();

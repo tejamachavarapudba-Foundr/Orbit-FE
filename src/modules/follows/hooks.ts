@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { FollowProfile, NetworkTab } from "@/modules/follows/types";
 import { useFollowStore } from "@/modules/follows/store";
@@ -17,12 +17,19 @@ export const useNetwork = (activeTab: NetworkTab) => {
   const networkErrorMessage = useFollowStore((state) => state.networkErrorMessage);
   const loadNetwork = useFollowStore((state) => state.loadNetwork);
   const refreshNetwork = useFollowStore((state) => state.refreshNetwork);
+  const requestedForUserRef = useRef<string | null>(null);
 
+  // Fires once per signed-in user — gating on "followers/following length ===
+  // 0" instead would never converge for an account with genuinely no
+  // connections yet, since every load resolves back to length 0 and
+  // re-triggers the request forever.
   useEffect(() => {
-    if (currentUserId && followers.length === 0 && following.length === 0 && !isLoadingNetwork) {
-      void loadNetwork(currentUserId);
+    if (!currentUserId || requestedForUserRef.current === currentUserId || isLoadingNetwork) {
+      return;
     }
-  }, [currentUserId, followers.length, following.length, isLoadingNetwork, loadNetwork]);
+    requestedForUserRef.current = currentUserId;
+    void loadNetwork(currentUserId);
+  }, [currentUserId, isLoadingNetwork, loadNetwork]);
 
   const refresh = useCallback(() => {
     if (!currentUserId) {
@@ -68,12 +75,15 @@ export const useNetworkSuggestions = () => {
   const users = useUserStore((state) => state.users);
   const isLoadingUsers = useUserStore((state) => state.isLoading);
   const loadUsers = useUserStore((state) => state.loadUsers);
+  const hasRequestedRef = useRef(false);
 
   useEffect(() => {
-    if (users.length === 0 && !isLoadingUsers) {
-      void loadUsers();
+    if (hasRequestedRef.current || isLoadingUsers) {
+      return;
     }
-  }, [isLoadingUsers, loadUsers, users.length]);
+    hasRequestedRef.current = true;
+    void loadUsers();
+  }, [isLoadingUsers, loadUsers]);
 
   const connectedIds = useMemo(
     () => new Set(connectedProfiles.map((profile) => profile.id)),

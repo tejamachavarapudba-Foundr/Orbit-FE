@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuthStore } from "@/modules/auth/store"; // 👈 Import auth store
 import { UserRole, UserSummary } from "@/modules/user/types";
@@ -64,12 +64,18 @@ export const useDiscoverUsers = () => {
   const setQuery = useUserStore((state) => state.setQuery);
   const setRole = useUserStore((state) => state.setRole);
   const [visibleCount, setVisibleCount] = useState(pageSize);
+  const hasRequestedRef = useRef(false);
 
+  // Fires once per mount — gating on "users.length === 0" instead would
+  // never converge when the directory is genuinely empty, since every load
+  // resolves back to length 0 and re-triggers the request forever.
   useEffect(() => {
-    if (users.length === 0 && !isLoading) {
-      void loadUsers();
+    if (hasRequestedRef.current || isLoading) {
+      return;
     }
-  }, [isLoading, loadUsers, users.length]);
+    hasRequestedRef.current = true;
+    void loadUsers();
+  }, [isLoading, loadUsers]);
 
   // 2. Filter out both search targets AND your own profile record
   const filteredUsers = useMemo(

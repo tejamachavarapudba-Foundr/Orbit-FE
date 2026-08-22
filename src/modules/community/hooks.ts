@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useCommunityStore } from "@/modules/community/store";
 
@@ -9,12 +9,19 @@ export const useCommunities = () => {
   const errorMessage = useCommunityStore((state) => state.errorMessage);
   const loadCommunities = useCommunityStore((state) => state.loadCommunities);
   const createCommunity = useCommunityStore((state) => state.createCommunity);
+  const hasRequestedRef = useRef(false);
 
+  // Fires once per mount — gating on "communities.length === 0" instead would
+  // never converge for an account with genuinely zero communities: every load
+  // resolves back to length 0, which re-satisfies the condition and fires
+  // the request again forever.
   useEffect(() => {
-    if (!communities.length && !isLoading) {
-      void loadCommunities();
+    if (hasRequestedRef.current || isLoading) {
+      return;
     }
-  }, [communities.length, isLoading, loadCommunities]);
+    hasRequestedRef.current = true;
+    void loadCommunities();
+  }, [isLoading, loadCommunities]);
 
   return { communities, isLoading, isCreating, errorMessage, loadCommunities, createCommunity };
 };
