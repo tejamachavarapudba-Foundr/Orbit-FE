@@ -1,4 +1,5 @@
-import { Pressable, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -7,6 +8,8 @@ import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { iconSize } from "@/theme/designTokens";
+import { CreateCommunityModal } from "@/modules/community/components/CreateCommunityModal";
+import { useCommunities } from "@/modules/community/hooks";
 
 type CommunityAction = {
   label: string;
@@ -18,25 +21,21 @@ type CommunityAction = {
 export const CommunityScreen = () => {
   const colors = useThemeTokens();
   const navigation = useNavigation<any>();
+  const { communities, isLoading, isCreating, createCommunity } = useCommunities();
+  const [isCreateVisible, setIsCreateVisible] = useState(false);
 
   const actions: CommunityAction[] = [
     {
-      label: "Invite people",
-      description: "Discover founders, investors and talent to connect with.",
+      label: "Create a community",
+      description: "Start a group like Founders Community or Professionals Community.",
       icon: "user-plus",
-      onPress: () => navigation.navigate("Discover")
+      onPress: () => setIsCreateVisible(true)
     },
     {
       label: "Community events",
-      description: "Host or join meetups, demo days and pitch events.",
+      description: "Host private meetups or join public demo days and pitch events.",
       icon: "calendar",
       onPress: () => navigation.navigate("Tabs", { screen: "Events" })
-    },
-    {
-      label: "My network",
-      description: "See who you're connected with and manage requests.",
-      icon: "users",
-      onPress: () => navigation.navigate("Network")
     }
   ];
 
@@ -60,26 +59,83 @@ export const CommunityScreen = () => {
         Grow your network and bring people together.
       </AppText>
 
-      <View className="mt-6 gap-3">
-        {actions.map((action) => (
-          <Pressable key={action.label} accessibilityRole="button" onPress={action.onPress}>
-            <Card>
-              <CardContent className="flex-row items-center gap-4 p-4">
-                <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-                  <Feather name={action.icon} size={20} color={colors.primary} />
-                </View>
-                <View className="min-w-0 flex-1">
-                  <AppText weight="semibold">{action.label}</AppText>
-                  <AppText tone="muted" size="sm" className="mt-1">
-                    {action.description}
-                  </AppText>
-                </View>
-                <Feather name="chevron-right" size={18} color={colors.muted} />
-              </CardContent>
-            </Card>
-          </Pressable>
-        ))}
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View className="mt-6 gap-3">
+          {actions.map((action) => (
+            <Pressable key={action.label} accessibilityRole="button" onPress={action.onPress}>
+              <Card>
+                <CardContent className="flex-row items-center gap-4 p-4">
+                  <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                    <Feather name={action.icon} size={20} color={colors.primary} />
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <AppText weight="semibold">{action.label}</AppText>
+                    <AppText tone="muted" size="sm" className="mt-1">
+                      {action.description}
+                    </AppText>
+                  </View>
+                  <Feather name="chevron-right" size={18} color={colors.muted} />
+                </CardContent>
+              </Card>
+            </Pressable>
+          ))}
+        </View>
+
+        <View className="mt-8">
+          <AppText weight="bold">My communities</AppText>
+
+          {isLoading && !communities.length ? (
+            <AppText tone="muted" size="sm" className="mt-3">
+              Loading your communities...
+            </AppText>
+          ) : null}
+
+          {!isLoading && !communities.length ? (
+            <AppText tone="muted" size="sm" className="mt-3">
+              You haven't joined or created any communities yet.
+            </AppText>
+          ) : null}
+
+          <View className="mt-3 gap-3">
+            {communities.map((community) => (
+              <Pressable
+                key={community.id}
+                accessibilityRole="button"
+                onPress={() => navigation.navigate("CommunityDetail", { id: community.id })}
+              >
+                <Card>
+                  <CardContent className="flex-row items-center gap-4 p-4">
+                    <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                      <Feather name="users" size={20} color={colors.primary} />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <AppText weight="semibold" numberOfLines={1}>
+                        {community.name}
+                      </AppText>
+                      <AppText tone="muted" size="sm" className="mt-1">
+                        {community.memberCount} {community.memberCount === 1 ? "member" : "members"}
+                      </AppText>
+                    </View>
+                    <Feather name="chevron-right" size={18} color={colors.muted} />
+                  </CardContent>
+                </Card>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      <CreateCommunityModal
+        visible={isCreateVisible}
+        isCreating={isCreating}
+        onClose={() => setIsCreateVisible(false)}
+        onCreate={async (name, description, memberIds) => {
+          const community = await createCommunity({ name, description, memberIds });
+          if (community) {
+            setIsCreateVisible(false);
+          }
+        }}
+      />
     </AppScreen>
   );
 };

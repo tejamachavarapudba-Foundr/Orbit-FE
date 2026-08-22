@@ -41,6 +41,9 @@ export type CreateEventPayload = {
   endsAt: string;
   latitude: number;
   longitude: number;
+  isPrivate?: boolean;
+  communityId?: string;
+  inviteeIds?: string[];
 };
 
 export type UpdateEventPayload = Partial<CreateEventPayload>;

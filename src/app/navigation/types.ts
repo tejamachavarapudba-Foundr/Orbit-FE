@@ -44,6 +44,7 @@ export type MainStackParamList = {
   InvestmentWatchlist: undefined;
   Notifications: undefined;
   Community: undefined;
+  CommunityDetail: { id: string };
 
     BusinessSummary: {
       projectId: string;

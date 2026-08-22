@@ -8,6 +8,7 @@ import { UserPublicProfileScreen } from "@/modules/user/screens/UserPublicProfil
 import { ProjectDetailScreen } from "@/modules/project/screens/ProjectDetailScreen";
 import { NotificationsScreen } from "@/modules/notifications/screens/NotificationsScreen";
 import { CommunityScreen } from "@/modules/community/screens/CommunityScreen";
+import { CommunityDetailScreen } from "@/modules/community/screens/CommunityDetailScreen";
 import { ProfileScreen } from "@/modules/profile/screens/ProfileScreen";
 import { SettingsScreen } from "@/modules/settings/screens/SettingsScreen";
 import { SavedPostsScreen } from "@/modules/settings/screens/SavedPostsScreen";
@@ -113,6 +114,11 @@ export const MainStackNavigator = () => (
     <Stack.Screen
       name="Community"
       component={CommunityScreen}
+    />
+
+    <Stack.Screen
+      name="CommunityDetail"
+      component={CommunityDetailScreen}
     />
 
 
