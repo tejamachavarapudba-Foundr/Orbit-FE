@@ -3,11 +3,13 @@ import { Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
+import * as DocumentPicker from "expo-document-picker";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { iconSize } from "@/theme/designTokens";
 import { MainStackParamList } from "@/app/navigation/types";
@@ -20,18 +22,183 @@ import {
   emptyProfessionalProfile,
   emptyServiceProviderProfile
 } from "@/modules/profile/schemas";
+import { Certification, emptyCertification, emptyWorkExperience, WorkExperience } from "@/modules/profile/schemas/experience";
 import { UpdateProfilePayload } from "@/modules/profile/types";
 import { useToastStore } from "@/store/toastStore";
 import { useVerificationStatus } from "@/modules/verification/hooks";
+import { verificationApi } from "@/modules/verification/api";
 
 type RoleVerificationRoute = RouteProp<MainStackParamList, "RoleVerification">;
 
-const toCsv = (values: string[]) => values.join(", ");
-const fromCsv = (value: string) =>
-  value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+const ExperienceEditor = ({
+  experiences,
+  onChange
+}: {
+  experiences: WorkExperience[];
+  onChange: (experiences: WorkExperience[]) => void;
+}) => {
+  const colors = useThemeTokens();
+
+  const updateEntry = (index: number, patch: Partial<WorkExperience>) => {
+    onChange(experiences.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
+  };
+
+  const removeEntry = (index: number) => {
+    onChange(experiences.filter((_, i) => i !== index));
+  };
+
+  return (
+    <View className="gap-3">
+      <AppText size="sm" weight="medium">
+        Work experience
+      </AppText>
+
+      {experiences.map((entry, index) => (
+        <Card key={index}>
+          <CardContent className="gap-3 p-4">
+            <View className="flex-row items-center justify-between">
+              <AppText size="sm" tone="muted">
+                {index === 0 ? "Current / most recent" : `Experience ${index + 1}`}
+              </AppText>
+              <Pressable accessibilityRole="button" onPress={() => removeEntry(index)} hitSlop={8}>
+                <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
+              </Pressable>
+            </View>
+            <AppTextInput
+              label="Company name"
+              value={entry.company}
+              onChangeText={(v) => updateEntry(index, { company: v })}
+            />
+            <AppTextInput
+              label="Designation"
+              value={entry.designation}
+              onChangeText={(v) => updateEntry(index, { designation: v })}
+              placeholder="e.g. Senior Software Engineer"
+            />
+            <AppTextInput
+              label="Location"
+              value={entry.location}
+              onChangeText={(v) => updateEntry(index, { location: v })}
+            />
+            <AppTextInput
+              label="Timeline"
+              value={entry.timeline}
+              onChangeText={(v) => updateEntry(index, { timeline: v })}
+              placeholder="e.g. Jan 2022 - Present"
+            />
+          </CardContent>
+        </Card>
+      ))}
+
+      <AppButton
+        label="+ Add experience"
+        variant="outline"
+        onPress={() => onChange([...experiences, emptyWorkExperience()])}
+      />
+    </View>
+  );
+};
+
+const CertificationEditor = ({
+  certifications,
+  onChange
+}: {
+  certifications: Certification[];
+  onChange: (certifications: Certification[]) => void;
+}) => {
+  const colors = useThemeTokens();
+  const showToast = useToastStore((state) => state.show);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+
+  const updateEntry = (index: number, patch: Partial<Certification>) => {
+    onChange(certifications.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
+  };
+
+  const removeEntry = (index: number) => {
+    onChange(certifications.filter((_, i) => i !== index));
+  };
+
+  const uploadFile = async (index: number) => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+      multiple: false
+    });
+
+    const asset = result.assets?.[0];
+    if (result.canceled || !asset) return;
+
+    setUploadingIndex(index);
+    try {
+      const formData = new FormData();
+      formData.append("type", "document");
+      formData.append(
+        "file",
+        {
+          uri: asset.uri,
+          name: asset.name,
+          type: asset.mimeType || "application/octet-stream"
+        } as any
+      );
+
+      const upload = await verificationApi.uploadDocument(formData);
+      updateEntry(index, { fileUrl: upload.url, fileKey: upload.path });
+    } catch {
+      showToast({ type: "error", title: "Upload failed" });
+    } finally {
+      setUploadingIndex(null);
+    }
+  };
+
+  return (
+    <View className="gap-3">
+      <AppText size="sm" weight="medium">
+        Certifications (optional)
+      </AppText>
+
+      {certifications.map((entry, index) => (
+        <Card key={index}>
+          <CardContent className="gap-3 p-4">
+            <View className="flex-row items-center justify-between">
+              <AppText size="sm" tone="muted">
+                Certification {index + 1}
+              </AppText>
+              <Pressable accessibilityRole="button" onPress={() => removeEntry(index)} hitSlop={8}>
+                <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
+              </Pressable>
+            </View>
+            <AppTextInput
+              label="Certification name"
+              value={entry.name}
+              onChangeText={(v) => updateEntry(index, { name: v })}
+              placeholder="e.g. AWS Certified Solutions Architect"
+            />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void uploadFile(index)}
+              className="flex-row items-center justify-between rounded-md border border-input bg-background px-3 py-3"
+            >
+              <AppText size="sm" tone={entry.fileUrl ? "default" : "muted"} numberOfLines={1} className="flex-1 pr-2">
+                {uploadingIndex === index
+                  ? "Uploading..."
+                  : entry.fileUrl
+                    ? "File attached — tap to replace"
+                    : "Upload certificate file (PDF or image)"}
+              </AppText>
+              <Feather name="upload" size={iconSize.md} color={colors.muted} />
+            </Pressable>
+          </CardContent>
+        </Card>
+      ))}
+
+      <AppButton
+        label="+ Add certification"
+        variant="outline"
+        onPress={() => onChange([...certifications, emptyCertification()])}
+      />
+    </View>
+  );
+};
 
 export const RoleVerificationScreen = () => {
   const colors = useThemeTokens();
@@ -49,14 +216,12 @@ export const RoleVerificationScreen = () => {
 
   const [company, setCompany] = useState(normalized?.company ?? "");
   const [website, setWebsite] = useState(normalized?.website ?? "");
-  const [experienceLevel, setExperienceLevel] = useState(
-    role === "professional" ? ((roleData as { experienceLevel?: string })?.experienceLevel ?? "") : ""
-  );
-  const [yearsExperience, setYearsExperience] = useState(
-    role === "advisor" ? ((roleData as { yearsExperience?: string })?.yearsExperience ?? "") : ""
-  );
-  const [certifications, setCertifications] = useState(
-    toCsv(((roleData as { certifications?: string[] })?.certifications ?? []) as string[])
+  const [experiences, setExperiences] = useState<WorkExperience[]>(() => {
+    const existing = ((roleData as { experiences?: WorkExperience[] })?.experiences ?? []) as WorkExperience[];
+    return existing.length ? existing : [emptyWorkExperience()];
+  });
+  const [certifications, setCertifications] = useState<Certification[]>(
+    ((roleData as { certifications?: Certification[] })?.certifications ?? []) as Certification[]
   );
   const [spCompany, setSpCompany] = useState((roleData as { company?: string })?.company ?? "");
   const [spWebsite, setSpWebsite] = useState((roleData as { website?: string })?.website ?? "");
@@ -69,11 +234,11 @@ export const RoleVerificationScreen = () => {
     },
     professional: {
       title: "Professional verification",
-      description: "Add your experience and any certifications — this boosts how your profile appears to others. Certifications are optional."
+      description: "Add your work experience and any certifications — this boosts how your profile appears to others. Certifications are optional."
     },
     advisor: {
       title: "Advisor verification",
-      description: "Add your experience and any certifications — this boosts how your profile appears to others. Certifications are optional."
+      description: "Add your work experience and any certifications — this boosts how your profile appears to others. Certifications are optional."
     },
     service_provider: {
       title: "Service provider verification",
@@ -81,17 +246,20 @@ export const RoleVerificationScreen = () => {
     }
   }[role];
 
+  const hasValidExperience = experiences.some((entry) => entry.company.trim() && entry.designation.trim());
+
   const canSubmit =
     role === "investor"
       ? Boolean(company.trim() && website.trim())
-      : role === "professional"
-        ? Boolean(experienceLevel.trim())
-        : role === "advisor"
-          ? Boolean(yearsExperience.trim())
-          : Boolean(spCompany.trim() && spWebsite.trim() && spLinkedin.trim());
+      : role === "professional" || role === "advisor"
+        ? hasValidExperience
+        : Boolean(spCompany.trim() && spWebsite.trim() && spLinkedin.trim());
 
   const submit = async () => {
     if (!normalized) return;
+
+    const cleanedExperiences = experiences.filter((entry) => entry.company.trim() || entry.designation.trim());
+    const cleanedCertifications = certifications.filter((entry) => entry.name.trim() && entry.fileUrl);
 
     const basePayload: UpdateProfilePayload = {
       fullName: normalized.fullName,
@@ -113,8 +281,8 @@ export const RoleVerificationScreen = () => {
               data: {
                 ...emptyProfessionalProfile(),
                 ...((roleData as object) ?? {}),
-                experienceLevel: experienceLevel.trim(),
-                certifications: fromCsv(certifications)
+                experiences: cleanedExperiences,
+                certifications: cleanedCertifications
               }
             }
           : role === "advisor"
@@ -123,8 +291,8 @@ export const RoleVerificationScreen = () => {
                 data: {
                   ...emptyAdvisorProfile(),
                   ...((roleData as object) ?? {}),
-                  yearsExperience: yearsExperience.trim(),
-                  certifications: fromCsv(certifications)
+                  experiences: cleanedExperiences,
+                  certifications: cleanedCertifications
                 }
               }
             : role === "service_provider"
@@ -171,9 +339,9 @@ export const RoleVerificationScreen = () => {
           {copy.description}
         </AppText>
 
-        <View className="mt-5 gap-3">
+        <View className="mt-5 gap-5">
           {role === "investor" ? (
-            <>
+            <View className="gap-3">
               <AppTextInput label="Company name" value={company} onChangeText={setCompany} placeholder="e.g. Orbit Ventures" />
               <AppTextInput
                 label="Website"
@@ -182,41 +350,19 @@ export const RoleVerificationScreen = () => {
                 autoCapitalize="none"
                 placeholder="https://..."
               />
-            </>
-          ) : null}
-
-          {role === "professional" ? (
-            <AppTextInput
-              label="Experience details"
-              value={experienceLevel}
-              onChangeText={setExperienceLevel}
-              placeholder="e.g. 5 years as a full-stack engineer"
-              multiline
-            />
-          ) : null}
-
-          {role === "advisor" ? (
-            <AppTextInput
-              label="Experience details"
-              value={yearsExperience}
-              onChangeText={setYearsExperience}
-              placeholder="e.g. 10 years advising early-stage startups"
-              multiline
-            />
+            </View>
           ) : null}
 
           {role === "professional" || role === "advisor" ? (
-            <AppTextInput
-              label="Certifications (optional)"
-              value={certifications}
-              onChangeText={setCertifications}
-              placeholder="Comma-separated, e.g. PMP, AWS Certified"
-              multiline
-            />
+            <ExperienceEditor experiences={experiences} onChange={setExperiences} />
+          ) : null}
+
+          {role === "professional" || role === "advisor" ? (
+            <CertificationEditor certifications={certifications} onChange={setCertifications} />
           ) : null}
 
           {role === "service_provider" ? (
-            <>
+            <View className="gap-3">
               <AppTextInput label="Company name" value={spCompany} onChangeText={setSpCompany} />
               <AppTextInput
                 label="Website"
@@ -232,11 +378,11 @@ export const RoleVerificationScreen = () => {
                 autoCapitalize="none"
                 placeholder="https://linkedin.com/company/..."
               />
-            </>
+            </View>
           ) : null}
         </View>
 
-        <AppButton label="Save" loading={isSaving} disabled={!canSubmit} onPress={() => void submit()} className="mt-6" />
+        <AppButton label="Save" loading={isSaving} disabled={!canSubmit} onPress={() => void submit()} className="mb-8 mt-6" />
       </ScrollView>
     </AppScreen>
   );

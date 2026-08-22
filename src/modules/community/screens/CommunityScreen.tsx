@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -33,9 +33,24 @@ export const CommunityScreen = () => {
     },
     {
       label: "Community events",
-      description: "Host private meetups or join public demo days and pitch events.",
+      description: communities.length
+        ? "Host a private meetup for one of your communities, or join public events."
+        : "Create a community group first, then host private events for its members.",
       icon: "calendar",
-      onPress: () => navigation.navigate("Tabs", { screen: "Events" })
+      onPress: () => {
+        if (!communities.length) {
+          Alert.alert(
+            "No community groups yet",
+            "Create a community group first — then you can host private events just for its members.",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Create community", onPress: () => setIsCreateVisible(true) }
+            ]
+          );
+          return;
+        }
+        navigation.navigate("Tabs", { screen: "Events" });
+      }
     }
   ];
 

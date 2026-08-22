@@ -13,11 +13,37 @@ import {
   RoleProfileData,
   ServiceProviderProfile
 } from "@/modules/profile/schemas";
+import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
 
 type RawRecord = Record<string, unknown>;
 
 const asString = (value: unknown, fallback = "") => (typeof value === "string" ? value : fallback);
 const asStringArray = (value: unknown) => (Array.isArray(value) ? value.map((item) => String(item)) : []);
+
+const asWorkExperienceArray = (value: unknown): WorkExperience[] =>
+  Array.isArray(value)
+    ? value.map((item) => {
+        const entry = (item ?? {}) as RawRecord;
+        return {
+          company: asString(entry.company),
+          designation: asString(entry.designation),
+          location: asString(entry.location),
+          timeline: asString(entry.timeline)
+        };
+      })
+    : [];
+
+const asCertificationArray = (value: unknown): Certification[] =>
+  Array.isArray(value)
+    ? value.map((item) => {
+        const entry = (item ?? {}) as RawRecord;
+        return {
+          name: asString(entry.name),
+          fileUrl: asString(entry.fileUrl ?? entry.file_url),
+          fileKey: asString(entry.fileKey ?? entry.file_key)
+        };
+      })
+    : [];
 
 const normalizeFounderData = (raw: RawRecord = {}): FounderProfile => ({
   ...emptyFounderProfile(),
@@ -47,7 +73,8 @@ const normalizeAdvisorData = (raw: RawRecord = {}): AdvisorProfile => ({
   yearsExperience: asString(raw.yearsExperience ?? raw.years_experience),
   industries: asStringArray(raw.industries),
   mentorshipAreas: asStringArray(raw.mentorshipAreas ?? raw.mentorship_areas),
-  certifications: asStringArray(raw.certifications),
+  certifications: asCertificationArray(raw.certifications),
+  experiences: asWorkExperienceArray(raw.experiences),
   goals: asStringArray(raw.goals)
 });
 
@@ -59,7 +86,8 @@ const normalizeProfessionalData = (raw: RawRecord = {}): ProfessionalProfile => 
   specializationOther: asString(raw.specializationOther ?? raw.specialization_other),
   portfolio: asString(raw.portfolio),
   resume: asString(raw.resume),
-  certifications: asStringArray(raw.certifications),
+  certifications: asCertificationArray(raw.certifications),
+  experiences: asWorkExperienceArray(raw.experiences),
   goals: asStringArray(raw.goals)
 });
 

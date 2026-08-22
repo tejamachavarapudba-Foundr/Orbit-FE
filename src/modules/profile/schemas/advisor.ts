@@ -1,9 +1,12 @@
+import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+
 export type AdvisorProfile = {
   expertise: string[];
   yearsExperience: string;
   industries: string[];
   mentorshipAreas: string[];
-  certifications: string[];
+  certifications: Certification[];
+  experiences: WorkExperience[];
   goals: string[];
 };
 
@@ -22,5 +25,6 @@ export const emptyAdvisorProfile = (): AdvisorProfile => ({
   industries: [],
   mentorshipAreas: [],
   certifications: [],
+  experiences: [],
   goals: []
 });

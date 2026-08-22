@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
 
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -14,9 +14,10 @@ export const SavedPostsScreen = () => {
   const savedPosts = useSavedPostsStore((state) => state.savedPosts);
   const isLoading = useSavedPostsStore((state) => state.isLoading);
   const loadSavedPosts = useSavedPostsStore((state) => state.loadSavedPosts);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   useEffect(() => {
-    void loadSavedPosts();
+    void loadSavedPosts().finally(() => setHasLoadedOnce(true));
   }, [loadSavedPosts]);
 
   return (
@@ -27,7 +28,7 @@ export const SavedPostsScreen = () => {
         keyExtractor={(item: Post) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
         ItemSeparatorComponent={() => <View className="h-2 bg-background" />}
-        refreshing={isLoading}
+        refreshing={hasLoadedOnce && isLoading}
         onRefresh={() => void loadSavedPosts()}
         contentContainerStyle={{ paddingBottom: 32 }}
         ListHeaderComponent={
@@ -38,14 +39,17 @@ export const SavedPostsScreen = () => {
           </View>
         }
         ListEmptyComponent={
-          isLoading ? (
+          !hasLoadedOnce || isLoading ? (
             <PostSkeletonList />
           ) : (
             <View className="px-4">
               <Card>
                 <CardContent className="items-center py-10">
-                  <AppText tone="muted" size="sm" className="text-center">
-                    Posts you save will show up here.
+                  <AppText weight="semibold" className="text-center">
+                    No saved posts yet
+                  </AppText>
+                  <AppText tone="muted" size="sm" className="mt-1 text-center">
+                    Tap the bookmark icon on any post to save it here.
                   </AppText>
                 </CardContent>
               </Card>

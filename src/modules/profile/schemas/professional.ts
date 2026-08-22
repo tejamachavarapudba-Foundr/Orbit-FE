@@ -1,3 +1,5 @@
+import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+
 export const ENGINEER_SPECIALIZATIONS = [
   { label: "Software Engineer", value: "software_engineer" },
   { label: "Frontend Engineer", value: "frontend_engineer" },
@@ -20,7 +22,8 @@ export type ProfessionalProfile = {
   experienceLevel: string;
   portfolio: string;
   resume: string;
-  certifications: string[];
+  certifications: Certification[];
+  experiences: WorkExperience[];
   goals: string[];
   specialization: string;
   specializationOther: string;
@@ -42,6 +45,7 @@ export const emptyProfessionalProfile = (): ProfessionalProfile => ({
   portfolio: "",
   resume: "",
   certifications: [],
+  experiences: [],
   goals: [],
   specialization: "",
   specializationOther: ""
