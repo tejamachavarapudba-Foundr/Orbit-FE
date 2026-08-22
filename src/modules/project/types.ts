@@ -31,6 +31,7 @@ export type Project = {
   dpiitNumber: string;
   createdAt: string;
   updatedAt: string;
+  founderVerified?: boolean;
 
   investorSnapshot?: {
     completionPercentage: number;

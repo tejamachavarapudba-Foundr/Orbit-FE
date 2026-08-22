@@ -36,6 +36,7 @@ export type Post = {
     fullName: string;
     headline: string;
     avatarUrl: string;
+    identityVerified?: boolean;
   };
 
   likes: Like[];

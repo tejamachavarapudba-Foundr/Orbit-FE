@@ -2,6 +2,7 @@ export type ServiceProviderProfile = {
   company: string;
   services: string[];
   website: string;
+  companyLinkedinUrl: string;
   clientIndustries: string[];
   goals: string[];
 };
@@ -19,6 +20,7 @@ export const emptyServiceProviderProfile = (): ServiceProviderProfile => ({
   company: "",
   services: [],
   website: "",
+  companyLinkedinUrl: "",
   clientIndustries: [],
   goals: []
 });

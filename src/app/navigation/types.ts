@@ -74,6 +74,11 @@ export type MainStackParamList = {
     MeetingResponse: { proposalId: string };
     MeetingAvailability: undefined;
     VerifyEmail: { token: string };
+
+    VerifyProfile: undefined;
+    FounderVerification: undefined;
+    RoleVerification: { role: "investor" | "professional" | "advisor" | "service_provider" };
+    VerifyIdentity: { status?: string };
 };
 
 

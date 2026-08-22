@@ -25,6 +25,7 @@ export type AuthProfile = {
   onboardingCompleted?: boolean;
   onboardingGoals?: string[];
   profileCompletion?: number;
+  identityVerified?: boolean;
   roleProfile?: RoleProfileData | null;
   createdAt: string;
   updatedAt: string;

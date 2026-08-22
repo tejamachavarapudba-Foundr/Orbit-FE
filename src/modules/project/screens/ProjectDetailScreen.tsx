@@ -18,6 +18,8 @@ import { MainStackParamList } from "@/app/navigation/types";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { useProjectDetail } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
+import { InvestorGateModal } from "@/modules/verification/components/InvestorGateModal";
+import { useVerificationStatus } from "@/modules/verification/hooks";
 import { iconSize } from "@/theme/designTokens";
 
 const roleOptions = ["co_founder", "software_engineer", "designer", "business_operations", "other"];
@@ -59,6 +61,8 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const [isEditing, setIsEditing] = useState(!!edit);
   const [reviewsExpanded, setReviewsExpanded] = useState(false);
   const [applyExpanded, setApplyExpanded] = useState(false);
+  const [showInvestorGate, setShowInvestorGate] = useState(false);
+  const { status: verificationStatus } = useVerificationStatus();
 
   useEffect(() => {
     void selectProject(id);
@@ -308,6 +312,10 @@ export const ProjectDetailScreen = ({ route }: Props) => {
                   className="mt-4"
                   onPress={() => {
                     if (isInvestor) {
+                      if (!verificationStatus?.investorVerified) {
+                        setShowInvestorGate(true);
+                        return;
+                      }
                       navigation.navigate("InvestorSnapshotView", { projectId: selectedProject.id });
                       return;
                     }
@@ -468,6 +476,15 @@ export const ProjectDetailScreen = ({ route }: Props) => {
           </View>
         ) : null}
       </ScrollView>
+
+      <InvestorGateModal
+        visible={showInvestorGate}
+        onClose={() => setShowInvestorGate(false)}
+        onVerified={() => {
+          setShowInvestorGate(false);
+          navigation.navigate("InvestorSnapshotView", { projectId: selectedProject.id });
+        }}
+      />
     </AppScreen>
   );
 };

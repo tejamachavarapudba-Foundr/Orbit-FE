@@ -3,6 +3,7 @@ export type AdvisorProfile = {
   yearsExperience: string;
   industries: string[];
   mentorshipAreas: string[];
+  certifications: string[];
   goals: string[];
 };
 
@@ -20,5 +21,6 @@ export const emptyAdvisorProfile = (): AdvisorProfile => ({
   yearsExperience: "",
   industries: [],
   mentorshipAreas: [],
+  certifications: [],
   goals: []
 });

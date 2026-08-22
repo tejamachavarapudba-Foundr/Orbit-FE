@@ -13,6 +13,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { UserActivitySection } from "@/modules/user/components/UserActivitySection";
 import { UserAvatar } from "@/modules/user/components/UserAvatar";
 import { ProfileStatsRow } from "@/modules/connections/components/ProfileStatsRow";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { UserConnectActions } from "@/modules/user/components/UserConnectActions";
 import { UserRoleDetails } from "@/modules/user/components/UserRoleDetails";
 import { userApi } from "@/modules/user/api";
@@ -101,6 +102,7 @@ export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
               <AppText size="2xl" weight="bold">
                 {profile.fullName || "Startuphouze member"}
               </AppText>
+              {profile.identityVerified ? <VerifiedBadge size="md" /> : null}
               {profile.openToConnect ? (
                 <View className="rounded-full bg-success/15 px-3 py-1">
                   <AppText tone="success" size="xs" weight="semibold">

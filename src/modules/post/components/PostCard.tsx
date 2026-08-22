@@ -19,6 +19,7 @@ import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { FullPhotoModal } from "@/components/ui/FullPhotoModal";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { iconSize, toBadgeCategory } from "@/theme/designTokens";
 
 type PostCardProps = {
@@ -118,9 +119,12 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             onPress={() => openUserProfile(post.author.id)}
             className="min-w-0 flex-1 pr-24"
           >
-            <AppText weight="medium" numberOfLines={1}>
-              {authorName}
-            </AppText>
+            <View className="flex-row items-center gap-1.5">
+              <AppText weight="medium" numberOfLines={1}>
+                {authorName}
+              </AppText>
+              {post.author?.identityVerified ? <VerifiedBadge /> : null}
+            </View>
             <AppText tone="muted" size="xs" className="mt-0.5" numberOfLines={1}>
               {authorRole}
             </AppText>

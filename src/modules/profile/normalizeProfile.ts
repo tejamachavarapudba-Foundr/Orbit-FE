@@ -47,6 +47,7 @@ const normalizeAdvisorData = (raw: RawRecord = {}): AdvisorProfile => ({
   yearsExperience: asString(raw.yearsExperience ?? raw.years_experience),
   industries: asStringArray(raw.industries),
   mentorshipAreas: asStringArray(raw.mentorshipAreas ?? raw.mentorship_areas),
+  certifications: asStringArray(raw.certifications),
   goals: asStringArray(raw.goals)
 });
 
@@ -58,6 +59,7 @@ const normalizeProfessionalData = (raw: RawRecord = {}): ProfessionalProfile => 
   specializationOther: asString(raw.specializationOther ?? raw.specialization_other),
   portfolio: asString(raw.portfolio),
   resume: asString(raw.resume),
+  certifications: asStringArray(raw.certifications),
   goals: asStringArray(raw.goals)
 });
 
@@ -66,6 +68,7 @@ const normalizeServiceProviderData = (raw: RawRecord = {}): ServiceProviderProfi
   company: asString(raw.company),
   services: asStringArray(raw.services),
   website: asString(raw.website),
+  companyLinkedinUrl: asString(raw.companyLinkedinUrl ?? raw.company_linkedin_url),
   clientIndustries: asStringArray(raw.clientIndustries ?? raw.client_industries),
   goals: asStringArray(raw.goals)
 });
@@ -133,6 +136,7 @@ export const normalizeAuthProfile = (raw: AuthProfile & RawRecord): AuthProfile 
     onboardingCompleted: Boolean(raw.onboardingCompleted ?? raw.onboarding_completed),
     onboardingGoals: asStringArray(raw.onboardingGoals ?? raw.onboarding_goals),
     profileCompletion: Number(raw.profileCompletion ?? raw.profile_completion ?? 0),
+    identityVerified: Boolean(raw.identityVerified ?? raw.identity_verified),
     roleProfile,
     createdAt: asString(raw.createdAt ?? raw.created_at),
     updatedAt: asString(raw.updatedAt ?? raw.updated_at),

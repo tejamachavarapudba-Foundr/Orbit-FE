@@ -5,7 +5,8 @@ import { useAdminStore } from "@/modules/admin/store";
 export const adminTabs = [
   { label: "Overview", value: "overview" },
   { label: "Users", value: "users" },
-  { label: "Posts", value: "posts" }
+  { label: "Posts", value: "posts" },
+  { label: "Verifications", value: "verifications" }
 ] as const;
 
 export const useAdminDashboard = () => {

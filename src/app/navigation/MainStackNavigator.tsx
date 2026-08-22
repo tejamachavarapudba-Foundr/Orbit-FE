@@ -29,6 +29,10 @@ import { MeetingsScreen } from "@/modules/meeting/screens/MeetingsScreen";
 import { VerifyEmailScreen } from "@/modules/auth/screens/VerifyEmailScreen";
 import { ProposalResponseScreen } from "@/modules/meeting/screens/ProposalResponseScreen";
 import { AvailabilityScreen } from "@/modules/meeting/screens/AvailabilityScreen";
+import { VerifyProfileScreen } from "@/modules/verification/screens/VerifyProfileScreen";
+import { FounderVerificationScreen } from "@/modules/verification/screens/FounderVerificationScreen";
+import { RoleVerificationScreen } from "@/modules/verification/screens/RoleVerificationScreen";
+import { VerifyIdentityCallbackScreen } from "@/modules/verification/screens/VerifyIdentityCallbackScreen";
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -178,6 +182,26 @@ export const MainStackNavigator = () => (
       <Stack.Screen
         name="VerifyEmail"
         component={VerifyEmailScreen}
+    />
+
+      <Stack.Screen
+        name="VerifyProfile"
+        component={VerifyProfileScreen}
+    />
+
+      <Stack.Screen
+        name="FounderVerification"
+        component={FounderVerificationScreen}
+    />
+
+      <Stack.Screen
+        name="RoleVerification"
+        component={RoleVerificationScreen}
+    />
+
+      <Stack.Screen
+        name="VerifyIdentity"
+        component={VerifyIdentityCallbackScreen}
     />
   </Stack.Navigator>
 );

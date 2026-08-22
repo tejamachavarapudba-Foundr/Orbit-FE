@@ -15,10 +15,11 @@ import { MainStackParamList } from "@/app/navigation/types";
 
 type SettingsRoute = keyof Pick<
   MainStackParamList,
-  "SavedPosts" | "Subscription" | "DataPrivacy" | "FAQ" | "Support"
+  "VerifyProfile" | "SavedPosts" | "Subscription" | "DataPrivacy" | "FAQ" | "Support"
 >;
 
 const settingsRows: { route: SettingsRoute; icon: keyof typeof Feather.glyphMap; label: string; description: string }[] = [
+  { route: "VerifyProfile", icon: "check-circle", label: "Verify profile", description: "Identity and role verification" },
   { route: "SavedPosts", icon: "bookmark", label: "Saved", description: "Posts you've saved" },
   { route: "Subscription", icon: "star", label: "Subscription", description: "Manage your plan" },
   { route: "DataPrivacy", icon: "shield", label: "Data & Privacy", description: "What we collect and why" },

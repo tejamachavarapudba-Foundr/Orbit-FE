@@ -19,6 +19,7 @@ import { useUserStore } from "@/modules/user/store";
 import { useToastStore } from "@/store/toastStore";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ResumeCard } from "@/components/profile/ResumeCard";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { iconSize } from "@/theme/designTokens";
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -179,9 +180,12 @@ export const ProfileScreen = () => {
     <AppScreen>
       <AppHeader />
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <AppText size="2xl" weight="bold" className="mt-6">
-          Profile
-        </AppText>
+        <View className="mt-6 flex-row items-center gap-2">
+          <AppText size="2xl" weight="bold">
+            Profile
+          </AppText>
+          {user?.profile?.identityVerified ? <VerifiedBadge size="md" /> : null}
+        </View>
         <AppText tone="muted" className="mt-2">
           {user?.email ?? "Complete your Startuphouze profile."}
         </AppText>

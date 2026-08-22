@@ -20,6 +20,7 @@ export type ProfessionalProfile = {
   experienceLevel: string;
   portfolio: string;
   resume: string;
+  certifications: string[];
   goals: string[];
   specialization: string;
   specializationOther: string;
@@ -40,6 +41,7 @@ export const emptyProfessionalProfile = (): ProfessionalProfile => ({
   experienceLevel: "",
   portfolio: "",
   resume: "",
+  certifications: [],
   goals: [],
   specialization: "",
   specializationOther: ""

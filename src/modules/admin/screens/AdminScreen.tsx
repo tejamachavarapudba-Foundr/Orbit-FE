@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Alert, Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Image, Linking, Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
@@ -11,10 +11,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { AdminStatCard } from "@/modules/admin/components/AdminStatCard";
 import { adminTabs, useAdminDashboard } from "@/modules/admin/hooks";
+import { verificationApi } from "@/modules/verification/api";
+import { PendingFounderVerification } from "@/modules/verification/types";
+import { useToastStore } from "@/store/toastStore";
 
 export const AdminScreen = () => {
   const colors = useThemeTokens();
   const [postId, setPostId] = useState("");
+  const showToast = useToastStore((state) => state.show);
   const {
     activeTab,
     stats,
@@ -27,6 +31,41 @@ export const AdminScreen = () => {
     banUser,
     deletePost
   } = useAdminDashboard();
+
+  const [pendingVerifications, setPendingVerifications] = useState<PendingFounderVerification[]>([]);
+  const [isLoadingVerifications, setIsLoadingVerifications] = useState(false);
+  const [reviewingProfileId, setReviewingProfileId] = useState<string | null>(null);
+
+  const loadPendingVerifications = async () => {
+    setIsLoadingVerifications(true);
+    try {
+      const list = await verificationApi.listPendingFounderVerifications();
+      setPendingVerifications(list);
+    } catch {
+      showToast({ type: "error", title: "Couldn't load pending verifications" });
+    } finally {
+      setIsLoadingVerifications(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "verifications" && !pendingVerifications.length && !isLoadingVerifications) {
+      void loadPendingVerifications();
+    }
+  }, [activeTab]);
+
+  const reviewVerification = async (profileId: string, status: "approved" | "rejected") => {
+    setReviewingProfileId(profileId);
+    try {
+      await verificationApi.reviewFounderVerification(profileId, status);
+      setPendingVerifications((current) => current.filter((item) => item.profileId !== profileId));
+      showToast({ type: "success", title: status === "approved" ? "Founder verified" : "Submission rejected" });
+    } catch {
+      showToast({ type: "error", title: "Review failed" });
+    } finally {
+      setReviewingProfileId(null);
+    }
+  };
 
   const trimmedPostId = postId.trim();
 
@@ -177,6 +216,73 @@ export const AdminScreen = () => {
                 }
                 className="mt-4"
               />
+            </View>
+          ) : activeTab === "verifications" ? (
+            <View className="mt-6 gap-3">
+              {isLoadingVerifications ? (
+                <Skeleton className="h-24 w-full rounded-md" />
+              ) : !pendingVerifications.length ? (
+                <EmptyState title="Nothing to review" message="No pending founder verifications right now." />
+              ) : (
+                pendingVerifications.map((item) => (
+                  <View key={item.id} className="rounded-md border border-border bg-surface p-4 shadow-sm">
+                    <View className="flex-row items-center gap-3">
+                      <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted-bg">
+                        {item.profile.avatarUrl ? (
+                          <Image source={{ uri: item.profile.avatarUrl }} style={{ width: "100%", height: "100%" }} />
+                        ) : (
+                          <AppText weight="bold">{(item.profile.fullName || "?").charAt(0).toUpperCase()}</AppText>
+                        )}
+                      </View>
+                      <View className="min-w-0 flex-1">
+                        <AppText weight="bold" numberOfLines={1}>
+                          {item.profile.fullName || "Unnamed"}
+                        </AppText>
+                        <AppText tone="muted" size="sm" numberOfLines={1}>
+                          {item.profile.headline}
+                        </AppText>
+                      </View>
+                    </View>
+
+                    <View className="mt-3 gap-1">
+                      <AppText size="sm">
+                        Name on certificate: <AppText weight="semibold">{item.certificateName}</AppText>
+                      </AppText>
+                      {item.cinNumber ? (
+                        <AppText size="sm">
+                          CIN: <AppText weight="semibold">{item.cinNumber}</AppText>
+                        </AppText>
+                      ) : null}
+                    </View>
+
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => void Linking.openURL(item.documentUrl)}
+                      className="mt-3 flex-row items-center gap-2 self-start rounded-md border border-border px-3 py-2"
+                    >
+                      <AppText tone="primary" size="sm" weight="semibold">
+                        View certificate
+                      </AppText>
+                    </Pressable>
+
+                    <View className="mt-3 flex-row gap-3">
+                      <AppButton
+                        label="Approve"
+                        loading={reviewingProfileId === item.profileId}
+                        onPress={() => void reviewVerification(item.profileId, "approved")}
+                        className="flex-1"
+                      />
+                      <AppButton
+                        label="Reject"
+                        variant="outline"
+                        loading={reviewingProfileId === item.profileId}
+                        onPress={() => void reviewVerification(item.profileId, "rejected")}
+                        className="flex-1"
+                      />
+                    </View>
+                  </View>
+                ))
+              )}
             </View>
           ) : (
             <View className="mt-8">

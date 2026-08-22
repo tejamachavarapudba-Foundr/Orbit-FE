@@ -52,6 +52,6 @@ export type BanUserResponse = {
   updatedAt: string;
 };
 
-export type AdminTab = "overview" | "users" | "posts";
+export type AdminTab = "overview" | "users" | "posts" | "verifications";
 
 export type AdminPostDeleteResponse = Post;

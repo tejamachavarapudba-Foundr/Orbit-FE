@@ -8,6 +8,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Project } from "@/modules/project/types";
 
 type ProjectCardProps = {
@@ -53,9 +54,12 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, comp
             )}
           </View>
           <View className="flex-row items-center justify-between">
-            <AppText family="display" weight="semibold" size={compact ? "base" : "lg"} numberOfLines={1} className="flex-1 pr-2">
-              {project.name || "Untitled project"}
-            </AppText>
+            <View className="flex-1 flex-row items-center gap-1.5 pr-2">
+              <AppText family="display" weight="semibold" size={compact ? "base" : "lg"} numberOfLines={1} className="flex-shrink">
+                {project.name || "Untitled project"}
+              </AppText>
+              {project.founderVerified ? <VerifiedBadge /> : null}
+            </View>
 
             <View className="flex-row items-center gap-2">
               {isOwner ? (
