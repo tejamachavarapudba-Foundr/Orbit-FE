@@ -90,11 +90,22 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     }
 
     const profile = normalizeAuthProfile(rawProfile);
+    const memberRole = normalizeMemberRole(profile.role);
+
+    // profile.roleProfile is only populated once a role-specific profile row exists
+    // (created by completeOnboarding). For any account that hasn't finished onboarding
+    // yet — including brand-new accounts, whose role defaults to "other" and normalizes
+    // to "professional" via LEGACY_ROLE_ALIASES, making it the only role pre-selected on
+    // the Welcome screen — falling back to null here left draft.roleProfile null even
+    // though a role was already chosen. completeOnboarding() then silently no-ops on
+    // that null check, so "Enter Startuphouze" did nothing for anyone who never had to
+    // tap a RoleCard (i.e. everyone landing on the pre-selected "professional" role).
+    const roleProfile = profile.roleProfile ?? (memberRole ? toRoleProfileData(memberRole, emptyRoleProfile(memberRole)) : null);
 
     set({
       draft: {
         step: "welcome",
-        memberRole: normalizeMemberRole(profile.role),
+        memberRole,
         goals: profile.onboardingGoals ?? profile.lookingFor ?? [],
         quickProfile: {
           fullName: profile.fullName,
@@ -106,7 +117,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
           skills: profile.skills.join(", "),
           roleFields: {}
         },
-        roleProfile: profile.roleProfile ?? null
+        roleProfile
       }
     });
   },
@@ -152,9 +163,14 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   },
   completeOnboarding: async () => {
     const { draft } = get();
-    if (!draft.memberRole || !draft.roleProfile) {
+    if (!draft.memberRole) {
+      set({ errorMessage: "Choose a role before continuing." });
       return false;
     }
+    // roleProfile can still be null here if a role was selected without ever going
+    // through setMemberRole (see hydrateFromProfile) — fall back to an empty seed
+    // instead of silently no-opping, so the button always does *something*.
+    const roleProfile = draft.roleProfile ?? toRoleProfileData(draft.memberRole, emptyRoleProfile(draft.memberRole));
 
     set({ isSubmitting: true, errorMessage: null });
 
@@ -166,14 +182,14 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       memberRole: draft.memberRole,
       goals: draft.goals,
       quickProfile: draft.quickProfile,
-      roleProfile: draft.roleProfile
+      roleProfile
     });
 
     const payload: CompleteOnboardingPayload = {
       memberRole: draft.memberRole,
       goals: draft.goals,
       quickProfile: draft.quickProfile,
-      roleProfile: mergedPatch.roleProfile ?? draft.roleProfile
+      roleProfile: mergedPatch.roleProfile ?? roleProfile
     };
 
     try {
