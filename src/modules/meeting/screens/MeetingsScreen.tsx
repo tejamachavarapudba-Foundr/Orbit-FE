@@ -30,7 +30,7 @@ export const MeetingsScreen = () => {
   const [tab, setTab] = useState<MeetingsTab>("upcoming");
   const [createVisible, setCreateVisible] = useState(false);
 
-  const { meetings, pendingProposals, cancelledProposals, isLoading, errorMessage, mutatingId, reload, withdrawProposal, cancelMeeting } =
+  const { meetings, pendingProposals, cancelledProposals, isLoading, errorMessage, mutatingId, reload, withdrawProposal, cancelMeeting, joinMeeting } =
     useMyMeetings(tab);
 
   const rows: ListRow[] = [
@@ -48,6 +48,7 @@ export const MeetingsScreen = () => {
             currentUserId={currentUserId}
             mutatingId={mutatingId}
             onCancel={(id) => void cancelMeeting(id)}
+            onJoin={(id) => joinMeeting(id)}
             readOnly={tab !== "upcoming"}
           />
         </View>

@@ -62,13 +62,15 @@ export type MeetingProposal = {
   organizer?: ProfileSummary;
 };
 
+export type MeetingJoinRecord = { id: string; meetingId: string; userId: string; joinedAt: string };
+
 export type Meeting = {
   id: string;
   proposalId: string;
   confirmedAt: string;
   timezone: string;
   durationMins: number;
-  meetLink: string;
+  meetLink: string | null;
   googleEventId: string;
   status: MeetingStatus;
   cancelledBy: string | null;
@@ -76,6 +78,7 @@ export type Meeting = {
   cancelledAt: string | null;
   createdAt: string;
   proposal: MeetingProposal;
+  joins: MeetingJoinRecord[];
 };
 
 export type MeetingsTab = "upcoming" | "completed" | "cancelled";

@@ -30,6 +30,7 @@ type MeetingsState = {
   respondToProposal: (id: string, payload: RespondProposalPayload) => Promise<boolean>;
   withdrawProposal: (id: string) => Promise<boolean>;
   cancelMeeting: (id: string, reason?: string) => Promise<boolean>;
+  joinMeeting: (id: string) => Promise<string | null>;
 };
 
 export const useMeetingsStore = create<MeetingsState>((set, get) => ({
@@ -139,6 +140,20 @@ export const useMeetingsStore = create<MeetingsState>((set, get) => ({
       set({ mutatingId: null });
       useToastStore.getState().show({ type: "error", title: "Couldn't cancel", message: appError.message });
       return false;
+    }
+  },
+
+  joinMeeting: async (id) => {
+    set({ mutatingId: id });
+    try {
+      const { meetLink } = await meetingApi.joinMeeting(id);
+      set({ mutatingId: null });
+      return meetLink;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ mutatingId: null });
+      useToastStore.getState().show({ type: "error", title: "Couldn't join", message: appError.message });
+      return null;
     }
   }
 }));

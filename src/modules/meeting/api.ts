@@ -63,6 +63,12 @@ export const meetingApi = {
     const response = await apiClient.post<Meeting>(`/meetings/${id}/cancel`, { reason });
     return response.data;
   },
+  // The list endpoint never includes meetLink — this is the only call that
+  // hands it back, and it records the click as a join before doing so.
+  joinMeeting: async (id: string) => {
+    const response = await apiClient.post<{ meetLink: string }>(`/meetings/${id}/join`);
+    return response.data;
+  },
   listMine: async (tab: MeetingsTab) => {
     const response = await apiClient.get<Meeting[] | UpcomingListResponse | CancelledListResponse>("/meetings/mine", {
       params: { tab }

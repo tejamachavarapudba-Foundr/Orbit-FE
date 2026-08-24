@@ -29,25 +29,42 @@ const otherPeople = (proposal: MeetingProposal, currentUserId: string): ProfileS
 
 const namesLabel = (people: ProfileSummary[]) => (people.length ? people.map((p) => p.fullName).join(", ") : "Meeting");
 
+const joinStatusText = (meeting: Meeting, currentUserId: string, personName: string) => {
+  const iJoined = meeting.joins.some((j) => j.userId === currentUserId);
+  const theyJoined = meeting.joins.some((j) => j.userId !== currentUserId);
+  if (iJoined && theyJoined) return `You and ${personName} both joined`;
+  if (iJoined) return "You joined";
+  if (theyJoined) return `${personName} joined`;
+  return null;
+};
+
 type ConfirmedCardProps = {
   meeting: Meeting;
   currentUserId: string;
   mutatingId: string | null;
   onCancel: (id: string) => void;
+  onJoin: (id: string) => Promise<string | null>;
   readOnly?: boolean;
 };
 
-export const ConfirmedMeetingCard = ({ meeting, currentUserId, mutatingId, onCancel, readOnly }: ConfirmedCardProps) => {
+export const ConfirmedMeetingCard = ({ meeting, currentUserId, mutatingId, onCancel, onJoin, readOnly }: ConfirmedCardProps) => {
   const colors = useThemeTokens();
   const people = otherPeople(meeting.proposal, currentUserId);
+  const joinStatus = joinStatusText(meeting, currentUserId, people[0]?.fullName ?? "the other person");
+  // Matches the backend: once anyone has joined, cancelMeeting() rejects it —
+  // hide the button instead of letting the tap round-trip into an error.
+  const canCancel = meeting.status === "upcoming" && meeting.joins.length === 0;
+  const isJoining = mutatingId === meeting.id;
 
+  // meeting.meetLink is always null here — the list endpoint deliberately
+  // strips it for everyone, organizer included, and only the join endpoint
+  // ever hands back the real link. Checking the stale list value directly
+  // (as this used to) meant the button could never actually work.
   const joinMeeting = async () => {
-    if (!meeting.meetLink) {
-      useToastStore.getState().show({ type: "error", title: "No meeting link", message: "This meeting doesn't have a Google Meet link yet." });
-      return;
-    }
+    const meetLink = await onJoin(meeting.id);
+    if (!meetLink) return;
     try {
-      await Linking.openURL(meeting.meetLink);
+      await Linking.openURL(meetLink);
     } catch {
       useToastStore.getState().show({ type: "error", title: "Couldn't open Google Meet" });
     }
@@ -73,6 +90,11 @@ export const ConfirmedMeetingCard = ({ meeting, currentUserId, mutatingId, onCan
           <AppText tone="muted" size="xs" className="mt-1">
             {formatWhen(meeting.confirmedAt)}
           </AppText>
+          {joinStatus ? (
+            <AppText tone="success" size="xs" weight="semibold" className="mt-1">
+              {joinStatus}
+            </AppText>
+          ) : null}
         </View>
         <Badge
           label={meeting.status}
@@ -85,17 +107,20 @@ export const ConfirmedMeetingCard = ({ meeting, currentUserId, mutatingId, onCan
           <AppButton
             label="Join on Google Meet"
             size="sm"
+            loading={isJoining}
             onPress={() => void joinMeeting()}
             className="flex-1"
           />
-          <Pressable
-            accessibilityRole="button"
-            onPress={confirmCancel}
-            disabled={mutatingId === meeting.id}
-            className="h-10 w-10 items-center justify-center rounded-md border border-border"
-          >
-            <Feather name="x" size={iconSize.md} color={colors.danger} />
-          </Pressable>
+          {canCancel ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={confirmCancel}
+              disabled={isJoining}
+              className="h-10 w-10 items-center justify-center rounded-md border border-border"
+            >
+              <Feather name="x" size={iconSize.md} color={colors.danger} />
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
 

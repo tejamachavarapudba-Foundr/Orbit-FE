@@ -65,6 +65,7 @@ export const useMyMeetings = (tab: MeetingsTab) => {
   const mutatingId = useMeetingsStore((state) => state.mutatingId);
   const withdrawProposal = useMeetingsStore((state) => state.withdrawProposal);
   const cancelMeeting = useMeetingsStore((state) => state.cancelMeeting);
+  const joinMeeting = useMeetingsStore((state) => state.joinMeeting);
 
   useEffect(() => {
     void loadMine(tab);
@@ -79,6 +80,7 @@ export const useMyMeetings = (tab: MeetingsTab) => {
     mutatingId,
     reload: () => loadMine(tab),
     withdrawProposal,
-    cancelMeeting
+    cancelMeeting,
+    joinMeeting
   };
 };
