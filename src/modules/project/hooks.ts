@@ -41,25 +41,51 @@ export const useInvestorDiscovery = () => {
 
  
 
+// Kept in sync with orbit-web's NewStartupForm.tsx stage list — same
+// values on both platforms so a project's stage displays and edits
+// correctly regardless of which client created or is editing it.
 export const projectStageOptions = [
   { label: "All", value: "all" },
   { label: "Idea", value: "idea" },
-  { label: "MVP", value: "mvp" },
   { label: "Prototype", value: "prototype" },
-  { label: "Growth", value: "growth" }
+  { label: "MVP", value: "mvp" },
+  { label: "Beta", value: "beta" },
+  { label: "Launched", value: "launched" },
+  { label: "Growth", value: "growth" },
+  { label: "Scaling", value: "scaling" },
+  { label: "Profitable", value: "profitable" },
+  { label: "Acquired", value: "acquired" }
 ];
 
 // Platform now doubles as the project's category — the old separate
-// "Category" field in the create form was removed and folded into this list.
+// "Category" field in the create form was removed and folded into this
+// list. Kept in sync with orbit-web's NewStartupForm.tsx category list
+// (same values on both platforms); "ai" was renamed to the more standard
+// "ai_ml" and "consumer_social" was split back into web's separate
+// "consumer_app"/"social" to match — "mobility" is mobile's one addition,
+// now mirrored on web too.
 export const PROJECT_PLATFORM_OPTIONS = [
-  { label: "AI", value: "ai" },
   { label: "SaaS", value: "saas" },
+  { label: "Marketplace", value: "marketplace" },
+  { label: "Consumer App", value: "consumer_app" },
+  { label: "Mobile App", value: "mobile_app" },
+  { label: "Hardware", value: "hardware" },
+  { label: "AI / ML", value: "ai_ml" },
   { label: "FinTech", value: "fintech" },
   { label: "HealthTech", value: "healthtech" },
-  { label: "E-commerce", value: "ecommerce" },
+  { label: "EdTech", value: "edtech" },
+  { label: "Climate", value: "climate" },
   { label: "DeepTech", value: "deeptech" },
+  { label: "Web3", value: "web3" },
+  { label: "E-commerce", value: "ecommerce" },
+  { label: "Social", value: "social" },
+  { label: "Developer Tools", value: "developer_tools" },
+  { label: "Enterprise", value: "enterprise" },
+  { label: "Creator Economy", value: "creator_economy" },
+  { label: "Agency", value: "agency" },
+  { label: "Nonprofit", value: "nonprofit" },
   { label: "Mobility", value: "mobility" },
-  { label: "Consumer & Social Platforms", value: "consumer_social" }
+  { label: "Other", value: "other" }
 ] as const;
 
 export const projectTypeOptions = [
