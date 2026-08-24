@@ -15,14 +15,22 @@ import { useAuthStore } from "@/modules/auth/store";
 type Props = NativeStackScreenProps<OnboardingStackParamList, "OnboardingMatch">;
 
 export const OnboardingMatchScreen = (_props: Props) => {
-  const { draft, isSubmitting, completeOnboarding } = useOnboarding();
+  const { draft, isSubmitting, errorMessage, completeOnboarding } = useOnboarding();
   const profile = useAuthStore((state) => state.user?.profile);
   const completion = calculateProfileCompletion(profile, draft.memberRole);
   const { matches, isLoading } = useMatchRecommendations(
     draft.memberRole ? { memberRole: draft.memberRole, goals: draft.goals } : null
   );
 
+  // isSubmitting alone isn't enough to stop double-taps — the button wasn't
+  // disabled while submitting, only showing a loading spinner, so a user
+  // unsure whether the first tap registered could fire several concurrent
+  // completeOnboarding() calls. Also: this screen never showed
+  // errorMessage anywhere — a failed request surfaced only via a toast,
+  // easy to miss, so a real failure could look exactly like "nothing
+  // happened" instead of a visible, actionable error.
   const finish = async () => {
+    if (isSubmitting) return;
     await completeOnboarding();
   };
 
@@ -82,9 +90,15 @@ export const OnboardingMatchScreen = (_props: Props) => {
         </View>
 
         <AppButton label="Enter Startuphouze" loading={isSubmitting} onPress={() => void finish()} className="mt-8" />
-        <AppText tone="muted" size="xs" className="mt-3 text-center leading-5">
-          You can complete the rest of your profile anytime from the Profile tab.
-        </AppText>
+        {errorMessage ? (
+          <AppText tone="danger" size="sm" className="mt-3 text-center leading-5">
+            {errorMessage}
+          </AppText>
+        ) : (
+          <AppText tone="muted" size="xs" className="mt-3 text-center leading-5">
+            You can complete the rest of your profile anytime from the Profile tab.
+          </AppText>
+        )}
       </ScrollView>
     </AppScreen>
   );
