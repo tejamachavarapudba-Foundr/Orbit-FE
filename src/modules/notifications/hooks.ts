@@ -33,3 +33,21 @@ export const useMarkAllNotificationsRead = () => {
     },
   });
 };
+
+/** Marks a specific set of notifications read — used instead of
+ * markAllAsRead wherever "read all" should only apply to what's actually
+ * visible (e.g. the bell list, once messages/projects/jobs/events/connection
+ * requests moved to their own badges and shouldn't be silently cleared by
+ * opening an unrelated screen). */
+export const useMarkNotificationsRead = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => Promise.all(ids.map((id) => notificationsApi.markAsRead(id))),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['notifications'],
+      });
+    },
+  });
+};

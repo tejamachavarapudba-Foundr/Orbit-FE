@@ -7,6 +7,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
+import { useConnectionsStore } from "@/modules/connections/store";
 
 const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Meetings", "Events"]);
 
@@ -38,6 +39,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
   const isAdmin = user?.role === "ADMIN";
   const isInvestor = user?.profile?.role?.toLowerCase() === "investor";
   const isFounder = user?.profile?.role?.toLowerCase() === "founder";
+  const pendingRequestsCount = useConnectionsStore((state) => state.incomingRequests.length);
 
   const menuItems = [
     ...profileMenuItems,
@@ -136,19 +138,31 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
                 </View>
 
                 <View className="py-2">
-                  {menuItems.map((item) => (
-                    <Pressable
-                      key={item.label}
-                      accessibilityRole="button"
-                      onPress={() => handleMenuPress(item)}
-                      className="flex-row items-center gap-4 px-6 py-3"
-                    >
-                      <View className="w-8 items-center">
-                        <Feather name={item.icon} size={22} color={colors.text} />
-                      </View>
-                      <AppText size="lg">{item.label}</AppText>
-                    </Pressable>
-                  ))}
+                  {menuItems.map((item) => {
+                    const badgeCount = item.route === "Network" ? pendingRequestsCount : 0;
+                    return (
+                      <Pressable
+                        key={item.label}
+                        accessibilityRole="button"
+                        onPress={() => handleMenuPress(item)}
+                        className="flex-row items-center gap-4 px-6 py-3"
+                      >
+                        <View className="w-8 items-center">
+                          <Feather name={item.icon} size={22} color={colors.text} />
+                        </View>
+                        <AppText size="lg" className="flex-1">
+                          {item.label}
+                        </AppText>
+                        {badgeCount > 0 ? (
+                          <View className="min-w-[20px] items-center rounded-full bg-red-500 px-1.5 py-0.5">
+                            <AppText size="xs" weight="bold" style={{ color: "#fff" }}>
+                              {badgeCount > 99 ? "99+" : badgeCount}
+                            </AppText>
+                          </View>
+                        ) : null}
+                      </Pressable>
+                    );
+                  })}
                 </View>
 
                 <View className="border-t border-border pt-2">

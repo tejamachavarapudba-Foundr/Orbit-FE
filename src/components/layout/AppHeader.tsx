@@ -8,6 +8,7 @@ import { ProfileMenuButton } from "@/components/layout/ProfileMenuButton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useNotifications } from "@/modules/notifications/hooks";
 import { NotificationBadge } from "@/modules/notifications/components/NotificationBadge";
+import { BELL_EXCLUDED_TYPES } from "@/modules/notifications/categories";
 import { iconSize } from "@/theme/designTokens";
 import type { Notification } from "@/modules/notifications/types";
 
@@ -16,7 +17,9 @@ export const AppHeader = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const { data: notifications } = useNotifications();
-  const unreadCount = (notifications ?? []).filter((item: Notification) => !item.isRead).length;
+  const unreadCount = (notifications ?? []).filter(
+    (item: Notification) => !item.isRead && !BELL_EXCLUDED_TYPES.has(item.type)
+  ).length;
 
   const showBackButton = [
     "Discover",

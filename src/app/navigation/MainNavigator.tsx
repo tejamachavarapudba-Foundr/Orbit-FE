@@ -14,6 +14,8 @@ import { ProjectsScreen } from "@/modules/project/screens/ProjectsScreen";
 import { useConnectionsStore } from "@/modules/connections/store";
 import { useChatStore } from "@/modules/chat/store";
 import { useAuthStore } from "@/modules/auth/store";
+import { useNotifications } from "@/modules/notifications/hooks";
+import { countUnreadByType, EVENT_NOTIFICATION_TYPES, JOB_NOTIFICATION_TYPES, PROJECT_NOTIFICATION_TYPES } from "@/modules/notifications/categories";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -33,13 +35,30 @@ const projectsTabIcon = ({ color, size }: TabIconProps) => (
   <Ionicons name="rocket-outline" size={size} color={color} />
 );
 
+const badgeOptions = (tabBarIcon: (props: TabIconProps) => JSX.Element, count: number, colors: { primary: string }) => {
+  const options: any = { tabBarIcon };
+  if (count > 0) {
+    options.tabBarBadge = count;
+    options.tabBarBadgeStyle = {
+      backgroundColor: colors.primary,
+      color: "#fff",
+      fontSize: 10,
+      height: 16,
+      minWidth: 16,
+      lineHeight: 14,
+      textAlign: "center",
+    };
+  }
+  return options;
+};
+
 export const MainNavigator = () => {
   const colors = useThemeTokens();
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const isInvestor = useAuthStore((state) => state.user?.profile?.role?.toLowerCase() === "investor");
 
-  // 1. Connection invitations counter
-  const incomingRequestsCount = useConnectionsStore((state) => state.incomingRequests.length);
+  // Connection invitations counter — shown on the "My network" menu item
+  // (ProfileMenuButton), not a tab, so it's loaded here but not used below.
   const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
 
   // Unread chats: has a last message, it wasn't sent by me, and it hasn't
@@ -54,8 +73,12 @@ export const MainNavigator = () => {
   );
   const loadChats = useChatStore((state) => state.loadChats);
 
-  // 3. 🟢 COMBINED FIXED ALERT BADGE MATRIX
-  const combinedMessageAlerts = unreadChatsCount + incomingRequestsCount;
+  // Projects/Jobs/Events each get their own badge now instead of
+  // everything piling into Messages — same split as orbit-web.
+  const { data: notifications } = useNotifications();
+  const projectsAlertCount = countUnreadByType(notifications ?? [], PROJECT_NOTIFICATION_TYPES);
+  const jobsAlertCount = countUnreadByType(notifications ?? [], JOB_NOTIFICATION_TYPES);
+  const eventsAlertCount = countUnreadByType(notifications ?? [], EVENT_NOTIFICATION_TYPES);
 
   useEffect(() => {
     if (currentUserId) {
@@ -94,29 +117,14 @@ export const MainNavigator = () => {
       <Tab.Screen
         name="Messages"
         component={ChatsScreen}
-        options={() => {
-          const options: any = {
-            tabBarIcon: tabIcon("message-square"),
-          };
-
-          if (combinedMessageAlerts > 0) {
-            options.tabBarBadge = combinedMessageAlerts;
-            options.tabBarBadgeStyle = {
-              backgroundColor: colors.primary,
-              color: "#fff",
-              fontSize: 10,
-              height: 16,
-              minWidth: 16,
-              lineHeight: 14,
-              textAlign: "center",
-            };
-          }
-
-          return options;
-        }}
+        options={badgeOptions(tabIcon("message-square"), unreadChatsCount, colors)}
       />
 
-      <Tab.Screen name="Projects" component={ProjectsScreen} options={{ tabBarIcon: projectsTabIcon }} />
+      <Tab.Screen
+        name="Projects"
+        component={ProjectsScreen}
+        options={badgeOptions(projectsTabIcon, projectsAlertCount, colors)}
+      />
       {isInvestor ? (
         <Tab.Screen
           name="Meetings"
@@ -124,9 +132,17 @@ export const MainNavigator = () => {
           options={{ title: "Meetings", tabBarIcon: tabIcon("video") }}
         />
       ) : (
-        <Tab.Screen name="Jobs" component={JobsScreen} options={{ tabBarIcon: tabIcon("briefcase") }} />
+        <Tab.Screen
+          name="Jobs"
+          component={JobsScreen}
+          options={badgeOptions(tabIcon("briefcase"), jobsAlertCount, colors)}
+        />
       )}
-      <Tab.Screen name="Events" component={EventsScreen} options={{ tabBarIcon: tabIcon("calendar") }} />
+      <Tab.Screen
+        name="Events"
+        component={EventsScreen}
+        options={badgeOptions(tabIcon("calendar"), eventsAlertCount, colors)}
+      />
     </Tab.Navigator>
   );
 };

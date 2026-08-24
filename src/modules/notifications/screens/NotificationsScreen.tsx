@@ -12,20 +12,27 @@ import { iconSize } from '@/theme/designTokens';
 import {
   useNotifications,
   useMarkNotificationRead,
-  useMarkAllNotificationsRead,
+  useMarkNotificationsRead,
 } from '../hooks';
 
 import { NotificationCard } from '../components/NotificationCard';
 import { NotificationEmptyState } from '../components/NotificationEmptyState';
+import { BELL_EXCLUDED_TYPES } from '../categories';
 import type { Notification } from '../types';
 
 export const NotificationsScreen = () => {
   const colors = useThemeTokens();
   const navigation = useNavigation<any>();
-  const { data = [], isLoading } = useNotifications();
+  const { data, isLoading } = useNotifications();
+  const notifications: Notification[] = data ?? [];
+
+  // Messages, projects, jobs, events and connection requests now have their
+  // own badge elsewhere — this screen only shows (and only marks read) what
+  // isn't already covered by one of those.
+  const visible: Notification[] = notifications.filter((item) => !BELL_EXCLUDED_TYPES.has(item.type));
 
   const markRead = useMarkNotificationRead();
-  const markAll = useMarkAllNotificationsRead();
+  const markVisibleRead = useMarkNotificationsRead();
   const hasAutoMarkedRef = useRef(false);
 
   // Clear the bell badge just by opening this screen, like most apps do,
@@ -34,11 +41,13 @@ export const NotificationsScreen = () => {
     if (hasAutoMarkedRef.current || isLoading) {
       return;
     }
-    if (data.some((item: Notification) => !item.isRead)) {
+    const unreadIds = visible.filter((item) => !item.isRead).map((item) => item.id);
+    if (unreadIds.length > 0) {
       hasAutoMarkedRef.current = true;
-      markAll.mutate();
+      markVisibleRead.mutate(unreadIds);
     }
-  }, [data, isLoading, markAll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifications, isLoading]);
 
   return (
     <AppScreen>
@@ -54,11 +63,15 @@ export const NotificationsScreen = () => {
         <AppText size="2xl" weight="bold">
           Notifications
         </AppText>
-        <AppButton label="Read All" size="sm" onPress={() => markAll.mutate()} />
+        <AppButton
+          label="Read All"
+          size="sm"
+          onPress={() => markVisibleRead.mutate(visible.filter((item) => !item.isRead).map((item) => item.id))}
+        />
       </View>
 
       <FlatList
-        data={data}
+        data={visible}
         keyExtractor={(item) => item.id}
         refreshing={isLoading}
         renderItem={({ item }) => (

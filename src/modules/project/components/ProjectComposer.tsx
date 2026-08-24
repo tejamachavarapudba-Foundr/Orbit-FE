@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { TextInput, View } from "react-native";
+import { Modal, Pressable, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
@@ -27,6 +28,7 @@ type ProjectComposerProps = {
 export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }: ProjectComposerProps) => {
   const colors = useThemeTokens();
   const [isExpanded, setIsExpanded] = useState(autoExpanded || Boolean(project));
+  const [showPitchTip, setShowPitchTip] = useState(true);
   const { values, setField, submit, isSubmitting, isEditing, canSubmit } = useProjectForm(project);
 
   const handleSubmit = async () => {
@@ -46,7 +48,36 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
   }
 
   return (
-    <Card className="mt-2">
+    <>
+      {showPitchTip && !isEditing ? (
+        <Modal visible transparent animationType="fade" onRequestClose={() => setShowPitchTip(false)}>
+          <View className="flex-1 items-center justify-center bg-black/40 px-6">
+            <View className="w-full max-w-sm items-center gap-3 rounded-lg bg-surface p-5">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-primary">
+                <Feather name="video" size={20} color="#fff" />
+              </View>
+              <AppText family="display" weight="semibold" size="lg">
+                Before you start
+              </AppText>
+              <AppText tone="muted" size="sm" className="text-center">
+                Make sure your pitch video is within 30–45 seconds — that&apos;s the sweet spot for investors to
+                quickly find your potential.
+              </AppText>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShowPitchTip(false)}
+                className="mt-1 w-full items-center rounded-md bg-primary py-3"
+              >
+                <AppText weight="semibold" style={{ color: "#fff" }}>
+                  Got it
+                </AppText>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      ) : null}
+
+      <Card className="mt-2">
       <CardContent className="gap-4 p-4">
         <View className="flex-row items-center justify-between">
           <AppText family="display" weight="semibold" size="lg">
@@ -188,6 +219,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           className="mt-1"
         />
       </CardContent>
-    </Card>
+      </Card>
+    </>
   );
 };
