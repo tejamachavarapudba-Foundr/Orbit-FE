@@ -27,23 +27,78 @@ type CommentsModalProps = {
   initialComments: Comment[];
 };
 
+type CommentRowProps = {
+  comment: Comment;
+  isReply: boolean;
+  isOwnComment: boolean;
+  isDeleting: boolean;
+  onReply: () => void;
+  onDelete: () => void;
+};
+
+const CommentRow = ({ comment, isReply, isOwnComment, isDeleting, onReply, onDelete }: CommentRowProps) => {
+  const authorName = comment.author?.fullName || `Member ${comment.authorId.slice(0, 8)}`;
+
+  return (
+    <View className={`flex-row gap-2 ${isReply ? "ml-9" : ""}`}>
+      <Avatar name={authorName} imageUrl={comment.author?.avatarUrl ?? ""} size="sm" fallback="mesh" />
+      <View className="min-w-0 flex-1">
+        <View className="rounded-lg bg-muted-bg px-3 py-2">
+          <View className="flex-row items-center justify-between gap-2">
+            <AppText size="xs" weight="medium">
+              {authorName}
+            </AppText>
+            {isOwnComment ? (
+              <Pressable accessibilityRole="button" disabled={isDeleting} onPress={onDelete}>
+                <AppText tone="danger" size="xs">
+                  {isDeleting ? "Deleting" : "Delete"}
+                </AppText>
+              </Pressable>
+            ) : null}
+          </View>
+          <AppText size="sm" className="mt-1 leading-relaxed">
+            {comment.content}
+          </AppText>
+        </View>
+        {!isReply ? (
+          <Pressable accessibilityRole="button" onPress={onReply} className="mt-1 self-start px-1 py-0.5">
+            <AppText tone="muted" size="xs" weight="medium">
+              Reply
+            </AppText>
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+};
+
 export const CommentsModal = ({ visible, onClose, postId, initialComments }: CommentsModalProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
   const {
     currentUserId,
-    comments,
+    threadedComments,
     isLoading,
     isSubmitting,
     deletingCommentId,
     errorMessage,
     draft,
     setDraft,
+    replyingTo,
+    startReply,
+    cancelReply,
     submitComment,
     deleteComment
   } = usePostComments(postId, initialComments);
 
   const emptyMessage = useMemo(() => (isLoading ? "Loading…" : "Be the first to comment on this post."), [isLoading]);
+
+  const confirmDeleteComment = (id: string) => {
+    Alert.alert("Delete comment", "Remove this comment from the post?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => void deleteComment(id) }
+    ]);
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
@@ -65,8 +120,8 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
             </View>
 
             <FlatList
-              data={comments}
-              keyExtractor={(item) => item.id}
+              data={threadedComments}
+              keyExtractor={(item) => item.comment.id}
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ padding: 16, gap: 12, flexGrow: 1 }}
               ListEmptyComponent={
@@ -74,53 +129,46 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
                   {emptyMessage}
                 </AppText>
               }
-              renderItem={({ item: comment }) => {
-                const authorName = comment.author?.fullName || `Member ${comment.authorId.slice(0, 8)}`;
-                const isOwnComment = currentUserId === comment.authorId;
-                const isDeleting = deletingCommentId === comment.id;
-
-                return (
-                  <View className="flex-row gap-2">
-                    <Avatar name={authorName} imageUrl={comment.author?.avatarUrl ?? ""} size="sm" fallback="mesh" />
-                    <View className="min-w-0 flex-1 rounded-lg bg-muted-bg px-3 py-2">
-                      <View className="flex-row items-center justify-between gap-2">
-                        <AppText size="xs" weight="medium">
-                          {authorName}
-                        </AppText>
-                        {isOwnComment ? (
-                          <Pressable
-                            accessibilityRole="button"
-                            disabled={isDeleting}
-                            onPress={() =>
-                              Alert.alert("Delete comment", "Remove this comment from the post?", [
-                                { text: "Cancel", style: "cancel" },
-                                {
-                                  text: "Delete",
-                                  style: "destructive",
-                                  onPress: () => void deleteComment(comment.id)
-                                }
-                              ])
-                            }
-                          >
-                            <AppText tone="danger" size="xs">
-                              {isDeleting ? "Deleting" : "Delete"}
-                            </AppText>
-                          </Pressable>
-                        ) : null}
-                      </View>
-                      <AppText size="sm" className="mt-1 leading-relaxed">
-                        {comment.content}
-                      </AppText>
-                    </View>
-                  </View>
-                );
-              }}
+              renderItem={({ item }) => (
+                <View className="gap-2">
+                  <CommentRow
+                    comment={item.comment}
+                    isReply={false}
+                    isOwnComment={currentUserId === item.comment.authorId}
+                    isDeleting={deletingCommentId === item.comment.id}
+                    onReply={() => startReply(item.comment)}
+                    onDelete={() => confirmDeleteComment(item.comment.id)}
+                  />
+                  {item.replies.map((reply) => (
+                    <CommentRow
+                      key={reply.id}
+                      comment={reply}
+                      isReply
+                      isOwnComment={currentUserId === reply.authorId}
+                      isDeleting={deletingCommentId === reply.id}
+                      onReply={() => startReply(item.comment)}
+                      onDelete={() => confirmDeleteComment(reply.id)}
+                    />
+                  ))}
+                </View>
+              )}
             />
 
             {errorMessage ? (
               <AppText tone="danger" size="sm" className="px-4">
                 {errorMessage}
               </AppText>
+            ) : null}
+
+            {replyingTo ? (
+              <View className="flex-row items-center justify-between border-t border-border bg-muted-bg px-4 py-2">
+                <AppText tone="muted" size="xs">
+                  Replying to <AppText size="xs" weight="semibold">{replyingTo.author?.fullName || "this comment"}</AppText>
+                </AppText>
+                <Pressable accessibilityRole="button" onPress={cancelReply} hitSlop={8}>
+                  <Feather name="x" size={16} color={colors.muted} />
+                </Pressable>
+              </View>
             ) : null}
 
             <View
@@ -130,14 +178,14 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
               <TextInput
                 value={draft}
                 onChangeText={setDraft}
-                placeholder="Write a comment…"
+                placeholder={replyingTo ? "Write a reply…" : "Write a comment…"}
                 placeholderTextColor={colors.muted}
                 selectionColor={colors.primary}
                 maxLength={1000}
                 className="min-h-[40px] flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm leading-5 text-text"
               />
               <AppButton
-                label="Send"
+                label={replyingTo ? "Reply" : "Send"}
                 size="sm"
                 loading={isSubmitting}
                 disabled={!draft.trim()}

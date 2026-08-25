@@ -14,7 +14,7 @@ type CommentState = {
   errorMessage: string | null;
   loadComments: (postId: string) => Promise<void>;
   refreshComments: (postId: string) => Promise<void>;
-  createComment: (postId: string, content: string) => Promise<boolean>;
+  createComment: (postId: string, content: string, parentId?: string) => Promise<boolean>;
   deleteComment: (id: string) => Promise<boolean>;
 };
 
@@ -62,7 +62,7 @@ export const useCommentStore = create<CommentState>((set) => ({
         });
       }
   },
-  createComment: async (postId, content) => {
+  createComment: async (postId, content, parentId) => {
     set((state) => ({
       errorMessage: null,
       isSubmittingByPostId: {
@@ -72,7 +72,7 @@ export const useCommentStore = create<CommentState>((set) => ({
     }));
 
     try {
-      const createdComment = await commentsApi.createComment({ postId, content });
+      const createdComment = await commentsApi.createComment({ postId, content, ...(parentId ? { parentId } : {}) });
       const currentProfile = useAuthStore.getState().user?.profile;
       const enrichedComment: Comment = {
         ...createdComment,

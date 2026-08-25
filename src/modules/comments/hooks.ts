@@ -44,26 +44,46 @@ export const usePostComments = (
   const [draft, setDraft] =
     useState("");
 
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+
     const comments = useCommentStore(
       state => state.comments,
   );
-  
+
   const postComments = useMemo(() => {
-  
+
       const liveComments =
           comments.filter(
               c => c.postId === postId,
           );
-  
+
       return liveComments.length > 0
           ? liveComments
           : initialComments;
-  
+
   }, [
       comments,
       initialComments,
       postId,
   ]);
+
+  // LinkedIn-style one level of nesting — replies attach under their parent,
+  // no reply-to-a-reply, so a flat two-pass split is all this needs.
+  const threadedComments = useMemo(() => {
+    const topLevel = postComments.filter((comment) => !comment.parentId);
+    return topLevel.map((comment) => ({
+      comment,
+      replies: postComments.filter((reply) => reply.parentId === comment.id)
+    }));
+  }, [postComments]);
+
+  const startReply = useCallback((comment: Comment) => {
+    setReplyingTo(comment);
+  }, []);
+
+  const cancelReply = useCallback(() => {
+    setReplyingTo(null);
+  }, []);
 
   const submitComment =
     useCallback(async () => {
@@ -77,10 +97,12 @@ export const usePostComments = (
         await createComment(
           postId,
           content,
+          replyingTo?.id,
         );
 
       if (didSucceed) {
         setDraft("");
+        setReplyingTo(null);
       }
 
       return didSucceed;
@@ -88,11 +110,13 @@ export const usePostComments = (
       createComment,
       draft,
       postId,
+      replyingTo,
     ]);
 
   return {
     currentUserId,
     comments: postComments,
+    threadedComments,
     commentsCount:
       postComments.length,
     isLoading,
@@ -101,6 +125,9 @@ export const usePostComments = (
     errorMessage,
     draft,
     setDraft,
+    replyingTo,
+    startReply,
+    cancelReply,
     submitComment,
     deleteComment,
   };
