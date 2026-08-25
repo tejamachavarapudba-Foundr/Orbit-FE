@@ -1,33 +1,38 @@
 import { memo, useCallback, useState } from "react";
 import { Alert, Linking, Pressable, Share, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
-import { Badge } from "@/components/ui/Badge";
 import { CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { CommentsModal } from "@/modules/comments/components/CommentsModal";
 import { usePostComments } from "@/modules/comments/hooks";
+import { useFollowAction } from "@/modules/follows/hooks";
+import { FollowProfile } from "@/modules/follows/types";
 import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
 import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
 import { PostOverflowMenu } from "@/modules/post/components/PostOverflowMenu";
+import { postApi } from "@/modules/post/api";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { FullPhotoModal } from "@/components/ui/FullPhotoModal";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
-import { iconSize, toBadgeCategory } from "@/theme/designTokens";
+import { iconSize } from "@/theme/designTokens";
+import { useToastStore } from "@/store/toastStore";
 
 type PostCardProps = {
   post: Post;
 };
 
 const actionHitSlop = { top: 8, bottom: 8, left: 8, right: 8 };
+const POST_LINK_BASE = "https://startuphouze.com/p";
 
 const formatRelativeTime = (date: string) => {
   const diffMs = Date.now() - new Date(date).getTime();
@@ -41,11 +46,34 @@ const formatRelativeTime = (date: string) => {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(date));
 };
 
+// The follow store only reads .id/.fullName off this — the rest is display
+// data for its own local "following" list, so blanks here are harmless.
+const toFollowProfile = (author: Post["author"]): FollowProfile => ({
+  id: author.id,
+  fullName: author.fullName,
+  headline: author.headline,
+  bio: "",
+  role: "",
+  location: "",
+  company: "",
+  website: "",
+  linkedinUrl: "",
+  skills: [],
+  lookingFor: [],
+  openToConnect: false,
+  avatarUrl: author.avatarUrl,
+  createdAt: "",
+  updatedAt: ""
+});
+
 export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
   const openUserProfile = useOpenUserProfile();
+  const showToast = useToastStore((state) => state.show);
   const [showFullPhoto, setShowFullPhoto] = useState(false);
-  const { currentUserId, isSubmitting, updatePost, deletePost } = usePostActions();
+  const [isHidden, setIsHidden] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const { isSubmitting, updatePost, deletePost } = usePostActions();
   const {
     likesCount,
     isLikedByMe,
@@ -55,26 +83,22 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     post.id,
     post.likes,
   );
-  
+
   const { commentsCount } = usePostComments(post.id, post.comments);
   const isSaved = useSavedPostsStore((state) => state.savedPostIds.has(post.id));
   const toggleSaved = useSavedPostsStore((state) => state.toggleSaved);
+  const { isSelf: isOwnPost, isFollowing, isStatusLoading, isMutating: isFollowMutating, toggleFollow } = useFollowAction(
+    toFollowProfile(post.author)
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [draftContent, setDraftContent] = useState(post.content);
   const [draftCategory, setDraftCategory] = useState<PostCategory>(
     postCategoryOptions.some((option) => option.value === post.category) ? (post.category as PostCategory) : "Update"
   );
-  const isOwnPost = currentUserId === post.author?.id;
   const authorName = post.author?.fullName ??  "Unknown";
   const authorRole = post.author?.headline ??  "";
 
-  const categoryLabel =
-  postCategoryOptions.find(
-    option => option.value === post.category
-  )?.label ?? post.category;
-
-  const categoryBadge = toBadgeCategory(post.category);
   const hasMedia = post.media && post.media.length > 0;
   const submitEdit = useCallback(async () => {
     const didSucceed = await updatePost(post.id, {
@@ -102,6 +126,44 @@ export const PostCard = memo(({ post }: PostCardProps) => {
       url: post.linkUrl || undefined
     });
   }, [post.content, post.linkUrl]);
+
+  const copyLink = useCallback(async () => {
+    await Clipboard.setStringAsync(`${POST_LINK_BASE}/${post.id}`);
+    showToast({ title: "Link copied to clipboard", type: "success" });
+  }, [post.id, showToast]);
+
+  const markNotInterested = useCallback(() => {
+    setIsHidden(true);
+    void postApi.markNotInterested(post.id).catch(() => {
+      setIsHidden(false);
+      showToast({ title: "Couldn't hide that post — try again.", type: "error" });
+    });
+  }, [post.id, showToast]);
+
+  const reportPost = useCallback(() => {
+    if (hasReported) return;
+    Alert.alert("Report post", "Let us know what's wrong with this post.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Report",
+        style: "destructive",
+        onPress: () => {
+          setHasReported(true);
+          void postApi
+            .reportPost(post.id, "")
+            .then(() => showToast({ title: "Thanks — we'll take a look.", type: "success" }))
+            .catch(() => {
+              setHasReported(false);
+              showToast({ title: "Couldn't report that post — try again.", type: "error" });
+            });
+        }
+      }
+    ]);
+  }, [hasReported, post.id, showToast]);
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <View className="bg-card">
@@ -132,19 +194,29 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               {formatRelativeTime(post.createdAt)}
             </AppText>
           </Pressable>
-          <View className="absolute right-0 top-0 flex-row items-center gap-1">
-            {categoryBadge ? (
-              <Badge label={categoryLabel} variant="outline" category={categoryBadge} />
-            ) : (
-              <Badge label={categoryLabel} variant="outline" />
-            )}
+          <View className="absolute right-0 top-0 flex-row items-center gap-1.5">
+            {!isOwnPost && !isFollowing && !isStatusLoading ? (
+              <Pressable
+                accessibilityRole="button"
+                disabled={isFollowMutating}
+                onPress={() => void toggleFollow()}
+                hitSlop={actionHitSlop}
+                className="h-7 flex-row items-center gap-1 rounded-full border border-primary px-2.5"
+              >
+                <Feather name="plus" size={12} color={colors.primary} />
+                <AppText tone="primary" size="xs" weight="semibold">
+                  Follow
+                </AppText>
+              </Pressable>
+            ) : null}
             {!isEditing ? (
               <PostOverflowMenu
-                isSaved={isSaved}
-                onToggleSave={() => void toggleSaved(post.id)}
                 isOwnPost={isOwnPost}
+                onCopyLink={() => void copyLink()}
                 onEdit={() => setIsEditing(true)}
                 onDelete={confirmDelete}
+                onNotInterested={markNotInterested}
+                onReport={reportPost}
               />
             ) : null}
           </View>
@@ -213,7 +285,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
         {!isEditing ? (
           <>
-            <View className="flex-row items-center justify-between border-t border-border pt-1">
+            <View className="flex-row items-center justify-between pt-1">
               <Pressable
                 accessibilityRole="button"
                 disabled={isMutating}
@@ -249,6 +321,19 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 <Feather name="send" size={iconSize.md} color={colors.text} />
                 <AppText size="sm" weight="medium">
                   Share
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => void toggleSaved(post.id)}
+                hitSlop={actionHitSlop}
+                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+                accessibilityLabel={isSaved ? "Remove from saved" : "Save post"}
+              >
+                <Feather name="bookmark" size={iconSize.md} color={isSaved ? colors.primary : colors.text} />
+                <AppText size="sm" weight="medium" tone={isSaved ? "primary" : "default"}>
+                  Save
                 </AppText>
               </Pressable>
             </View>

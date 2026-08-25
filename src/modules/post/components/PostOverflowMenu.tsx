@@ -14,25 +14,32 @@ type MenuAction = {
 };
 
 type PostOverflowMenuProps = {
-  isSaved: boolean;
-  onToggleSave: () => void;
   isOwnPost: boolean;
+  onCopyLink: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onNotInterested?: () => void;
+  onReport?: () => void;
 };
 
-export const PostOverflowMenu = ({ isSaved, onToggleSave, isOwnPost, onEdit, onDelete }: PostOverflowMenuProps) => {
+export const PostOverflowMenu = ({ isOwnPost, onCopyLink, onEdit, onDelete, onNotInterested, onReport }: PostOverflowMenuProps) => {
   const colors = useThemeTokens();
   const [isOpen, setIsOpen] = useState(false);
   const close = () => setIsOpen(false);
 
-  const actions: MenuAction[] = [
-    { label: isSaved ? "Remove from saved" : "Save", icon: "bookmark", onPress: () => (close(), onToggleSave()) },
-    ...(isOwnPost && onEdit ? [{ label: "Edit post", icon: "edit-2" as const, onPress: () => (close(), onEdit()) }] : []),
-    ...(isOwnPost && onDelete
-      ? [{ label: "Delete post", icon: "trash-2" as const, onPress: () => (close(), onDelete()), destructive: true }]
-      : []),
-  ];
+  const actions: MenuAction[] = isOwnPost
+    ? [
+        { label: "Copy link", icon: "link", onPress: () => (close(), onCopyLink()) },
+        ...(onEdit ? [{ label: "Edit post", icon: "edit-2" as const, onPress: () => (close(), onEdit()) }] : []),
+        ...(onDelete ? [{ label: "Delete post", icon: "trash-2" as const, onPress: () => (close(), onDelete()), destructive: true }] : []),
+      ]
+    : [
+        { label: "Copy link", icon: "link", onPress: () => (close(), onCopyLink()) },
+        ...(onNotInterested
+          ? [{ label: "Not interested", icon: "eye-off" as const, onPress: () => (close(), onNotInterested()) }]
+          : []),
+        ...(onReport ? [{ label: "Report post", icon: "flag" as const, onPress: () => (close(), onReport()), destructive: true }] : []),
+      ];
 
   return (
     <View>

@@ -90,5 +90,13 @@ const response =
   toggleSavePost: async (id: string) => {
     const response = await apiClient.post<{ saved: boolean }>(`/posts/${id}/save`);
     return response.data;
+  },
+  markNotInterested: async (id: string) => {
+    const response = await apiClient.post<{ notInterested: boolean }>(`/posts/${id}/not-interested`);
+    return response.data;
+  },
+  reportPost: async (id: string, reason: string) => {
+    const response = await apiClient.post<{ reported: boolean }>(`/posts/${id}/report`, { reason });
+    return response.data;
   }
 };

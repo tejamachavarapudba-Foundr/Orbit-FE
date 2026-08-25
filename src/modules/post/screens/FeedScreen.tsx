@@ -16,18 +16,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
-import { ChipFilterRow } from "@/components/ui/ChipFilterRow";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileMenuButton } from "@/components/layout/ProfileMenuButton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
-import { ComposerPromptCard } from "@/modules/post/components/ComposerPromptCard";
 import { PostCard } from "@/modules/post/components/PostCard";
 import { PostComposerModal } from "@/modules/post/components/PostComposerModal";
 import { PostSkeletonList } from "@/modules/post/components/PostSkeletonList";
 import { useFeedVisibilityStore } from "@/modules/post/feedVisibilityStore";
-import { postFilterOptions, useFeed } from "@/modules/post/hooks";
-import { Post, PostCategory } from "@/modules/post/types";
+import { useFeed } from "@/modules/post/hooks";
+import { Post } from "@/modules/post/types";
 
 const HEADER_HEIGHT = 52;
 const SCROLL_DELTA_THRESHOLD = 8;
@@ -46,14 +44,12 @@ export const FeedScreen = () => {
   const {
     posts,
     hasMore,
-    activeCategory,
     isLoading,
     isRefreshing,
     errorMessage,
     loadPosts,
     refreshPosts,
     loadMore,
-    setActiveCategory,
   } = useFeed();
 
   const openComposer = useCallback(() => {
@@ -183,28 +179,15 @@ export const FeedScreen = () => {
           onViewableItemsChanged={onViewableItemsChanged}
           contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top, paddingBottom: 32 }}
           ListHeaderComponent={
-            <View>
-              {user ? (
-                <ComposerPromptCard onPress={openComposer} />
-              ) : (
-                <Card className="mx-4 mt-3">
-                  <CardContent className="py-4">
-                    <AppText tone="muted" size="sm">
-                      Sign in to share an update.
-                    </AppText>
-                  </CardContent>
-                </Card>
-              )}
-
-              <View className="py-3">
-                <ChipFilterRow
-                  value={activeCategory}
-                  options={postFilterOptions}
-                  onChange={(value) => setActiveCategory(value as PostCategory | "all")}
-                  accessibilityLabel="Filter feed by category"
-                />
-              </View>
-            </View>
+            !user ? (
+              <Card className="mx-4 mt-3 mb-1">
+                <CardContent className="py-4">
+                  <AppText tone="muted" size="sm">
+                    Sign in to share an update.
+                  </AppText>
+                </CardContent>
+              </Card>
+            ) : null
           }
           ListEmptyComponent={
             isLoading ? (
