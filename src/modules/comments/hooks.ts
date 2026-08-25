@@ -50,6 +50,10 @@ export const usePostComments = (
       state => state.comments,
   );
 
+  // Merge, don't replace — `comments` only holds what THIS session created
+  // (via createComment), never a full server fetch. Switching to it whenever
+  // it's non-empty threw away every other commenter's comment the instant
+  // you posted your own.
   const postComments = useMemo(() => {
 
       const liveComments =
@@ -57,9 +61,10 @@ export const usePostComments = (
               c => c.postId === postId,
           );
 
-      return liveComments.length > 0
-          ? liveComments
-          : initialComments;
+      const liveIds = new Set(liveComments.map((c) => c.id));
+      const baseline = initialComments.filter((c) => !liveIds.has(c.id));
+
+      return [...baseline, ...liveComments];
 
   }, [
       comments,

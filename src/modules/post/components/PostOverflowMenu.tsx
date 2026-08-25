@@ -54,9 +54,13 @@ export const PostOverflowMenu = ({ isOwnPost, onCopyLink, onEdit, onDelete, onNo
       </Pressable>
 
       {isOpen ? (
-        <Modal visible transparent animationType="fade" onRequestClose={close}>
+        <Modal visible transparent animationType="slide" statusBarTranslucent onRequestClose={close}>
           <Pressable accessibilityRole="button" className="flex-1 justify-end bg-black/30" onPress={close}>
-            <Pressable className="rounded-t-2xl border border-border bg-surface pb-6 pt-2">
+            <Pressable
+              onPress={(event) => event.stopPropagation()}
+              className="w-full rounded-t-2xl border border-border pb-6 pt-2"
+              style={{ backgroundColor: colors.surface }}
+            >
               <View className="mb-2 items-center py-2">
                 <View className="h-1 w-10 rounded-full bg-border" />
               </View>

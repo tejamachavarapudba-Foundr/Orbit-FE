@@ -4,6 +4,7 @@ import { Modal, Pressable, View } from "react-native";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
 
 type ConnectionRequestModalProps = {
   visible: boolean;
@@ -20,6 +21,7 @@ export const ConnectionRequestModal = ({
   onClose,
   onSubmit
 }: ConnectionRequestModalProps) => {
+  const colors = useThemeTokens();
   const [note, setNote] = useState("");
 
   const handleSubmit = async () => {
@@ -30,9 +32,13 @@ export const ConnectionRequestModal = ({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
-        <Pressable className="rounded-t-2xl bg-surface p-5" onPress={(event) => event.stopPropagation()}>
+        <Pressable
+          className="w-full rounded-t-2xl p-5"
+          style={{ backgroundColor: colors.surface }}
+          onPress={(event) => event.stopPropagation()}
+        >
           <AppText size="lg" weight="bold">
             Add a note (optional)
           </AppText>

@@ -238,6 +238,24 @@ export const PostCard = memo(({ post }: PostCardProps) => {
         </View>
       </View>
 
+      {!isEditing ? (
+        <View className="gap-3 px-4 pt-2">
+          <ExpandableCaption text={post.content} />
+          {post.linkUrl ? (
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => void Linking.openURL(post.linkUrl)}
+              className="flex-row items-center gap-2 rounded-lg border border-border bg-muted-bg p-3"
+            >
+              <Feather name="link" size={iconSize.md} color={colors.muted} />
+              <AppText size="sm" className="flex-1" numberOfLines={1}>
+                {post.linkUrl}
+              </AppText>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+
       {!isEditing && hasMedia ? (
         <View className="mt-3 w-full">
           <PostMediaCarousel postId={post.id} media={post.media} />
@@ -280,23 +298,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               <AppButton label="Cancel" variant="outline" onPress={() => setIsEditing(false)} className="flex-1" size="default" />
             </View>
           </View>
-        ) : (
-          <>
-            <ExpandableCaption text={post.content} />
-            {post.linkUrl ? (
-              <Pressable
-                accessibilityRole="link"
-                onPress={() => void Linking.openURL(post.linkUrl)}
-                className="flex-row items-center gap-2 rounded-lg border border-border bg-muted-bg p-3"
-              >
-                <Feather name="link" size={iconSize.md} color={colors.muted} />
-                <AppText size="sm" className="flex-1" numberOfLines={1}>
-                  {post.linkUrl}
-                </AppText>
-              </Pressable>
-            ) : null}
-          </>
-        )}
+        ) : null}
 
         {!isEditing ? (
           <>
@@ -361,9 +363,13 @@ export const PostCard = memo(({ post }: PostCardProps) => {
         <FullPhotoModal visible={showFullPhoto} imageUrl={post.author.avatarUrl} onClose={() => setShowFullPhoto(false)} />
       ) : null}
       {showUnfollowConfirm ? (
-        <Modal visible transparent animationType="fade" onRequestClose={() => setShowUnfollowConfirm(false)}>
+        <Modal visible transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowUnfollowConfirm(false)}>
           <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setShowUnfollowConfirm(false)}>
-            <Pressable className="rounded-t-2xl bg-surface p-5" onPress={(event) => event.stopPropagation()}>
+            <Pressable
+              className="w-full rounded-t-2xl p-5"
+              style={{ backgroundColor: colors.surface }}
+              onPress={(event) => event.stopPropagation()}
+            >
               <View className="mb-3 items-center">
                 <View className="h-1 w-10 rounded-full bg-border" />
               </View>
