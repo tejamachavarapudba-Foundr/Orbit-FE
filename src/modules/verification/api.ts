@@ -1,6 +1,7 @@
 import { apiClient } from "@/services/api/client";
 import {
   PendingFounderVerification,
+  PublicVerificationStatus,
   SubmitFounderVerificationPayload,
   VerificationStatus
 } from "@/modules/verification/types";
@@ -10,6 +11,10 @@ type UploadResult = { url: string; path: string };
 export const verificationApi = {
   getStatus: async () => {
     const response = await apiClient.get<VerificationStatus>("/verification/status");
+    return response.data;
+  },
+  getPublicStatus: async (profileId: string) => {
+    const response = await apiClient.get<PublicVerificationStatus>(`/verification/status/${profileId}`);
     return response.data;
   },
   getIdentityUrl: async () => {

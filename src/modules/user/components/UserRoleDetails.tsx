@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
@@ -7,6 +7,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ROLE_LABEL, normalizeMemberRole } from "@/constants/memberRoles";
 import { AuthProfile } from "@/modules/auth/types";
 import { Certification, formatExperienceTimeline, WorkExperience } from "@/modules/profile/schemas/experience";
+import { verificationApi } from "@/modules/verification/api";
 import { iconSize } from "@/theme/designTokens";
 
 type UserRoleDetailsProps = {
@@ -57,18 +58,26 @@ const ExperienceList = ({ experiences }: { experiences: WorkExperience[] | undef
   );
 };
 
-const CertificationList = ({ certifications }: { certifications: Certification[] | undefined }) => {
+// Certifications get a visually distinct, highlighted card when the role is
+// verified — the whole point is to be easy to spot against an unverified
+// profile at a glance, not just another plain list row.
+const CertificationList = ({ certifications, isVerified }: { certifications: Certification[] | undefined; isVerified: boolean }) => {
   const colors = useThemeTokens();
   const items = (certifications ?? []).filter((entry) => entry.name.trim());
-  if (!items.length) {
+  if (!items.length && !isVerified) {
     return null;
   }
 
   return (
-    <View className="gap-2 py-3">
-      <AppText tone="muted" size="sm">
-        Certifications
-      </AppText>
+    <View
+      className={`gap-2 rounded-md p-3 ${isVerified ? "border border-primary/40 bg-primary/5" : "py-3"}`}
+    >
+      <View className="flex-row items-center gap-1.5">
+        {isVerified ? <Feather name="shield" size={iconSize.sm} color={colors.primary} /> : null}
+        <AppText tone={isVerified ? "primary" : "muted"} weight={isVerified ? "semibold" : "medium"} size="sm">
+          {isVerified ? "Verified — Certifications" : "Certifications"}
+        </AppText>
+      </View>
       {items.map((entry, index) => (
         <Pressable
           key={index}
@@ -87,9 +96,48 @@ const CertificationList = ({ certifications }: { certifications: Certification[]
   );
 };
 
+const VerifiedRoleBadge = () => {
+  const colors = useThemeTokens();
+  return (
+    <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5">
+      <Feather name="check-circle" size={12} color={colors.primary} />
+      <AppText tone="primary" size="xs" weight="semibold">
+        Verified
+      </AppText>
+    </View>
+  );
+};
+
 export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   const memberRole = normalizeMemberRole(profile.role);
   const roleProfile = profile.roleProfile;
+
+  const [isRoleVerified, setIsRoleVerified] = useState(false);
+
+  useEffect(() => {
+    if (!profile.id || !memberRole || memberRole === "founder") return;
+    let cancelled = false;
+    void verificationApi
+      .getPublicStatus(profile.id)
+      .then((status) => {
+        if (cancelled) return;
+        const verified =
+          memberRole === "investor"
+            ? status.investorVerified
+            : memberRole === "professional"
+              ? status.professionalVerified
+              : memberRole === "advisor"
+                ? status.advisorVerified
+                : memberRole === "service_provider"
+                  ? status.serviceProviderVerified
+                  : false;
+        setIsRoleVerified(verified);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.id, memberRole]);
 
   if (!memberRole || !roleProfile || roleProfile.role !== memberRole) {
     return null;
@@ -113,7 +161,7 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   if (memberRole === "investor" && roleProfile.role === "investor") {
     const data = roleProfile.data;
     return (
-      <ProfileSection title={title}>
+      <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Fund" value={data.fundName || profile.company} />
         <DetailRow label="Investment range" value={data.investmentRange} />
         <DetailRow label="Industries" value={toCsv(data.industries)} />
@@ -126,13 +174,13 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   if (memberRole === "advisor" && roleProfile.role === "advisor") {
     const data = roleProfile.data;
     return (
-      <ProfileSection title={title}>
+      <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Expertise" value={toCsv(data.expertise)} />
         <DetailRow label="Experience" value={data.yearsExperience} />
         <DetailRow label="Industries" value={toCsv(data.industries)} />
         <DetailRow label="Mentorship" value={toCsv(data.mentorshipAreas)} />
         <ExperienceList experiences={data.experiences} />
-        <CertificationList certifications={data.certifications} />
+        <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />
       </ProfileSection>
     );
   }
@@ -140,12 +188,12 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   if (memberRole === "professional" && roleProfile.role === "professional") {
     const data = roleProfile.data;
     return (
-      <ProfileSection title={title}>
+      <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Skills" value={toCsv(data.skills.length ? data.skills : profile.skills)} />
         <DetailRow label="Level" value={data.experienceLevel} />
         <DetailRow label="Portfolio" value={data.portfolio} />
         <ExperienceList experiences={data.experiences} />
-        <CertificationList certifications={data.certifications} />
+        <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />
       </ProfileSection>
     );
   }
@@ -153,7 +201,7 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   if (memberRole === "service_provider" && roleProfile.role === "service_provider") {
     const data = roleProfile.data;
     return (
-      <ProfileSection title={title}>
+      <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Company" value={data.company || profile.company} />
         <DetailRow label="Services" value={toCsv(data.services)} />
         <DetailRow label="Client industries" value={toCsv(data.clientIndustries)} />
@@ -164,9 +212,12 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   return null;
 };
 
-const ProfileSection = ({ title, children }: { title: string; children: ReactNode }) => (
+const ProfileSection = ({ title, isVerified, children }: { title: string; isVerified?: boolean; children: ReactNode }) => (
   <View className="rounded-md border border-border bg-surface p-4">
-    <AppText weight="bold">{title}</AppText>
+    <View className="flex-row items-center gap-2">
+      <AppText weight="bold">{title}</AppText>
+      {isVerified ? <VerifiedRoleBadge /> : null}
+    </View>
     <View className="mt-2">{children}</View>
   </View>
 );

@@ -93,6 +93,23 @@ const ExperienceEditor = ({
     onChange(experiences.filter((_, i) => i !== index));
   };
 
+  // Only one experience can be "current" at a time — checking it here
+  // unchecks it everywhere else, and moves this entry to the front, which
+  // is what the "Current / most recent" label on index 0 already assumes.
+  const toggleCurrent = (index: number) => {
+    const target = experiences[index];
+    if (!target) return;
+
+    if (target.isCurrent) {
+      updateEntry(index, { isCurrent: false });
+      return;
+    }
+
+    const current: WorkExperience = { ...target, isCurrent: true, endDate: "" };
+    const rest = experiences.filter((_, i) => i !== index).map((entry) => ({ ...entry, isCurrent: false }));
+    onChange([current, ...rest]);
+  };
+
   return (
     <View className="gap-3">
       <AppText size="sm" weight="medium">
@@ -104,7 +121,7 @@ const ExperienceEditor = ({
           <CardContent className="gap-3 p-4">
             <View className="flex-row items-center justify-between">
               <AppText size="sm" tone="muted">
-                {index === 0 ? "Current / most recent" : `Experience ${index + 1}`}
+                {entry.isCurrent ? "Current" : index === 0 ? "Most recent" : `Experience ${index + 1}`}
               </AppText>
               <Pressable accessibilityRole="button" onPress={() => removeEntry(index)} hitSlop={8}>
                 <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
@@ -126,15 +143,10 @@ const ExperienceEditor = ({
               value={entry.location}
               onChangeText={(v) => updateEntry(index, { location: v })}
             />
-            <MonthYearPicker
-              label="Start date"
-              value={entry.startDate}
-              onChange={(v) => updateEntry(index, { startDate: v })}
-            />
             <Pressable
               accessibilityRole="checkbox"
               accessibilityState={{ checked: entry.isCurrent }}
-              onPress={() => updateEntry(index, { isCurrent: !entry.isCurrent, endDate: "" })}
+              onPress={() => toggleCurrent(index)}
               className="flex-row items-center gap-2"
             >
               <Feather
@@ -144,6 +156,11 @@ const ExperienceEditor = ({
               />
               <AppText size="sm">I currently work here</AppText>
             </Pressable>
+            <MonthYearPicker
+              label="Start date"
+              value={entry.startDate}
+              onChange={(v) => updateEntry(index, { startDate: v })}
+            />
             {!entry.isCurrent ? (
               <MonthYearPicker
                 label="End date"
@@ -288,9 +305,16 @@ export const RoleVerificationScreen = () => {
   const [certifications, setCertifications] = useState<Certification[]>(
     ((roleData as { certifications?: Certification[] })?.certifications ?? []) as Certification[]
   );
-  const [spCompany, setSpCompany] = useState((roleData as { company?: string })?.company ?? "");
-  const [spWebsite, setSpWebsite] = useState((roleData as { website?: string })?.website ?? "");
-  const [spLinkedin, setSpLinkedin] = useState((roleData as { companyLinkedinUrl?: string })?.companyLinkedinUrl ?? "");
+  // Onboarding's Quick Profile step already collects company/website/LinkedIn
+  // for service providers (mapped to the shared profile fields) — falling
+  // back to those here means this screen isn't asking the user to re-enter
+  // the same details a second time from blank, which looked like "onboarding
+  // details aren't carrying over" even though they were saved correctly.
+  const [spCompany, setSpCompany] = useState((roleData as { company?: string })?.company || normalized?.company || "");
+  const [spWebsite, setSpWebsite] = useState((roleData as { website?: string })?.website || normalized?.website || "");
+  const [spLinkedin, setSpLinkedin] = useState(
+    (roleData as { companyLinkedinUrl?: string })?.companyLinkedinUrl || normalized?.linkedinUrl || ""
+  );
 
   const copy = {
     investor: {

@@ -1,4 +1,4 @@
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
@@ -38,9 +38,13 @@ export const SettingsScreen = () => {
   };
 
   return (
-    <AppScreen withHorizontalPadding={false}>
+    <AppScreen withHorizontalPadding={false} edges={["top", "left", "right", "bottom"]}>
       <AppHeader />
-      <View className="flex-1 px-5 pt-6">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1 px-5 pt-6"
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <AppText family="display" size="2xl" weight="bold" className="mb-6">
           Settings
         </AppText>
@@ -86,7 +90,7 @@ export const SettingsScreen = () => {
         </Card>
 
         <AppButton label="Sign out" variant="outline" onPress={handleLogout} className="mt-4" />
-      </View>
+      </ScrollView>
     </AppScreen>
   );
 };
