@@ -87,7 +87,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const { commentsCount } = usePostComments(post.id, post.comments);
   const isSaved = useSavedPostsStore((state) => state.savedPostIds.has(post.id));
   const toggleSaved = useSavedPostsStore((state) => state.toggleSaved);
-  const { isSelf: isOwnPost, isFollowing, isStatusLoading, isMutating: isFollowMutating, toggleFollow } = useFollowAction(
+  const { isSelf: isOwnPost, isFollowing, isMutating: isFollowMutating, toggleFollow } = useFollowAction(
     toFollowProfile(post.author)
   );
   const [isEditing, setIsEditing] = useState(false);
@@ -208,7 +208,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             </AppText>
           </Pressable>
           <View className="absolute right-0 top-0 flex-row items-center gap-1.5">
-            {!isOwnPost && !isStatusLoading ? (
+            {!isOwnPost ? (
               <Pressable
                 accessibilityRole="button"
                 disabled={isFollowMutating}
@@ -300,13 +300,13 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
         {!isEditing ? (
           <>
-            <View className="flex-row items-center justify-between pt-1">
+            <View className="flex-row items-center pt-1">
               <Pressable
                 accessibilityRole="button"
                 disabled={isMutating}
                 onPress={() => void toggleLike()}
                 hitSlop={actionHitSlop}
-                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+                className="h-9 flex-row items-center gap-1.5 rounded-md px-2"
               >
                 <Feather name="thumbs-up" size={iconSize.md} color={isLikedByMe ? colors.primary : colors.text} />
                 <AppText size="sm" weight="medium" tone={isLikedByMe ? "primary" : "default"}>
@@ -318,7 +318,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 accessibilityRole="button"
                 onPress={() => setShowComments(true)}
                 hitSlop={actionHitSlop}
-                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+                className="h-9 flex-row items-center gap-1.5 rounded-md px-2"
               >
                 <Feather name="message-circle" size={iconSize.md} color={colors.text} />
                 <AppText size="sm" weight="medium">
@@ -330,26 +330,22 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 accessibilityRole="button"
                 onPress={() => void sharePost()}
                 hitSlop={actionHitSlop}
-                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+                className="h-9 w-9 items-center justify-center rounded-md"
                 accessibilityLabel="Share post"
               >
                 <Feather name="send" size={iconSize.md} color={colors.text} />
-                <AppText size="sm" weight="medium">
-                  Share
-                </AppText>
               </Pressable>
+
+              <View className="flex-1" />
 
               <Pressable
                 accessibilityRole="button"
                 onPress={() => void toggleSaved(post.id)}
                 hitSlop={actionHitSlop}
-                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+                className="h-9 w-9 items-center justify-center rounded-md"
                 accessibilityLabel={isSaved ? "Remove from saved" : "Save post"}
               >
                 <Feather name="bookmark" size={iconSize.md} color={isSaved ? colors.primary : colors.text} />
-                <AppText size="sm" weight="medium" tone={isSaved ? "primary" : "default"}>
-                  Save
-                </AppText>
               </Pressable>
             </View>
             <CommentsModal
