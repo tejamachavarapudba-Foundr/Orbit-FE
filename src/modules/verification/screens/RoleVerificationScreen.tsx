@@ -10,6 +10,7 @@ import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Card, CardContent } from "@/components/ui/Card";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { iconSize } from "@/theme/designTokens";
 import { MainStackParamList } from "@/app/navigation/types";
@@ -22,13 +23,58 @@ import {
   emptyProfessionalProfile,
   emptyServiceProviderProfile
 } from "@/modules/profile/schemas";
-import { Certification, emptyCertification, emptyWorkExperience, WorkExperience } from "@/modules/profile/schemas/experience";
+import {
+  Certification,
+  emptyCertification,
+  emptyWorkExperience,
+  MONTH_OPTIONS,
+  WorkExperience,
+  YEAR_OPTIONS
+} from "@/modules/profile/schemas/experience";
 import { UpdateProfilePayload } from "@/modules/profile/types";
 import { useToastStore } from "@/store/toastStore";
 import { useVerificationStatus } from "@/modules/verification/hooks";
 import { verificationApi } from "@/modules/verification/api";
 
 type RoleVerificationRoute = RouteProp<MainStackParamList, "RoleVerification">;
+
+const MonthYearPicker = ({
+  label,
+  value,
+  onChange
+}: {
+  label: string;
+  value: string; // "YYYY-MM"
+  onChange: (value: string) => void;
+}) => {
+  const [year, month] = value.split("-");
+
+  return (
+    <View className="gap-2">
+      <AppText size="sm" weight="medium">
+        {label}
+      </AppText>
+      <View className="flex-row gap-2">
+        <View className="flex-1">
+          <Dropdown
+            value={month ?? ""}
+            options={MONTH_OPTIONS}
+            placeholder="Month"
+            onChange={(m) => onChange(`${year ?? ""}-${m}`)}
+          />
+        </View>
+        <View className="flex-1">
+          <Dropdown
+            value={year ?? ""}
+            options={YEAR_OPTIONS}
+            placeholder="Year"
+            onChange={(y) => onChange(`${y}-${month ?? ""}`)}
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
 
 const ExperienceEditor = ({
   experiences,
@@ -80,12 +126,31 @@ const ExperienceEditor = ({
               value={entry.location}
               onChangeText={(v) => updateEntry(index, { location: v })}
             />
-            <AppTextInput
-              label="Timeline"
-              value={entry.timeline}
-              onChangeText={(v) => updateEntry(index, { timeline: v })}
-              placeholder="e.g. Jan 2022 - Present"
+            <MonthYearPicker
+              label="Start date"
+              value={entry.startDate}
+              onChange={(v) => updateEntry(index, { startDate: v })}
             />
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: entry.isCurrent }}
+              onPress={() => updateEntry(index, { isCurrent: !entry.isCurrent, endDate: "" })}
+              className="flex-row items-center gap-2"
+            >
+              <Feather
+                name={entry.isCurrent ? "check-square" : "square"}
+                size={iconSize.md}
+                color={entry.isCurrent ? colors.primary : colors.muted}
+              />
+              <AppText size="sm">I currently work here</AppText>
+            </Pressable>
+            {!entry.isCurrent ? (
+              <MonthYearPicker
+                label="End date"
+                value={entry.endDate}
+                onChange={(v) => updateEntry(index, { endDate: v })}
+              />
+            ) : null}
           </CardContent>
         </Card>
       ))}

@@ -6,7 +6,7 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ROLE_LABEL, normalizeMemberRole } from "@/constants/memberRoles";
 import { AuthProfile } from "@/modules/auth/types";
-import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+import { Certification, formatExperienceTimeline, WorkExperience } from "@/modules/profile/schemas/experience";
 import { iconSize } from "@/theme/designTokens";
 
 type UserRoleDetailsProps = {
@@ -49,7 +49,7 @@ const ExperienceList = ({ experiences }: { experiences: WorkExperience[] | undef
             {entry.designation || "—"} {entry.company ? `at ${entry.company}` : ""}
           </AppText>
           <AppText tone="muted" size="xs" className="mt-0.5">
-            {[entry.timeline, entry.location].filter(Boolean).join(" · ")}
+            {[formatExperienceTimeline(entry), entry.location].filter(Boolean).join(" · ")}
           </AppText>
         </View>
       ))}

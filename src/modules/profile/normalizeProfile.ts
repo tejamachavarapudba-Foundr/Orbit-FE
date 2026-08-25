@@ -24,11 +24,17 @@ const asWorkExperienceArray = (value: unknown): WorkExperience[] =>
   Array.isArray(value)
     ? value.map((item) => {
         const entry = (item ?? {}) as RawRecord;
+        const legacyTimeline = asString(entry.timeline);
         return {
           company: asString(entry.company),
           designation: asString(entry.designation),
           location: asString(entry.location),
-          timeline: asString(entry.timeline)
+          startDate: asString(entry.startDate),
+          endDate: asString(entry.endDate),
+          isCurrent: Boolean(entry.isCurrent),
+          // Entries saved before the date-picker existed only have this —
+          // formatExperienceTimeline() falls back to it when startDate is empty.
+          ...(legacyTimeline && { legacyTimeline })
         };
       })
     : [];
