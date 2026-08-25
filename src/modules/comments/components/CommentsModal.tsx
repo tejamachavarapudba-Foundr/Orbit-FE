@@ -67,6 +67,7 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
             <FlatList
               data={comments}
               keyExtractor={(item) => item.id}
+              keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ padding: 16, gap: 12, flexGrow: 1 }}
               ListEmptyComponent={
                 <AppText tone="muted" size="xs" className="mt-6 text-center">
@@ -140,7 +141,12 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
                 size="sm"
                 loading={isSubmitting}
                 disabled={!draft.trim()}
-                onPress={() => void submitComment()}
+                // onPressIn (not onPress) — on Android, tapping Send while the
+                // keyboard is open blurs the TextInput first, which closes the
+                // keyboard and shifts this row up before touch-up fires; that
+                // shift cancels a normal onPress. Firing on press-down avoids
+                // racing the layout shift, so the first tap actually submits.
+                onPressIn={() => void submitComment()}
               />
             </View>
           </View>

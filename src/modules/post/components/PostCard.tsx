@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from "react";
-import { Alert, Linking, Pressable, Share, TextInput, View } from "react-native";
+import { Alert, Linking, Modal, Pressable, Share, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { AppButton } from "@/components/ui/AppButton";
@@ -7,7 +7,6 @@ import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { useAuthStore } from "@/modules/auth/store";
 import { CommentsModal } from "@/modules/comments/components/CommentsModal";
 import { usePostComments } from "@/modules/comments/hooks";
 import { useFollowAction } from "@/modules/follows/hooks";
@@ -73,6 +72,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const [showFullPhoto, setShowFullPhoto] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [hasReported, setHasReported] = useState(false);
+  const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
   const { isSubmitting, updatePost, deletePost } = usePostActions();
   const {
     likesCount,
@@ -126,6 +126,19 @@ export const PostCard = memo(({ post }: PostCardProps) => {
       url: post.linkUrl || undefined
     });
   }, [post.content, post.linkUrl]);
+
+  const handleFollowPillPress = useCallback(() => {
+    if (isFollowing) {
+      setShowUnfollowConfirm(true);
+    } else {
+      void toggleFollow();
+    }
+  }, [isFollowing, toggleFollow]);
+
+  const confirmUnfollow = useCallback(() => {
+    setShowUnfollowConfirm(false);
+    void toggleFollow();
+  }, [toggleFollow]);
 
   const copyLink = useCallback(async () => {
     await Clipboard.setStringAsync(`${POST_LINK_BASE}/${post.id}`);
@@ -195,17 +208,19 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             </AppText>
           </Pressable>
           <View className="absolute right-0 top-0 flex-row items-center gap-1.5">
-            {!isOwnPost && !isFollowing && !isStatusLoading ? (
+            {!isOwnPost && !isStatusLoading ? (
               <Pressable
                 accessibilityRole="button"
                 disabled={isFollowMutating}
-                onPress={() => void toggleFollow()}
+                onPress={handleFollowPillPress}
                 hitSlop={actionHitSlop}
-                className="h-7 flex-row items-center gap-1 rounded-full border border-primary px-2.5"
+                className={`h-7 flex-row items-center gap-1 rounded-full border px-2.5 ${
+                  isFollowing ? "border-border" : "border-primary"
+                }`}
               >
-                <Feather name="plus" size={12} color={colors.primary} />
-                <AppText tone="primary" size="xs" weight="semibold">
-                  Follow
+                <Feather name={isFollowing ? "check" : "plus"} size={12} color={isFollowing ? colors.muted : colors.primary} />
+                <AppText tone={isFollowing ? "muted" : "primary"} size="xs" weight="semibold">
+                  {isFollowing ? "Following" : "Follow"}
                 </AppText>
               </Pressable>
             ) : null}
@@ -348,6 +363,27 @@ export const PostCard = memo(({ post }: PostCardProps) => {
       </CardContent>
       {post.author.avatarUrl ? (
         <FullPhotoModal visible={showFullPhoto} imageUrl={post.author.avatarUrl} onClose={() => setShowFullPhoto(false)} />
+      ) : null}
+      {showUnfollowConfirm ? (
+        <Modal visible transparent animationType="fade" onRequestClose={() => setShowUnfollowConfirm(false)}>
+          <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setShowUnfollowConfirm(false)}>
+            <Pressable className="rounded-t-2xl bg-surface p-5" onPress={(event) => event.stopPropagation()}>
+              <View className="mb-3 items-center">
+                <View className="h-1 w-10 rounded-full bg-border" />
+              </View>
+              <AppText size="lg" weight="bold">
+                Unfollow {authorName}
+              </AppText>
+              <AppText tone="muted" className="mt-2 leading-6">
+                Stop seeing activity from {authorName} on your feed. {authorName} won't be notified that you've unfollowed.
+              </AppText>
+              <View className="mt-5 flex-row gap-3">
+                <AppButton label="Unfollow" onPress={confirmUnfollow} className="flex-1" />
+                <AppButton label="Cancel" variant="outline" onPress={() => setShowUnfollowConfirm(false)} className="flex-1" />
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       ) : null}
     </View>
   );
