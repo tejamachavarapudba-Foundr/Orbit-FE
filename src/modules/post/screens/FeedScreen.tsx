@@ -13,15 +13,15 @@ import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
+import { ChipFilterRow } from "@/components/ui/ChipFilterRow";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileMenuButton } from "@/components/layout/ProfileMenuButton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
-import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
+import { ComposerPromptCard } from "@/modules/post/components/ComposerPromptCard";
 import { PostCard } from "@/modules/post/components/PostCard";
 import { PostComposerModal } from "@/modules/post/components/PostComposerModal";
 import { PostSkeletonList } from "@/modules/post/components/PostSkeletonList";
@@ -45,7 +45,6 @@ export const FeedScreen = () => {
 
   const {
     posts,
-    totalCount,
     hasMore,
     activeCategory,
     isLoading,
@@ -103,7 +102,7 @@ export const FeedScreen = () => {
     [],
   );
   const keyExtractor = useCallback((item: Post) => item.id, []);
-  const ItemSeparator = () => <View className="h-2 bg-background" />;
+  const ItemSeparator = () => <View className="h-px bg-border" />;
 
   const setActivePostId = useFeedVisibilityStore((state) => state.setActivePostId);
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 65 }).current;
@@ -184,31 +183,27 @@ export const FeedScreen = () => {
           onViewableItemsChanged={onViewableItemsChanged}
           contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top, paddingBottom: 32 }}
           ListHeaderComponent={
-            <View className="px-4 py-3">
-              {!user ? (
-                <Card className="mb-3">
+            <View>
+              {user ? (
+                <ComposerPromptCard onPress={openComposer} />
+              ) : (
+                <Card className="mx-4 mt-3">
                   <CardContent className="py-4">
                     <AppText tone="muted" size="sm">
                       Sign in to share an update.
                     </AppText>
                   </CardContent>
                 </Card>
-              ) : null}
+              )}
 
-              <View className="mb-1">
-                <CategoryDropdown
+              <View className="py-3">
+                <ChipFilterRow
                   value={activeCategory}
                   options={postFilterOptions}
                   onChange={(value) => setActiveCategory(value as PostCategory | "all")}
                   accessibilityLabel="Filter feed by category"
                 />
               </View>
-
-              {totalCount > 0 ? (
-                <AppText tone="muted" size="xs" className="mt-2">
-                  Showing {posts.length} of {totalCount} posts
-                </AppText>
-              ) : null}
             </View>
           }
           ListEmptyComponent={
@@ -229,19 +224,6 @@ export const FeedScreen = () => {
                 </Card>
               </View>
             )
-          }
-          ListFooterComponent={
-            hasMore ? (
-              <View className="px-4">
-                <AppButton
-                  label="Load more"
-                  variant="outline"
-                  size="default"
-                  onPress={loadMore}
-                  className="mt-2"
-                />
-              </View>
-            ) : null
           }
         />
 

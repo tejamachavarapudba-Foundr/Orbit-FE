@@ -14,6 +14,7 @@ import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
 import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
+import { PostOverflowMenu } from "@/modules/post/components/PostOverflowMenu";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
@@ -44,7 +45,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
   const openUserProfile = useOpenUserProfile();
   const [showFullPhoto, setShowFullPhoto] = useState(false);
-  const { currentUserId, isSubmitting, deletingPostId, updatePost, deletePost } = usePostActions();
+  const { currentUserId, isSubmitting, updatePost, deletePost } = usePostActions();
   const {
     likesCount,
     isLikedByMe,
@@ -67,7 +68,6 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const isOwnPost = currentUserId === post.author?.id;
   const authorName = post.author?.fullName ??  "Unknown";
   const authorRole = post.author?.headline ??  "";
-  const isDeleting = deletingPostId === post.id;
 
   const categoryLabel =
   postCategoryOptions.find(
@@ -117,7 +117,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           <Pressable
             accessibilityRole="button"
             onPress={() => openUserProfile(post.author.id)}
-            className="min-w-0 flex-1 pr-24"
+            className="min-w-0 flex-1 pr-32"
           >
             <View className="flex-row items-center gap-1.5">
               <AppText weight="medium" numberOfLines={1}>
@@ -132,12 +132,21 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               {formatRelativeTime(post.createdAt)}
             </AppText>
           </Pressable>
-          <View className="absolute right-0 top-0 items-end">
+          <View className="absolute right-0 top-0 flex-row items-center gap-1">
             {categoryBadge ? (
               <Badge label={categoryLabel} variant="outline" category={categoryBadge} />
             ) : (
               <Badge label={categoryLabel} variant="outline" />
             )}
+            {!isEditing ? (
+              <PostOverflowMenu
+                isSaved={isSaved}
+                onToggleSave={() => void toggleSaved(post.id)}
+                isOwnPost={isOwnPost}
+                onEdit={() => setIsEditing(true)}
+                onDelete={confirmDelete}
+              />
+            ) : null}
           </View>
         </View>
       </View>
@@ -204,78 +213,44 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
         {!isEditing ? (
           <>
-            <View className="flex-row items-center justify-between pt-1">
-              <View className="flex-row items-center">
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={isMutating}
-                  onPress={() => void toggleLike()}
-                  hitSlop={actionHitSlop}
-                  className="h-9 flex-row items-center justify-center gap-1.5 rounded-md px-2"
-                >
-                  <Feather name="heart" size={iconSize.md} color={isLikedByMe ? "#ef4444" : colors.text} />
-                  <AppText size="sm" weight="medium">
-                    {likesCount}
-                  </AppText>
-                </Pressable>
+            <View className="flex-row items-center justify-between border-t border-border pt-1">
+              <Pressable
+                accessibilityRole="button"
+                disabled={isMutating}
+                onPress={() => void toggleLike()}
+                hitSlop={actionHitSlop}
+                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+              >
+                <Feather name="thumbs-up" size={iconSize.md} color={isLikedByMe ? colors.primary : colors.text} />
+                <AppText size="sm" weight="medium" tone={isLikedByMe ? "primary" : "default"}>
+                  {likesCount}
+                </AppText>
+              </Pressable>
 
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => setShowComments(true)}
-                  hitSlop={actionHitSlop}
-                  className="h-9 flex-row items-center justify-center gap-1.5 rounded-md px-2"
-                >
-                  <Feather name="message-circle" size={iconSize.md} color={colors.text} />
-                  <AppText size="sm" weight="medium">
-                    {commentsCount}
-                  </AppText>
-                </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShowComments(true)}
+                hitSlop={actionHitSlop}
+                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+              >
+                <Feather name="message-circle" size={iconSize.md} color={colors.text} />
+                <AppText size="sm" weight="medium">
+                  {commentsCount}
+                </AppText>
+              </Pressable>
 
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => void sharePost()}
-                  hitSlop={actionHitSlop}
-                  className="h-9 w-9 items-center justify-center rounded-md"
-                  accessibilityLabel="Share post"
-                >
-                  <Feather name="send" size={iconSize.md} color={colors.text} />
-                </Pressable>
-              </View>
-
-              <View className="flex-row items-center gap-1">
-                {isOwnPost ? (
-                  <>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() => setIsEditing(true)}
-                      hitSlop={actionHitSlop}
-                      className="h-9 w-9 items-center justify-center rounded-md"
-                      accessibilityLabel="Edit post"
-                    >
-                      <Feather name="edit-2" size={iconSize.md} color={colors.text} />
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      disabled={isDeleting}
-                      onPress={confirmDelete}
-                      hitSlop={actionHitSlop}
-                      className="h-9 w-9 items-center justify-center rounded-md"
-                      accessibilityLabel="Delete post"
-                    >
-                      <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
-                    </Pressable>
-                  </>
-                ) : null}
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => void toggleSaved(post.id)}
-                  hitSlop={actionHitSlop}
-                  className="h-9 w-9 items-center justify-center rounded-md"
-                  accessibilityLabel={isSaved ? "Remove from saved" : "Save post"}
-                >
-                  <Feather name="bookmark" size={iconSize.md} color={isSaved ? colors.primary : colors.text} />
-                </Pressable>
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => void sharePost()}
+                hitSlop={actionHitSlop}
+                className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-md"
+                accessibilityLabel="Share post"
+              >
+                <Feather name="send" size={iconSize.md} color={colors.text} />
+                <AppText size="sm" weight="medium">
+                  Share
+                </AppText>
+              </Pressable>
             </View>
             <CommentsModal
               visible={showComments}
