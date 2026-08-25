@@ -34,10 +34,10 @@ export const ConnectionRequestModal = ({
       <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
         <Pressable className="rounded-t-2xl bg-surface p-5" onPress={(event) => event.stopPropagation()}>
           <AppText size="lg" weight="bold">
-            Add a note
+            Add a note (optional)
           </AppText>
           <AppText tone="muted" className="mt-2 leading-6">
-            Introduce yourself to {recipientName}. They will need to accept before you can message.
+            Introduce yourself to {recipientName}, or just send the invite as-is.
           </AppText>
           <AppTextInput
             label="Your message"
@@ -51,9 +51,8 @@ export const ConnectionRequestModal = ({
           <View className="mt-5 flex-row gap-3">
             <AppButton label="Cancel" variant="outline" onPress={onClose} className="flex-1" />
             <AppButton
-              label="Send request"
+              label={note.trim() ? "Send invitation" : "Send without a note"}
               loading={isSubmitting}
-              disabled={!note.trim()}
               onPress={() => void handleSubmit()}
               className="flex-1"
             />

@@ -68,9 +68,16 @@ export const ChatDetailPanel = ({
           <Feather name="arrow-left" size={iconSize.md} color={colors.text} />
         </Pressable>
         <Avatar name={participantName} imageUrl={participant?.avatarUrl ?? ""} size="sm" fallback="mesh" />
-        <AppText weight="medium" numberOfLines={1} className="min-w-0 flex-1">
-          {participantName}
-        </AppText>
+        <View className="min-w-0 flex-1">
+          <AppText weight="medium" numberOfLines={1}>
+            {participantName}
+          </AppText>
+          {participant?.headline ? (
+            <AppText tone="muted" size="xs" numberOfLines={1}>
+              {participant.headline}
+            </AppText>
+          ) : null}
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Delete conversation"

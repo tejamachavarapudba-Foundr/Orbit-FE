@@ -65,18 +65,33 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
         ) : errorMessage ? (
           <ErrorState message={errorMessage} onRetry={() => void reload()} />
         ) : messages.length > 0 ? (
-          messages.map((message) => {
+          messages.map((message, index) => {
             const isMine = message.senderId === currentUserId;
+            const next = messages[index + 1];
+            // LinkedIn only stamps the last bubble in a run from the same sender —
+            // collapses a burst of quick messages into one visual group.
+            const isLastInGroup = !next || next.senderId !== message.senderId;
+            const isLastMineOverall = isMine && messages.slice(index + 1).every((later) => later.senderId !== currentUserId);
+            const isSeen = isLastMineOverall && Boolean(message.readAt);
 
             if (isMine) {
               return (
-                <View key={message.id} className="max-w-[78%] self-end rounded-2xl rounded-br-sm bg-primary px-4 py-2">
-                  <AppText tone="onPrimary" size="sm" className="leading-5">
-                    {message.content}
-                  </AppText>
-                  <AppText tone="onPrimary" size="xs" className="mt-1 opacity-70">
-                    {formatTime(message.createdAt)}
-                  </AppText>
+                <View key={message.id} className="items-end">
+                  <View className="max-w-[78%] rounded-2xl rounded-br-sm bg-primary px-4 py-2">
+                    <AppText tone="onPrimary" size="sm" className="leading-5">
+                      {message.content}
+                    </AppText>
+                    {isLastInGroup ? (
+                      <AppText tone="onPrimary" size="xs" className="mt-1 opacity-70">
+                        {formatTime(message.createdAt)}
+                      </AppText>
+                    ) : null}
+                  </View>
+                  {isSeen ? (
+                    <AppText tone="muted" size="xs" className="mt-1 mr-1">
+                      Seen
+                    </AppText>
+                  ) : null}
                 </View>
               );
             }
@@ -86,9 +101,11 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
                 <AppText size="sm" className="leading-5">
                   {message.content}
                 </AppText>
-                <AppText tone="muted" size="xs" className="mt-1">
-                  {formatTime(message.createdAt)}
-                </AppText>
+                {isLastInGroup ? (
+                  <AppText tone="muted" size="xs" className="mt-1">
+                    {formatTime(message.createdAt)}
+                  </AppText>
+                ) : null}
               </View>
             );
           })
