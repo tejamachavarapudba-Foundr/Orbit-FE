@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Modal, Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
@@ -24,6 +25,7 @@ type PostOverflowMenuProps = {
 
 export const PostOverflowMenu = ({ isOwnPost, onCopyLink, onEdit, onDelete, onNotInterested, onReport }: PostOverflowMenuProps) => {
   const colors = useThemeTokens();
+  const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
   const close = () => setIsOpen(false);
 
@@ -58,25 +60,27 @@ export const PostOverflowMenu = ({ isOwnPost, onCopyLink, onEdit, onDelete, onNo
           <Pressable accessibilityRole="button" className="flex-1 justify-end bg-black/30" onPress={close}>
             <Pressable
               onPress={(event) => event.stopPropagation()}
-              className="w-full rounded-t-2xl border border-border pb-6 pt-2"
-              style={{ backgroundColor: colors.surface }}
+              className="w-full rounded-t-2xl border border-border pt-2"
+              style={{ backgroundColor: colors.surface, maxHeight: "70%" }}
             >
               <View className="mb-2 items-center py-2">
                 <View className="h-1 w-10 rounded-full bg-border" />
               </View>
-              {actions.map((action) => (
-                <Pressable
-                  key={action.label}
-                  accessibilityRole="button"
-                  onPress={action.onPress}
-                  className="flex-row items-center gap-4 px-6 py-3.5"
-                >
-                  <Feather name={action.icon} size={20} color={action.destructive ? colors.danger : colors.text} />
-                  <AppText size="base" tone={action.destructive ? "danger" : "default"}>
-                    {action.label}
-                  </AppText>
-                </Pressable>
-              ))}
+              <ScrollView contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}>
+                {actions.map((action) => (
+                  <Pressable
+                    key={action.label}
+                    accessibilityRole="button"
+                    onPress={action.onPress}
+                    className="flex-row items-center gap-4 px-6 py-3.5"
+                  >
+                    <Feather name={action.icon} size={20} color={action.destructive ? colors.danger : colors.text} />
+                    <AppText size="base" tone={action.destructive ? "danger" : "default"}>
+                      {action.label}
+                    </AppText>
+                  </Pressable>
+                ))}
+              </ScrollView>
             </Pressable>
           </Pressable>
         </Modal>

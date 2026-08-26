@@ -188,7 +188,14 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
                 label={replyingTo ? "Reply" : "Send"}
                 size="sm"
                 loading={isSubmitting}
-                disabled={!draft.trim()}
+                // Deliberately not `disabled={!draft.trim()}`: RN's Pressable
+                // drops the touch entirely while disabled, and on some Android
+                // keyboards (predictive-text composition) the last character(s)
+                // typed can lag a beat behind the onChangeText that updates
+                // `draft` — so right after typing, disabled could still read
+                // stale/empty on the very first tap, silently eating it. Always
+                // let the press through; submitComment() itself already no-ops
+                // on empty content.
                 // onPressIn (not onPress) — on Android, tapping Send while the
                 // keyboard is open blurs the TextInput first, which closes the
                 // keyboard and shifts this row up before touch-up fires; that

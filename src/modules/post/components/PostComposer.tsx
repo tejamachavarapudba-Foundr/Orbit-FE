@@ -7,8 +7,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
-import { postCategoryOptions, usePostComposer } from "@/modules/post/hooks";
+import { usePostComposer } from "@/modules/post/hooks";
 import { useToastStore } from "@/store/toastStore";
 
 type PostComposerProps = {
@@ -158,18 +157,6 @@ export const PostComposer = ({ embedded = false, onSuccess }: PostComposerProps)
             </View>
           </View>
         ) : null}
-        
-        <View>
-          <AppText tone="muted" size="xs" weight="medium" className="mb-2">
-            Category
-          </AppText>
-          <CategoryDropdown
-            value={values.category}
-            options={postCategoryOptions}
-            onChange={(value) => setField("category", value)}
-            accessibilityLabel="Select post category"
-          />
-        </View>
 
         <View className="flex-row flex-wrap items-center gap-2 border-t border-border pt-3">
           <AppButton

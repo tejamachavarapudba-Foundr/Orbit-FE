@@ -56,7 +56,11 @@ type SheetContentProps = {
 };
 
 const SheetContent = ({ colors, insets, onClose }: SheetContentProps) => (
-  <Card className="rounded-t-3xl" style={{ maxHeight: "92%" }}>
+  // paddingBottom here (not just on the ScrollView's content) so the sheet's
+  // own opaque background always reaches the physical bottom of the screen —
+  // short content (e.g. a plain-text post with no media) otherwise left the
+  // card shorter than the screen, showing the tab bar through the gap below it.
+  <Card className="rounded-t-3xl" style={{ maxHeight: "92%", paddingBottom: insets.bottom }}>
     <View className="flex-row items-center border-b border-border px-5 py-4">
       <View className="flex-1">
         <AppText size="xl" weight="bold">
@@ -74,7 +78,7 @@ const SheetContent = ({ colors, insets, onClose }: SheetContentProps) => (
     <ScrollView
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator
-      contentContainerStyle={{ padding: 16, paddingBottom: Math.max(insets.bottom, 16) }}
+      contentContainerStyle={{ padding: 16 }}
     >
       <PostComposer embedded onSuccess={onClose} />
     </ScrollView>

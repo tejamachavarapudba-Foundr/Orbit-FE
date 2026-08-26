@@ -163,7 +163,11 @@ export const FeedScreen = () => {
           initialNumToRender={5}
           maxToRenderPerBatch={5}
           windowSize={7}
-          removeClippedSubviews={true}
+          // removeClippedSubviews detaches off-screen rows from the native
+          // view tree for performance, but on Android it has long-documented
+          // interference with Modals/inputs triggered from inside a clipped
+          // row — the "..." menu came up invisible or with items cut off only
+          // on some posts, never all of them, which matches this exactly.
           updateCellsBatchingPeriod={50}
           ItemSeparatorComponent={ItemSeparator}
           data={posts}
