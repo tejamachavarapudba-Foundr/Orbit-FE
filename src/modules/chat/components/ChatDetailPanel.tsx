@@ -1,4 +1,4 @@
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppText } from "@/components/ui/AppText";
@@ -16,9 +16,7 @@ type ChatDetailPanelProps = {
   participant?: AuthProfile | undefined;
   isLoading: boolean;
   errorMessage: string | null;
-  deletingChatId: string | null;
   onClose: () => void;
-  onDelete: (id: string) => void;
 };
 
 export const ChatDetailPanel = ({
@@ -26,9 +24,7 @@ export const ChatDetailPanel = ({
   participant,
   isLoading,
   errorMessage,
-  deletingChatId,
-  onClose,
-  onDelete
+  onClose
 }: ChatDetailPanelProps) => {
   const colors = useThemeTokens();
 
@@ -54,7 +50,6 @@ export const ChatDetailPanel = ({
   }
 
   const participantName = participant?.fullName || "Startuphouze member";
-  const isDeleting = deletingChatId === chat.id;
 
   return (
     <View className="flex-1 bg-background">
@@ -78,20 +73,6 @@ export const ChatDetailPanel = ({
             </AppText>
           ) : null}
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Delete conversation"
-          disabled={isDeleting}
-          onPress={() =>
-            Alert.alert("Delete chat", "This conversation will be removed from your chat list.", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Delete", style: "destructive", onPress: () => onDelete(chat.id) }
-            ])
-          }
-          className="h-9 w-9 items-center justify-center rounded-md"
-        >
-          <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
-        </Pressable>
       </View>
 
       <MessageThread conversationId={chat.id} />

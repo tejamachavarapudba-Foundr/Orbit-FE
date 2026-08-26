@@ -31,7 +31,6 @@ const {
   isRefreshing,
   isCreating,
   isDetailLoading,
-  deletingChatId,
   errorMessage,
   detailErrorMessage,
   loadChats,
@@ -39,7 +38,6 @@ const {
   startChat,
   selectChat,
   clearSelectedChat,
-  deleteChat,
   getParticipant,
 } = useChats();
 
@@ -147,9 +145,7 @@ const filteredChats = useMemo(() => {
             participant={selectedParticipant}
             isLoading={isDetailLoading}
             errorMessage={detailErrorMessage}
-            deletingChatId={deletingChatId}
             onClose={clearSelectedChat}
-            onDelete={(id) => void deleteChat(id)}
           />
         </View>
       ) : (

@@ -7,6 +7,13 @@ import { Message } from "@/modules/messages/types";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 
+type PendingAttachment = {
+  uri: string;
+  name: string;
+  mimeType: string;
+  size: number;
+};
+
 type MessageState = {
   messagesByConversationId: Record<string, Message[]>;
   isLoadingByConversationId: Record<string, boolean>;
@@ -15,7 +22,7 @@ type MessageState = {
   readingMessageId: string | null;
   errorByConversationId: Record<string, string | null>;
   loadMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (conversationId: string, content: string) => Promise<boolean>;
+  sendMessage: (conversationId: string, content: string, attachment?: PendingAttachment) => Promise<boolean>;
   markRead: (messageId: string, conversationId: string) => Promise<boolean>;
   deleteMessage: (messageId: string, conversationId: string) => Promise<boolean>;
 };
@@ -53,7 +60,7 @@ export const useMessageStore = create<MessageState>((set) => ({
       }));
     }
   },
-  sendMessage: async (conversationId, content) => {
+  sendMessage: async (conversationId, content, attachment) => {
     const currentUserId = useAuthStore.getState().user?.profile.id ?? "";
     const optimisticId = `optimistic-${Date.now()}`;
     const optimisticMessage: Message = {
@@ -61,6 +68,12 @@ export const useMessageStore = create<MessageState>((set) => ({
       conversationId,
       senderId: currentUserId,
       content,
+      // Show the local file immediately (attachmentUrl) while the real
+      // upload is still in flight — replaced by the server's copy below.
+      attachmentUrl: attachment?.uri ?? null,
+      attachmentName: attachment?.name ?? null,
+      attachmentType: attachment?.mimeType ?? null,
+      attachmentSize: attachment?.size ?? null,
       readAt: null,
       createdAt: new Date().toISOString()
     };
@@ -76,7 +89,20 @@ export const useMessageStore = create<MessageState>((set) => ({
     }));
 
     try {
-      const message = await messagesApi.createMessage({ conversationId, content });
+      const uploaded = attachment ? await messagesApi.uploadAttachment(attachment) : null;
+      const message = await messagesApi.createMessage({
+        conversationId,
+        content,
+        ...(uploaded
+          ? {
+              attachmentUrl: uploaded.url,
+              attachmentKey: uploaded.path,
+              attachmentName: attachment?.name ?? uploaded.originalFileName,
+              attachmentType: uploaded.mimetype,
+              attachmentSize: uploaded.size
+            }
+          : {})
+      });
       set((state) => ({
         messagesByConversationId: {
           ...state.messagesByConversationId,

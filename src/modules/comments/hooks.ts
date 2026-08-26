@@ -73,12 +73,20 @@ export const usePostComments = (
   ]);
 
   // LinkedIn-style one level of nesting — replies attach under their parent,
-  // no reply-to-a-reply, so a flat two-pass split is all this needs.
+  // no reply-to-a-reply, so a flat two-pass split is all this needs. Top-level
+  // comments show newest first; replies within a thread stay chronological
+  // (oldest first), since a reply thread reads top-to-bottom like a
+  // conversation even when the comments above it are newest-first.
   const threadedComments = useMemo(() => {
-    const topLevel = postComments.filter((comment) => !comment.parentId);
+    const topLevel = postComments
+      .filter((comment) => !comment.parentId)
+      .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime());
+
     return topLevel.map((comment) => ({
       comment,
-      replies: postComments.filter((reply) => reply.parentId === comment.id)
+      replies: postComments
+        .filter((reply) => reply.parentId === comment.id)
+        .sort((first, second) => new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime())
     }));
   }, [postComments]);
 

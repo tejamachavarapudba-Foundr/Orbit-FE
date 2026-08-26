@@ -57,6 +57,19 @@ export const useConversationMessages = (conversationId: string) => {
     return didSucceed;
   }, [conversationId, draft, sendMessage]);
 
+  const sendAttachment = useCallback(
+    async (attachment: { uri: string; name: string; mimeType: string; size: number }) => {
+      const content = draft.trim();
+      const didSucceed = await sendMessage(conversationId, content, attachment);
+      if (didSucceed) {
+        setDraft("");
+      }
+
+      return didSucceed;
+    },
+    [conversationId, draft, sendMessage]
+  );
+
   const remove = useCallback(
     (messageId: string) => deleteMessage(messageId, conversationId),
     [conversationId, deleteMessage]
@@ -75,6 +88,7 @@ export const useConversationMessages = (conversationId: string) => {
     draft,
     setDraft,
     submit,
+    sendAttachment,
     deleteMessage: remove,
     reload
   };
