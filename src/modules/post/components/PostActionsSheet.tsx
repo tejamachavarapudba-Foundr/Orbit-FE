@@ -1,7 +1,6 @@
 import { ElementRef, useCallback, useEffect, useRef } from "react";
-import { Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView, TouchableOpacity } from "@gorhom/bottom-sheet";
 import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -47,20 +46,24 @@ export const PostActionsSheet = () => {
     >
       <BottomSheetView style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
         {actions.map((action) => (
-          <Pressable
+          // TouchableOpacity here is @gorhom/bottom-sheet's own re-export
+          // (backed by react-native-gesture-handler on Android), not RN's —
+          // a plain RN Pressable's touch responder loses to the sheet's own
+          // pan-to-dismiss gesture handler, so taps on these rows never fired.
+          <TouchableOpacity
             key={action.label}
             accessibilityRole="button"
             onPress={() => {
               close();
               action.onPress();
             }}
-            className="flex-row items-center gap-4 px-6 py-3.5"
+            style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingHorizontal: 24, paddingVertical: 14 }}
           >
             <Feather name={action.icon} size={20} color={action.destructive ? colors.danger : colors.text} />
             <AppText size="base" tone={action.destructive ? "danger" : "default"}>
               {action.label}
             </AppText>
-          </Pressable>
+          </TouchableOpacity>
         ))}
       </BottomSheetView>
     </BottomSheetModal>
