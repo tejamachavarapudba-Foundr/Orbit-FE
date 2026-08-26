@@ -22,7 +22,7 @@ export const AppHeader = () => {
   ).length;
 
   const showBackButton = [
-    "Discover",
+    "Events",
     "Network",
     "Profile",
     "UserProfile",

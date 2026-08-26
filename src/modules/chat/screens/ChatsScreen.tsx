@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, ListRenderItem, ScrollView, View } from "react-native";
+import { FlatList, ListRenderItem, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -11,8 +11,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
 import { ChatDetailPanel } from "@/modules/chat/components/ChatDetailPanel";
 import { ChatRow } from "@/modules/chat/components/ChatRow";
-import { StartChatCard } from "@/modules/chat/components/StartChatCard";
-import { getOtherParticipantId, useChats } from "@/modules/chat/hooks";
+import { useChats } from "@/modules/chat/hooks";
 import { Chat } from "@/modules/chat/types";
 import { iconSize } from "@/theme/designTokens";
 import { AppTextInput } from "@/components/ui/AppTextInput";
@@ -23,19 +22,15 @@ export const ChatsScreen = () => {
 const [search, setSearch] = useState("");
 
 const {
-  currentUserId,
   chats,
   selectedChat,
-  startableUsers,
   isLoading,
   isRefreshing,
-  isCreating,
   isDetailLoading,
   errorMessage,
   detailErrorMessage,
   loadChats,
   refreshChats,
-  startChat,
   selectChat,
   clearSelectedChat,
   getParticipant,
@@ -76,10 +71,7 @@ const filteredChats = useMemo(() => {
     [getParticipant, selectChat]
   );
 
-  const selectedParticipant = selectedChat
-    ? getParticipant(selectedChat) ??
-      startableUsers.find((user) => user.profile.id === getOtherParticipantId(selectedChat, currentUserId))?.profile
-    : undefined;
+  const selectedParticipant = selectedChat ? getParticipant(selectedChat) : undefined;
 
     const listHeader = (
       <View className="w-full max-w-2xl self-center pb-2 pt-4">
@@ -109,29 +101,6 @@ const filteredChats = useMemo(() => {
             onChangeText={setSearch}
           />
         </View>
-    
-        {startableUsers.length > 0 ? (
-        <View className="mt-5">
-          <AppText weight="semibold" size="sm">
-            Start a chat
-          </AppText>
-          <AppText tone="muted" size="xs" className="mt-1">
-            You can message people you are connected with.
-          </AppText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
-            <View className="flex-row">
-              {startableUsers.map((user) => (
-                <StartChatCard
-                  key={user.id}
-                  user={user}
-                  isCreating={isCreating}
-                  onStart={(target) => void startChat(target)}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-      ) : null}
     </View>
   );
 
@@ -175,7 +144,7 @@ const filteredChats = useMemo(() => {
                       No conversations yet
                     </AppText>
                     <AppText tone="muted" size="sm" className="mt-1 text-center leading-5">
-                      Follow members on Network, then start a chat here.
+                      Follow members on Network, then message them from their profile.
                     </AppText>
                   </View>
                 </Card>

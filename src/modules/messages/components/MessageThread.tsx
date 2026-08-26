@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Image, Keyboard, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import { Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -65,49 +66,26 @@ const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrima
   );
 };
 
-// Manual keyboard tracking, not KeyboardAvoidingView: this screen sits
-// several flex layers deep inside react-native-screens' fragment-based tab
-// navigation, and RN's layout-measurement approach (which both "height" and
-// "padding" behavior rely on) doesn't reliably see resizes through that
-// fragment boundary — every KeyboardAvoidingView mode left the input hidden.
-// Raw Keyboard events don't depend on that measurement and do fire, but the
-// reported height already includes the safe-area bottom inset that this
-// screen's own input row separately pads for — applying the full raw height
-// on top of that double-counted it and pushed a visible gap above the
-// keyboard, so it's subtracted back out here.
-const useKeyboardOffset = (bottomInset: number) => {
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvent, (event) =>
-      setOffset(Math.max(event.endCoordinates.height - bottomInset, 0))
-    );
-    const hideSub = Keyboard.addListener(hideEvent, () => setOffset(0));
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [bottomInset]);
-
-  return offset;
-};
-
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
-  const keyboardOffset = useKeyboardOffset(insets.bottom);
+  // Tracks the IME's real animation frame (native-driven), not a JS-bridge
+  // Keyboard event — this screen sits several flex layers deep inside
+  // react-native-screens' fragment-based tab navigation, where both
+  // KeyboardAvoidingView and manual Keyboard-event height tracking produced
+  // wrong offsets (hidden input, or a gap above the keyboard) depending on
+  // whether the OS's own adjustResize happened to be visible to this
+  // fragment at the time. useAnimatedKeyboard reads the keyboard's actual
+  // on-screen frame directly, so it stays correct either way.
+  const keyboard = useAnimatedKeyboard();
+  const keyboardPadding = useAnimatedStyle(() => ({ paddingBottom: keyboard.height.value }));
   const scrollRef = useRef<ScrollView>(null);
   const showToast = useToastStore((state) => state.show);
-  const [isSendingAttachment, setIsSendingAttachment] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
   const {
     currentUserId,
     messages,
     isLoading,
-    isSending,
     errorMessage,
     draft,
     setDraft,
@@ -129,29 +107,28 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
     });
   };
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (pendingAttachment) {
-      setIsSendingAttachment(true);
-      try {
-        const didSucceed = await sendAttachment(pendingAttachment);
-        if (didSucceed) {
-          setPendingAttachment(null);
-        } else {
+      // Same fire-and-forget shape as a text send: the store shows the
+      // attachment optimistically (from the local file URI) the instant
+      // it's handed off, so clear the picker chip immediately instead of
+      // waiting on the upload — the button was staying in a loading state
+      // well after the message already appeared in the thread.
+      const attachment = pendingAttachment;
+      setPendingAttachment(null);
+      void sendAttachment(attachment).then((didSucceed) => {
+        if (!didSucceed) {
           showToast({ type: "error", title: "Couldn't send that file", message: "Try again." });
         }
-      } finally {
-        setIsSendingAttachment(false);
-      }
+      });
       return;
     }
 
     void submit();
   };
 
-  const isBusy = isSending || isSendingAttachment;
-
   return (
-    <View className="min-h-[400px] flex-1 bg-card" style={{ paddingBottom: keyboardOffset }}>
+    <Animated.View className="min-h-[400px] flex-1 bg-card" style={keyboardPadding}>
       <ScrollView
         ref={scrollRef}
         className="flex-1 px-4 py-4"
@@ -240,7 +217,6 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Attach a file"
-          disabled={isBusy}
           onPress={() => void pickAttachment()}
           hitSlop={8}
           className="h-10 w-10 items-center justify-center rounded-full"
@@ -258,8 +234,8 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
           maxLength={4000}
           className="max-h-28 min-h-10 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm leading-5 text-text"
         />
-        <AppButton label="Send" size="sm" loading={isBusy} onPress={() => void handleSend()} />
+        <AppButton label="Send" size="sm" onPress={() => void handleSend()} />
       </View>
-    </View>
+    </Animated.View>
   );
 };

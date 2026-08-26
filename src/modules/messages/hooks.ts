@@ -49,9 +49,13 @@ export const useConversationMessages = (conversationId: string) => {
       return false;
     }
 
+    // The store already shows the message optimistically, so clear the
+    // input the moment it's handed off rather than waiting on the round
+    // trip — restore it only if the send actually fails.
+    setDraft("");
     const didSucceed = await sendMessage(conversationId, content);
-    if (didSucceed) {
-      setDraft("");
+    if (!didSucceed) {
+      setDraft(content);
     }
 
     return didSucceed;
@@ -60,9 +64,10 @@ export const useConversationMessages = (conversationId: string) => {
   const sendAttachment = useCallback(
     async (attachment: { uri: string; name: string; mimeType: string; size: number }) => {
       const content = draft.trim();
+      setDraft("");
       const didSucceed = await sendMessage(conversationId, content, attachment);
-      if (didSucceed) {
-        setDraft("");
+      if (!didSucceed) {
+        setDraft(content);
       }
 
       return didSucceed;

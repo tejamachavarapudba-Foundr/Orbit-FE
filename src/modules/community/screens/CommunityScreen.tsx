@@ -49,7 +49,7 @@ export const CommunityScreen = () => {
           );
           return;
         }
-        navigation.navigate("Tabs", { screen: "Events" });
+        navigation.navigate("Events");
       }
     }
   ];

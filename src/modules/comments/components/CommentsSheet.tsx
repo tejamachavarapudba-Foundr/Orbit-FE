@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, FlatList, Keyboard, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -56,11 +56,37 @@ const CommentRow = ({ comment, isReply, isOwnComment, isDeleting, onReply, onDel
   );
 };
 
+// Manual keyboard tracking, not KeyboardAvoidingView: this sheet is mounted
+// from FeedScreen, which sits inside react-navigation's fragment-based tab
+// navigation — same layout-measurement blind spot documented on chat's
+// MessageThread, where every KeyboardAvoidingView mode left the input
+// hidden. Mirrors that screen's approach so the two stay in sync.
+const useKeyboardOffset = (bottomInset: number) => {
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (event) =>
+      setOffset(Math.max(event.endCoordinates.height - bottomInset, 0))
+    );
+    const hideSub = Keyboard.addListener(hideEvent, () => setOffset(0));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [bottomInset]);
+
+  return offset;
+};
+
 // Rendered once at the screen level (not per post) — see the store's own
 // comment for why this replaces a per-post RN <Modal>.
 export const CommentsSheet = () => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset(insets.bottom);
   const postId = useCommentsSheetStore((state) => state.postId);
   const initialComments = useCommentsSheetStore((state) => state.initialComments);
   const close = useCommentsSheetStore((state) => state.close);
@@ -99,11 +125,8 @@ export const CommentsSheet = () => {
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.45)", zIndex: 40, elevation: 40 }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close} />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1, justifyContent: "flex-end" }}
-        >
-          <View className="rounded-t-3xl bg-card" style={{ height: "80%" }}>
+        <View style={{ flex: 1, justifyContent: "flex-end" }}>
+          <View className="rounded-t-3xl bg-card" style={{ height: "80%", paddingBottom: keyboardOffset }}>
             <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
               <AppText size="lg" weight="bold">
                 Comments
@@ -175,8 +198,10 @@ export const CommentsSheet = () => {
                 placeholder={replyingTo ? "Write a reply…" : "Write a comment…"}
                 placeholderTextColor={colors.muted}
                 selectionColor={colors.primary}
+                multiline
+                textAlignVertical="center"
                 maxLength={1000}
-                className="min-h-[40px] flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm leading-5 text-text"
+                className="max-h-28 min-h-10 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm leading-5 text-text"
               />
               <AppButton
                 label={replyingTo ? "Reply" : "Send"}
@@ -186,7 +211,7 @@ export const CommentsSheet = () => {
               />
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </View>
     </View>
   );

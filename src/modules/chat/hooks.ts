@@ -6,7 +6,6 @@ import { useChatStore } from "@/modules/chat/store";
 import { useConnectionsStore } from "@/modules/connections/store";
 import { useFollowStore } from "@/modules/follows/store";
 import { useUserStore } from "@/modules/user/store";
-import { UserSummary } from "@/modules/user/types";
 
 export const getOtherParticipantId = (chat: Chat, currentUserId?: string) =>
   chat.userAId === currentUserId ? chat.userBId : chat.userAId;
@@ -17,14 +16,12 @@ export const useChats = () => {
   const selectedChat = useChatStore((state) => state.selectedChat);
   const isLoading = useChatStore((state) => state.isLoading);
   const isRefreshing = useChatStore((state) => state.isRefreshing);
-  const isCreating = useChatStore((state) => state.isCreating);
   const isDetailLoading = useChatStore((state) => state.isDetailLoading);
   const deletingChatId = useChatStore((state) => state.deletingChatId);
   const errorMessage = useChatStore((state) => state.errorMessage);
   const detailErrorMessage = useChatStore((state) => state.detailErrorMessage);
   const loadChats = useChatStore((state) => state.loadChats);
   const refreshChats = useChatStore((state) => state.refreshChats);
-  const createChat = useChatStore((state) => state.createChat);
   const selectChat = useChatStore((state) => state.selectChat);
   const clearSelectedChat = useChatStore((state) => state.clearSelectedChat);
   const deleteChat = useChatStore((state) => state.deleteChat);
@@ -85,77 +82,23 @@ export const useChats = () => {
     return map;
   }, [connectedProfiles, followers, following, users]);
 
-  const chatParticipantIds = useMemo(
-    () => new Set(chats.map((chat) => getOtherParticipantId(chat, currentUserId))),
-    [chats, currentUserId]
-  );
-
-  const networkUserIds = useMemo(() => {
-    const ids = new Set<string>();
-    // Array verification checks via absolute fallback safety wrappers
-    if (Array.isArray(connectedProfiles)) connectedProfiles.forEach((profile) => profile?.id && ids.add(profile.id));
-    if (Array.isArray(followers)) followers.forEach((profile) => profile?.id && ids.add(profile.id));
-    if (Array.isArray(following)) following.forEach((profile) => profile?.id && ids.add(profile.id));
-    return ids;
-  }, [connectedProfiles, followers, following]);
-
-  const startableUsers = useMemo(() => {
-    const seen = new Set<string>();
-    const result: UserSummary[] = [];
-
-    for (const profile of [...following, ...followers]) {
-      if (!profile?.id || profile.id === currentUserId || chatParticipantIds.has(profile.id) || seen.has(profile.id)) {
-        continue;
-      }
-
-      if (!networkUserIds.has(profile.id)) {
-        continue;
-      }
-
-      seen.add(profile.id);
-      result.push({
-        id: profile.id,
-        profile,
-        createdAt: ""
-      });
-    }
-
-    return result.slice(0, 8);
-  }, [chatParticipantIds, currentUserId, followers, following, networkUserIds]);
-
   const getParticipant = useCallback(
     (chat: Chat) => profilesById[getOtherParticipantId(chat, currentUserId)],
     [currentUserId, profilesById]
-  );
-
-  const isConnected = useConnectionsStore((state) => state.isConnected);
-
-  const startChat = useCallback(
-    (user: UserSummary) => {
-      if (!isConnected(user.profile.id) && !networkUserIds.has(user.profile.id)) {
-        return Promise.resolve(false);
-      }
-
-      return createChat(user.profile.id);
-    },
-    [createChat, isConnected, networkUserIds]
   );
 
   return {
     currentUserId,
     chats,
     selectedChat,
-    startableUsers,
     isLoading,
     isRefreshing,
-    isCreating,
     isDetailLoading,
     deletingChatId,
     errorMessage,
     detailErrorMessage,
     loadChats,
     refreshChats,
-    startChat,
     selectChat,
     clearSelectedChat,
     deleteChat,

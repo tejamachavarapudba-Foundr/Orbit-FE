@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather, Ionicons } from "@expo/vector-icons";
 
 import { MainTabParamList } from "@/app/navigation/types";
-import { EventsScreen } from "@/modules/events/screens/EventsScreen";
+import { DiscoverScreen } from "@/modules/user/screens/DiscoverScreen";
 import { HomeScreen } from "@/app/screens/HomeScreen";
 import { JobsScreen } from "@/modules/jobs/screens/JobsScreen";
 import { MeetingsScreen } from "@/modules/meeting/screens/MeetingsScreen";
@@ -15,7 +15,7 @@ import { useConnectionsStore } from "@/modules/connections/store";
 import { useChatStore } from "@/modules/chat/store";
 import { useAuthStore } from "@/modules/auth/store";
 import { useNotifications } from "@/modules/notifications/hooks";
-import { countUnreadByType, EVENT_NOTIFICATION_TYPES, JOB_NOTIFICATION_TYPES, PROJECT_NOTIFICATION_TYPES } from "@/modules/notifications/categories";
+import { countUnreadByType, JOB_NOTIFICATION_TYPES, PROJECT_NOTIFICATION_TYPES } from "@/modules/notifications/categories";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -73,12 +73,11 @@ export const MainNavigator = () => {
   );
   const loadChats = useChatStore((state) => state.loadChats);
 
-  // Projects/Jobs/Events each get their own badge now instead of
+  // Projects/Jobs each get their own badge now instead of
   // everything piling into Messages — same split as orbit-web.
   const { data: notifications } = useNotifications();
   const projectsAlertCount = countUnreadByType(notifications ?? [], PROJECT_NOTIFICATION_TYPES);
   const jobsAlertCount = countUnreadByType(notifications ?? [], JOB_NOTIFICATION_TYPES);
-  const eventsAlertCount = countUnreadByType(notifications ?? [], EVENT_NOTIFICATION_TYPES);
 
   useEffect(() => {
     if (currentUserId) {
@@ -139,9 +138,9 @@ export const MainNavigator = () => {
         />
       )}
       <Tab.Screen
-        name="Events"
-        component={EventsScreen}
-        options={badgeOptions(tabIcon("calendar"), eventsAlertCount, colors)}
+        name="Discover"
+        component={DiscoverScreen}
+        options={{ title: "Discover", tabBarIcon: tabIcon("compass") }}
       />
     </Tab.Navigator>
   );

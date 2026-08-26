@@ -9,7 +9,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { useConnectionsStore } from "@/modules/connections/store";
 
-const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Meetings", "Events"]);
+const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Meetings", "Discover"]);
 
 type ProfileMenuItem = {
   label: string;
@@ -20,7 +20,7 @@ type ProfileMenuItem = {
 
 const profileMenuItems: ProfileMenuItem[] = [
   { label: "My profile", icon: "user", route: "Profile" },
-  { label: "Discover", icon: "compass", route: "Discover" },
+  { label: "Events", icon: "calendar", route: "Events" },
   { label: "My network", icon: "users", route: "Network" },
   { label: "My Meetings", icon: "send", action: "meetings" },
   { label: "Community", icon: "globe", route: "Community" },

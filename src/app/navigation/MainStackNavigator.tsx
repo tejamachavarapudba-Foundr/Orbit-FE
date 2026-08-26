@@ -16,7 +16,7 @@ import { SubscriptionScreen } from "@/modules/settings/screens/SubscriptionScree
 import { DataPrivacyScreen } from "@/modules/settings/screens/DataPrivacyScreen";
 import { FAQScreen } from "@/modules/settings/screens/FAQScreen";
 import { SupportScreen } from "@/modules/settings/screens/SupportScreen";
-import { DiscoverScreen } from "@/modules/user/screens/DiscoverScreen";
+import { EventsScreen } from "@/modules/events/screens/EventsScreen";
 import { NetworkScreen } from "@/modules/user/screens/NetworkScreen";
 import { SearchScreen } from "@/modules/search/screens/SearchScreen";
 import { AdminScreen } from "@/modules/admin/screens/AdminScreen";
@@ -81,8 +81,8 @@ export const MainStackNavigator = () => (
     />
 
     <Stack.Screen
-      name="Discover"
-      component={DiscoverScreen}
+      name="Events"
+      component={EventsScreen}
     />
 
     <Stack.Screen

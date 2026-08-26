@@ -14,7 +14,7 @@ export type MainTabParamList = {
   Projects: undefined;
   Jobs: undefined;
   Meetings: undefined;
-  Events: undefined;
+  Discover: undefined;
 };
 
 export type MainStackParamList = {
@@ -27,7 +27,7 @@ export type MainStackParamList = {
   DataPrivacy: undefined;
   FAQ: undefined;
   Support: undefined;
-  Discover: undefined;
+  Events: undefined;
   Network: undefined;
   Search: undefined;
   Admin: undefined;
