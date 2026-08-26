@@ -20,6 +20,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileMenuButton } from "@/components/layout/ProfileMenuButton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
+import { CommentsSheet } from "@/modules/comments/components/CommentsSheet";
 import { PostCard } from "@/modules/post/components/PostCard";
 import { PostComposerModal } from "@/modules/post/components/PostComposerModal";
 import { PostSkeletonList } from "@/modules/post/components/PostSkeletonList";
@@ -215,6 +216,7 @@ export const FeedScreen = () => {
         />
 
         {user ? <PostComposerModal visible={composerOpen} onClose={closeComposer} /> : null}
+        <CommentsSheet />
       </View>
     </AppScreen>
   );

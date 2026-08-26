@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
+import { CommentsSheet } from "@/modules/comments/components/CommentsSheet";
 import { PostSkeletonList } from "@/modules/post/components/PostSkeletonList";
 import { PostCard } from "@/modules/post/components/PostCard";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
@@ -57,6 +58,7 @@ export const SavedPostsScreen = () => {
           )
         }
       />
+      <CommentsSheet />
     </AppScreen>
   );
 };

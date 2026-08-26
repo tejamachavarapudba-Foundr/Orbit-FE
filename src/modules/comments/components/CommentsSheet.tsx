@@ -1,15 +1,5 @@
 import { useMemo } from "react";
-import {
-  Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,15 +7,9 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { useCommentsSheetStore } from "@/modules/comments/commentsSheetStore";
 import { usePostComments } from "@/modules/comments/hooks";
 import { Comment } from "@/modules/comments/types";
-
-type CommentsModalProps = {
-  visible: boolean;
-  onClose: () => void;
-  postId: string;
-  initialComments: Comment[];
-};
 
 type CommentRowProps = {
   comment: Comment;
@@ -72,9 +56,15 @@ const CommentRow = ({ comment, isReply, isOwnComment, isDeleting, onReply, onDel
   );
 };
 
-export const CommentsModal = ({ visible, onClose, postId, initialComments }: CommentsModalProps) => {
+// Rendered once at the screen level (not per post) — see the store's own
+// comment for why this replaces a per-post RN <Modal>.
+export const CommentsSheet = () => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
+  const postId = useCommentsSheetStore((state) => state.postId);
+  const initialComments = useCommentsSheetStore((state) => state.initialComments);
+  const close = useCommentsSheetStore((state) => state.close);
+
   const {
     currentUserId,
     threadedComments,
@@ -89,7 +79,7 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
     cancelReply,
     submitComment,
     deleteComment
-  } = usePostComments(postId, initialComments);
+  } = usePostComments(postId ?? "", initialComments);
 
   const emptyMessage = useMemo(() => (isLoading ? "Loading…" : "Be the first to comment on this post."), [isLoading]);
 
@@ -100,21 +90,25 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
     ]);
   };
 
+  if (!postId) {
+    return null;
+  }
+
   return (
-    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+    <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.45)", zIndex: 40, elevation: 40 }]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ width: "100%", maxHeight: "80%" }}
+          style={{ flex: 1, justifyContent: "flex-end" }}
         >
-          <View className="rounded-t-3xl bg-card" style={{ height: "100%" }}>
+          <View className="rounded-t-3xl bg-card" style={{ height: "80%" }}>
             <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
               <AppText size="lg" weight="bold">
                 Comments
               </AppText>
-              <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Close">
+              <Pressable onPress={close} hitSlop={8} accessibilityRole="button" accessibilityLabel="Close">
                 <Feather name="x" size={22} color={colors.text} />
               </Pressable>
             </View>
@@ -188,33 +182,12 @@ export const CommentsModal = ({ visible, onClose, postId, initialComments }: Com
                 label={replyingTo ? "Reply" : "Send"}
                 size="sm"
                 loading={isSubmitting}
-                // Deliberately not `disabled={!draft.trim()}`: RN's Pressable
-                // drops the touch entirely while disabled, and on some Android
-                // keyboards (predictive-text composition) the last character(s)
-                // typed can lag a beat behind the onChangeText that updates
-                // `draft` — so right after typing, disabled could still read
-                // stale/empty on the very first tap, silently eating it. Always
-                // let the press through; submitComment() itself already no-ops
-                // on empty content.
-                // onPressIn (not onPress) — on Android, tapping Send while the
-                // keyboard is open blurs the TextInput first, which closes the
-                // keyboard and shifts this row up before touch-up fires; that
-                // shift cancels a normal onPress. Firing on press-down avoids
-                // racing the layout shift, so the first tap actually submits.
-                onPressIn={() => void submitComment()}
+                onPress={() => void submitComment()}
               />
             </View>
           </View>
         </KeyboardAvoidingView>
       </View>
-    </Modal>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
-});

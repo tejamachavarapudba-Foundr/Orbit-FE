@@ -6,7 +6,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { CardContent } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { CommentsModal } from "@/modules/comments/components/CommentsModal";
+import { useCommentsSheetStore } from "@/modules/comments/commentsSheetStore";
 import { usePostComments } from "@/modules/comments/hooks";
 import { useFollowAction } from "@/modules/follows/hooks";
 import { FollowProfile } from "@/modules/follows/types";
@@ -83,7 +83,6 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     toFollowProfile(post.author)
   );
   const [isEditing, setIsEditing] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [draftContent, setDraftContent] = useState(post.content);
   const [draftCategory, setDraftCategory] = useState<PostCategory>(
     postCategoryOptions.some((option) => option.value === post.category) ? (post.category as PostCategory) : "Update"
@@ -263,7 +262,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
 
               <Pressable
                 accessibilityRole="button"
-                onPress={() => setShowComments(true)}
+                onPress={() => useCommentsSheetStore.getState().open(post.id, post.comments)}
                 hitSlop={actionHitSlop}
                 className="h-9 flex-row items-center gap-1.5 rounded-md px-2"
               >
@@ -319,12 +318,6 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 <Feather name="bookmark" size={iconSize.md} color={isSaved ? colors.primary : colors.text} />
               </Pressable>
             </View>
-            <CommentsModal
-              visible={showComments}
-              onClose={() => setShowComments(false)}
-              postId={post.id}
-              initialComments={post.comments}
-            />
           </>
         ) : null}
       </CardContent>
