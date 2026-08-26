@@ -155,13 +155,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
       <ScrollView
         ref={scrollRef}
         className="flex-1 px-4 py-4"
-        // flexGrow + justifyContent "flex-end" anchors messages to the
-        // bottom of the thread (right above the input) when there are only
-        // a few — without this, a short conversation renders at the TOP of
-        // the scroll area, leaving a trailing empty gap between the last
-        // message and the input row instead of between the top and the
-        // first message, which is what every chat app actually does.
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end", gap: 12, paddingBottom: 8 }}
+        contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
       >
         {isLoading ? (
