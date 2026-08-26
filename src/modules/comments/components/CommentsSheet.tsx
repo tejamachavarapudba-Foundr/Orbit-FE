@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { Alert, FlatList, Keyboard, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { useMemo } from "react";
+import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
+import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -56,37 +57,19 @@ const CommentRow = ({ comment, isReply, isOwnComment, isDeleting, onReply, onDel
   );
 };
 
-// Manual keyboard tracking, not KeyboardAvoidingView: this sheet is mounted
-// from FeedScreen, which sits inside react-navigation's fragment-based tab
-// navigation — same layout-measurement blind spot documented on chat's
-// MessageThread, where every KeyboardAvoidingView mode left the input
-// hidden. Mirrors that screen's approach so the two stay in sync.
-const useKeyboardOffset = (bottomInset: number) => {
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvent, (event) =>
-      setOffset(Math.max(event.endCoordinates.height - bottomInset, 0))
-    );
-    const hideSub = Keyboard.addListener(hideEvent, () => setOffset(0));
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [bottomInset]);
-
-  return offset;
-};
-
 // Rendered once at the screen level (not per post) — see the store's own
 // comment for why this replaces a per-post RN <Modal>.
 export const CommentsSheet = () => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
-  const keyboardOffset = useKeyboardOffset(insets.bottom);
+  // Tracks the IME's real animation frame (native-driven), matching chat's
+  // MessageThread — this sheet is mounted from FeedScreen, which sits inside
+  // react-navigation's fragment-based tab navigation, where manual
+  // Keyboard-event height tracking (this file's previous approach) produced
+  // a gap above the keyboard because the offset math didn't reliably match
+  // whatever resize behavior was or wasn't visible to this fragment.
+  const keyboard = useAnimatedKeyboard();
+  const keyboardPadding = useAnimatedStyle(() => ({ paddingBottom: keyboard.height.value }));
   const postId = useCommentsSheetStore((state) => state.postId);
   const initialComments = useCommentsSheetStore((state) => state.initialComments);
   const close = useCommentsSheetStore((state) => state.close);
@@ -126,7 +109,7 @@ export const CommentsSheet = () => {
         <Pressable style={StyleSheet.absoluteFill} onPress={close} />
 
         <View style={{ flex: 1, justifyContent: "flex-end" }}>
-          <View className="rounded-t-3xl bg-card" style={{ height: "80%", paddingBottom: keyboardOffset }}>
+          <Animated.View className="rounded-t-3xl bg-card" style={[{ height: "80%" }, keyboardPadding]}>
             <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
               <AppText size="lg" weight="bold">
                 Comments
@@ -210,7 +193,7 @@ export const CommentsSheet = () => {
                 onPress={() => void submitComment()}
               />
             </View>
-          </View>
+          </Animated.View>
         </View>
       </View>
     </View>

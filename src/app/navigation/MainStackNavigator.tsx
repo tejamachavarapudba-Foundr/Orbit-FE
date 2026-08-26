@@ -6,6 +6,8 @@ import { InvestmentWatchlistScreen } from "@/modules/project/screens/InvestmentW
 import { InvestorSnapshotViewScreen } from "@/modules/investor/screens/InvestorSnapshotViewScreen";
 import { UserPublicProfileScreen } from "@/modules/user/screens/UserPublicProfileScreen";
 import { ProjectDetailScreen } from "@/modules/project/screens/ProjectDetailScreen";
+import { JobDetailScreen } from "@/modules/jobs/screens/JobDetailScreen";
+import { PostJobScreen } from "@/modules/jobs/screens/PostJobScreen";
 import { NotificationsScreen } from "@/modules/notifications/screens/NotificationsScreen";
 import { CommunityScreen } from "@/modules/community/screens/CommunityScreen";
 import { CommunityDetailScreen } from "@/modules/community/screens/CommunityDetailScreen";
@@ -17,6 +19,7 @@ import { DataPrivacyScreen } from "@/modules/settings/screens/DataPrivacyScreen"
 import { FAQScreen } from "@/modules/settings/screens/FAQScreen";
 import { SupportScreen } from "@/modules/settings/screens/SupportScreen";
 import { EventsScreen } from "@/modules/events/screens/EventsScreen";
+import { ArchivedChatsScreen } from "@/modules/chat/screens/ArchivedChatsScreen";
 import { NetworkScreen } from "@/modules/user/screens/NetworkScreen";
 import { SearchScreen } from "@/modules/search/screens/SearchScreen";
 import { AdminScreen } from "@/modules/admin/screens/AdminScreen";
@@ -86,6 +89,11 @@ export const MainStackNavigator = () => (
     />
 
     <Stack.Screen
+      name="ArchivedChats"
+      component={ArchivedChatsScreen}
+    />
+
+    <Stack.Screen
       name="Network"
       component={NetworkScreen}
     />
@@ -108,6 +116,16 @@ export const MainStackNavigator = () => (
     <Stack.Screen
       name="ProjectDetail"
       component={ProjectDetailScreen}
+    />
+
+    <Stack.Screen
+      name="JobDetail"
+      component={JobDetailScreen}
+    />
+
+    <Stack.Screen
+      name="PostJob"
+      component={PostJobScreen}
     />
 
     <Stack.Screen

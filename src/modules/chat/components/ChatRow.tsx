@@ -11,6 +11,7 @@ type ChatRowProps = {
   chat: Chat;
   participant?: AuthProfile | undefined;
   onPress: (id: string) => void;
+  onLongPress?: (chat: Chat) => void;
 };
 
 const formatRelativeTime = (date: string) => {
@@ -36,7 +37,7 @@ const getLatestMessage = (chat: Chat) => {
   })[0]!;
 };
 
-export const ChatRow = memo(({ chat, participant, onPress }: ChatRowProps) => {
+export const ChatRow = memo(({ chat, participant, onPress, onLongPress }: ChatRowProps) => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const name = participant?.fullName || "Startuphouze member";
   const latest = useMemo(() => getLatestMessage(chat), [chat]);
@@ -47,6 +48,7 @@ export const ChatRow = memo(({ chat, participant, onPress }: ChatRowProps) => {
     <Pressable
       accessibilityRole="button"
       onPress={() => onPress(chat.id)}
+      onLongPress={onLongPress ? () => onLongPress(chat) : undefined}
       className="flex-row items-center gap-3 border-b border-border px-1 py-3 active:bg-muted-bg"
     >
       <Avatar name={name} imageUrl={participant?.avatarUrl ?? ""} size="md" fallback="mesh" />

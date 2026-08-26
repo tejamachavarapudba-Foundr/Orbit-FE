@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "@/modules/auth/store";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -12,17 +14,18 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { JobCard } from "@/modules/jobs/components/JobCard";
 import { JobComposer } from "@/modules/jobs/components/JobComposer";
-import { JobDetailPanel } from "@/modules/jobs/components/JobDetailPanel";
 import { JobFilterModal } from "@/modules/jobs/components/JobFilterModal";
 import { MyApplicationsPanel, MyPostsAnalyticsPanel } from "@/modules/jobs/components/MyJobsPanel";
 import { useJobs } from "@/modules/jobs/hooks";
 import { Job } from "@/modules/jobs/types";
 import { iconSize } from "@/theme/designTokens";
+import { MainStackParamList } from "@/app/navigation/types";
 
 type JobsTab = "browse" | "mine";
 
 export const JobsScreen = () => {
   const colors = useThemeTokens();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const {
     jobs,
     totalCount,
@@ -33,17 +36,16 @@ export const JobsScreen = () => {
     loadJobs,
     refreshJobs,
     setQuery,
-    setRole,
-    selectJob
+    setRole
   } = useJobs();
 
   const renderJob = useCallback<ListRenderItem<Job>>(
     ({ item }) => (
       <View className="w-full max-w-2xl self-center">
-        <JobCard job={item} onPress={(id) => void selectJob(id)} />
+        <JobCard job={item} onPress={(id) => navigation.navigate("JobDetail", { id })} />
       </View>
     ),
-    [selectJob]
+    [navigation]
   );
   const profile = useAuthStore(
     (state) => state.user?.profile,
@@ -130,7 +132,6 @@ export const JobsScreen = () => {
                     <JobComposer />
                   </View>
                 )}
-                <JobDetailPanel />
               </>
             ) : canPostJobs ? (
               <MyPostsAnalyticsPanel visible={activeTab === "mine"} />

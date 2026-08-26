@@ -5,27 +5,18 @@ import { Feather } from "@expo/vector-icons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { ApplicationStatusBadge } from "@/modules/jobs/components/ApplicationStatusBadge";
+import { StatusFilter, StatusFilterModal, STATUS_FILTERS } from "@/modules/jobs/components/StatusFilterModal";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { jobsApi } from "@/modules/jobs/api";
 import { useJobsStore } from "@/modules/jobs/store";
-import { Job, JobApplication, JobApplicationStatus } from "@/modules/jobs/types";
+import { Job, JobApplication } from "@/modules/jobs/types";
 import { iconSize } from "@/theme/designTokens";
 import { toAppError } from "@/utils/errors";
 import { useToastStore } from "@/store/toastStore";
-
-type StatusFilter = "all" | JobApplicationStatus;
-
-const STATUS_FILTERS: { label: string; value: StatusFilter }[] = [
-  { label: "All", value: "all" },
-  { label: "Pending", value: "pending" },
-  { label: "Accepted", value: "accepted" },
-  { label: "Rejected", value: "rejected" }
-];
 
 const formatAppliedAt = (date: string) =>
   new Intl.DateTimeFormat(undefined, {
@@ -36,28 +27,17 @@ const formatAppliedAt = (date: string) =>
     minute: "2-digit"
   }).format(new Date(date));
 
-const StatusFilterRow = ({ value, onChange }: { value: StatusFilter; onChange: (next: StatusFilter) => void }) => (
-  <View className="flex-row flex-wrap gap-2">
-    {STATUS_FILTERS.map((filter) => (
-      <FilterChip
-        key={filter.value}
-        label={filter.label}
-        isActive={value === filter.value}
-        activeTone="primary"
-        onPress={() => onChange(filter.value)}
-      />
-    ))}
-  </View>
-);
-
 type MyApplicationsPanelProps = {
   visible: boolean;
 };
 
 export const MyApplicationsPanel = ({ visible }: MyApplicationsPanelProps) => {
+  const colors = useThemeTokens();
   const [applications, setApplications] = useState<(JobApplication & { job: Job })[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const activeFilterLabel = STATUS_FILTERS.find((filter) => filter.value === statusFilter)?.label ?? "All";
 
   useEffect(() => {
     if (!visible) return;
@@ -83,7 +63,24 @@ export const MyApplicationsPanel = ({ visible }: MyApplicationsPanelProps) => {
 
   return (
     <View className="mt-4 gap-3">
-      <StatusFilterRow value={statusFilter} onChange={setStatusFilter} />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Filter by status"
+        onPress={() => setIsFilterVisible(true)}
+        className="flex-row items-center justify-between rounded-md border border-input bg-background px-3 py-2.5"
+      >
+        <AppText size="sm">
+          Status: <AppText size="sm" weight="semibold">{activeFilterLabel}</AppText>
+        </AppText>
+        <Feather name="sliders" size={iconSize.sm} color={colors.text} />
+      </Pressable>
+
+      <StatusFilterModal
+        visible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
 
       {filtered.length === 0 ? (
         <EmptyState
@@ -104,7 +101,7 @@ export const MyApplicationsPanel = ({ visible }: MyApplicationsPanelProps) => {
                   {application.job.startupName}
                 </AppText>
               </View>
-              <Badge label={application.status} variant="outline" />
+              <ApplicationStatusBadge status={application.status} />
             </View>
             <AppText tone="muted" size="xs" className="mt-2">
               Applied {formatAppliedAt(application.createdAt)}
@@ -152,7 +149,7 @@ const ApplicationRow = ({ jobId, application, onChanged }: ApplicationRowProps) 
         <AppText weight="medium" size="sm">
           {application.applicant?.fullName ?? "Applicant"}
         </AppText>
-        <Badge label={application.status} variant="outline" />
+        <ApplicationStatusBadge status={application.status} />
       </View>
       <AppText tone="muted" size="sm" className="mt-1 leading-5">
         {application.message}
@@ -281,8 +278,21 @@ const MyJobPostCard = ({ post, statusFilter, onChanged }: MyJobPostCardProps) =>
               className="flex-1"
               size="sm"
             />
-            <AppButton label="Delete" variant="outline" loading={isMutating} onPress={confirmDelete} className="flex-1" size="sm" />
+            <AppButton
+              label="Delete"
+              variant="outline"
+              loading={isMutating}
+              disabled={applications.length > 0}
+              onPress={confirmDelete}
+              className="flex-1"
+              size="sm"
+            />
           </View>
+          {applications.length > 0 ? (
+            <AppText tone="muted" size="xs" className="mt-2">
+              Can't delete a post that already has applications.
+            </AppText>
+          ) : null}
         </View>
       ) : null}
 
@@ -302,6 +312,7 @@ type MyPostsAnalyticsPanelProps = {
 };
 
 export const MyPostsAnalyticsPanel = ({ visible }: MyPostsAnalyticsPanelProps) => {
+  const colors = useThemeTokens();
   const [posts, setPosts] = useState<Job[]>([]);
   const [analytics, setAnalytics] = useState<{
     totalPosts: number;
@@ -313,6 +324,8 @@ export const MyPostsAnalyticsPanel = ({ visible }: MyPostsAnalyticsPanelProps) =
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const activeFilterLabel = STATUS_FILTERS.find((filter) => filter.value === statusFilter)?.label ?? "All";
 
   const reload = () => {
     Promise.all([jobsApi.getMyPosts(), jobsApi.getMyAnalytics()]).then(([myPosts, myAnalytics]) => {
@@ -391,7 +404,25 @@ export const MyPostsAnalyticsPanel = ({ visible }: MyPostsAnalyticsPanelProps) =
         <AppText weight="bold" size="sm">
           My posts ({posts.length})
         </AppText>
-        <StatusFilterRow value={statusFilter} onChange={setStatusFilter} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Filter by status"
+          onPress={() => setIsFilterVisible(true)}
+          className="flex-row items-center justify-between rounded-md border border-input bg-background px-3 py-2.5"
+        >
+          <AppText size="sm">
+            Status: <AppText size="sm" weight="semibold">{activeFilterLabel}</AppText>
+          </AppText>
+          <Feather name="sliders" size={iconSize.sm} color={colors.text} />
+        </Pressable>
+
+        <StatusFilterModal
+          visible={isFilterVisible}
+          onClose={() => setIsFilterVisible(false)}
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
+
         {posts.length === 0 ? (
           <EmptyState title="No job posts yet" message="Jobs you post will show up here." />
         ) : visiblePosts.length === 0 ? (

@@ -13,6 +13,7 @@ export type Chat = {
   userBId: string;
   lastMessageAt: string;
   createdAt: string;
+  archived: boolean;
   messages?: ChatMessage[];
 };
 

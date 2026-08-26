@@ -13,15 +13,20 @@ export const getOtherParticipantId = (chat: Chat, currentUserId?: string) =>
 export const useChats = () => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const chats = useChatStore((state) => state.chats) || []; // Guard fallback
+  const archivedChats = useChatStore((state) => state.archivedChats) || []; // Guard fallback
   const selectedChat = useChatStore((state) => state.selectedChat);
   const isLoading = useChatStore((state) => state.isLoading);
   const isRefreshing = useChatStore((state) => state.isRefreshing);
   const isDetailLoading = useChatStore((state) => state.isDetailLoading);
+  const isLoadingArchived = useChatStore((state) => state.isLoadingArchived);
+  const archivingChatId = useChatStore((state) => state.archivingChatId);
   const deletingChatId = useChatStore((state) => state.deletingChatId);
   const errorMessage = useChatStore((state) => state.errorMessage);
   const detailErrorMessage = useChatStore((state) => state.detailErrorMessage);
   const loadChats = useChatStore((state) => state.loadChats);
   const refreshChats = useChatStore((state) => state.refreshChats);
+  const loadArchivedChats = useChatStore((state) => state.loadArchivedChats);
+  const setArchived = useChatStore((state) => state.setArchived);
   const selectChat = useChatStore((state) => state.selectChat);
   const clearSelectedChat = useChatStore((state) => state.clearSelectedChat);
   const deleteChat = useChatStore((state) => state.deleteChat);
@@ -69,6 +74,17 @@ export const useChats = () => {
     }
   }, [currentUserId, loadConnectedProfiles, loadIncomingRequests]);
 
+  // Loaded once so the "Archived" row can show a count without the user
+  // having to open the archived list first.
+  const hasRequestedArchivedRef = useRef(false);
+  useEffect(() => {
+    if (hasRequestedArchivedRef.current || !currentUserId) {
+      return;
+    }
+    hasRequestedArchivedRef.current = true;
+    void loadArchivedChats();
+  }, [currentUserId, loadArchivedChats]);
+
   const profilesById = useMemo(() => {
     const map = Object.fromEntries(users.map((user) => [user.profile.id, user.profile]));
 
@@ -90,15 +106,20 @@ export const useChats = () => {
   return {
     currentUserId,
     chats,
+    archivedChats,
     selectedChat,
     isLoading,
     isRefreshing,
     isDetailLoading,
+    isLoadingArchived,
+    archivingChatId,
     deletingChatId,
     errorMessage,
     detailErrorMessage,
     loadChats,
     refreshChats,
+    loadArchivedChats,
+    setArchived,
     selectChat,
     clearSelectedChat,
     deleteChat,

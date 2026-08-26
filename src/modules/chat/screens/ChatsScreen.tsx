@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, ListRenderItem, View } from "react-native";
+import { Alert, FlatList, ListRenderItem, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -15,14 +17,17 @@ import { useChats } from "@/modules/chat/hooks";
 import { Chat } from "@/modules/chat/types";
 import { iconSize } from "@/theme/designTokens";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { MainStackParamList } from "@/app/navigation/types";
 
 export const ChatsScreen = () => {
   const colors = useThemeTokens();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
 
 const [search, setSearch] = useState("");
 
 const {
   chats,
+  archivedChats,
   selectedChat,
   isLoading,
   isRefreshing,
@@ -31,6 +36,7 @@ const {
   detailErrorMessage,
   loadChats,
   refreshChats,
+  setArchived,
   selectChat,
   clearSelectedChat,
   getParticipant,
@@ -60,15 +66,27 @@ const filteredChats = useMemo(() => {
   });
 }, [search, chats, getParticipant]);
 
+  const handleLongPress = useCallback(
+    (chat: Chat) => {
+      const name = getParticipant(chat)?.fullName || "this chat";
+      Alert.alert(name, undefined, [
+        { text: "Cancel", style: "cancel" },
+        { text: "Archive", onPress: () => void setArchived(chat.id, true) }
+      ]);
+    },
+    [getParticipant, setArchived]
+  );
+
   const renderChat = useCallback<ListRenderItem<Chat>>(
     ({ item }) => (
-    <ChatRow 
+    <ChatRow
       chat={item}
       participant={getParticipant(item)}
       onPress={(id) => void selectChat(id)}
+      onLongPress={handleLongPress}
       />
     ),
-    [getParticipant, selectChat]
+    [getParticipant, selectChat, handleLongPress]
   );
 
   const selectedParticipant = selectedChat ? getParticipant(selectedChat) : undefined;
@@ -101,6 +119,25 @@ const filteredChats = useMemo(() => {
             onChangeText={setSearch}
           />
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate("ArchivedChats")}
+          className="mt-4 flex-row items-center gap-3 border-b border-border py-3 active:bg-muted-bg"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-muted-bg">
+            <Feather name="archive" size={iconSize.md} color={colors.muted} />
+          </View>
+          <AppText weight="medium" className="flex-1">
+            Archived
+          </AppText>
+          {archivedChats.length > 0 ? (
+            <AppText tone="muted" size="sm">
+              {archivedChats.length}
+            </AppText>
+          ) : null}
+          <Feather name="chevron-right" size={iconSize.sm} color={colors.muted} />
+        </Pressable>
     </View>
   );
 

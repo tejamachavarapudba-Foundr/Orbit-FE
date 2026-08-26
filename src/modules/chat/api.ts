@@ -2,8 +2,8 @@ import { apiClient } from "@/services/api/client";
 import { Chat, CreateChatPayload } from "@/modules/chat/types";
 
 export const chatApi = {
-  getChats: async () => {
-    const response = await apiClient.get<Chat[]>("/chats");
+  getChats: async (archived = false) => {
+    const response = await apiClient.get<Chat[]>("/chats", { params: { archived } });
     return response.data;
   },
   createChat: async (payload: CreateChatPayload) => {
@@ -12,6 +12,10 @@ export const chatApi = {
   },
   getChatById: async (id: string) => {
     const response = await apiClient.get<Chat>(`/chats/${id}`);
+    return response.data;
+  },
+  setArchived: async (id: string, archived: boolean) => {
+    const response = await apiClient.patch<Chat>(`/chats/${id}/archive`, { archived });
     return response.data;
   },
   deleteChat: async (id: string) => {

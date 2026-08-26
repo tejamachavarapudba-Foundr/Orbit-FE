@@ -43,6 +43,8 @@ export type Job = {
   heading: string;
   role: string;
   experience: string;
+  location: string;
+  openings: number;
   skills: string[];
   description: string;
   createdAt: string;
@@ -56,6 +58,8 @@ export type CreateJobPayload = {
   heading: string;
   role: string;
   experience: string;
+  location?: string;
+  openings?: number;
   skills: string[];
   description: string;
 };

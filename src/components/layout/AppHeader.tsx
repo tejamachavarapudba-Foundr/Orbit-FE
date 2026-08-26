@@ -23,6 +23,7 @@ export const AppHeader = () => {
 
   const showBackButton = [
     "Events",
+    "ArchivedChats",
     "Network",
     "Profile",
     "UserProfile",

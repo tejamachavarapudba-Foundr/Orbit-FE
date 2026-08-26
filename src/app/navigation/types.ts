@@ -28,6 +28,7 @@ export type MainStackParamList = {
   FAQ: undefined;
   Support: undefined;
   Events: undefined;
+  ArchivedChats: undefined;
   Network: undefined;
   Search: undefined;
   Admin: undefined;
@@ -40,6 +41,12 @@ export type MainStackParamList = {
     id: string;
     edit?: boolean;
   };
+
+  JobDetail: {
+    id: string;
+  };
+
+  PostJob: undefined;
 
   InvestmentWatchlist: undefined;
   Notifications: undefined;

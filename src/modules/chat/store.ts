@@ -7,16 +7,21 @@ import { toAppError } from "@/utils/errors";
 
 type ChatState = {
   chats: Chat[];
+  archivedChats: Chat[];
   selectedChat: Chat | null;
   isLoading: boolean;
   isRefreshing: boolean;
   isCreating: boolean;
   isDetailLoading: boolean;
+  isLoadingArchived: boolean;
+  archivingChatId: string | null;
   deletingChatId: string | null;
   errorMessage: string | null;
   detailErrorMessage: string | null;
   loadChats: () => Promise<void>;
   refreshChats: () => Promise<void>;
+  loadArchivedChats: () => Promise<void>;
+  setArchived: (id: string, archived: boolean) => Promise<boolean>;
   createChat: (participantId: string) => Promise<boolean>;
   selectChat: (id: string) => Promise<void>;
   clearSelectedChat: () => void;
@@ -30,11 +35,14 @@ const sortChats = (chats: Chat[]) =>
 
 export const useChatStore = create<ChatState>((set) => ({
   chats: [],
+  archivedChats: [],
   selectedChat: null,
   isLoading: false,
   isRefreshing: false,
   isCreating: false,
   isDetailLoading: false,
+  isLoadingArchived: false,
+  archivingChatId: null,
   deletingChatId: null,
   errorMessage: null,
   detailErrorMessage: null,
@@ -42,7 +50,7 @@ export const useChatStore = create<ChatState>((set) => ({
     set({ isLoading: true, errorMessage: null });
 
     try {
-      const chats = await chatApi.getChats();
+      const chats = await chatApi.getChats(false);
       set({ chats: sortChats(chats), isLoading: false });
     } catch (error) {
       const appError = toAppError(error);
@@ -53,11 +61,45 @@ export const useChatStore = create<ChatState>((set) => ({
     set({ isRefreshing: true, errorMessage: null });
 
     try {
-      const chats = await chatApi.getChats();
+      const chats = await chatApi.getChats(false);
       set({ chats: sortChats(chats), isRefreshing: false });
     } catch (error) {
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isRefreshing: false });
+    }
+  },
+  loadArchivedChats: async () => {
+    set({ isLoadingArchived: true, errorMessage: null });
+
+    try {
+      const archivedChats = await chatApi.getChats(true);
+      set({ archivedChats: sortChats(archivedChats), isLoadingArchived: false });
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isLoadingArchived: false });
+    }
+  },
+  setArchived: async (id, archived) => {
+    set({ archivingChatId: id, errorMessage: null });
+
+    try {
+      const updated = await chatApi.setArchived(id, archived);
+      set((state) => ({
+        // Move the chat between the two lists rather than refetching both.
+        chats: archived ? state.chats.filter((chat) => chat.id !== id) : sortChats([...state.chats.filter((chat) => chat.id !== id), updated]),
+        archivedChats: archived
+          ? sortChats([...state.archivedChats.filter((chat) => chat.id !== id), updated])
+          : state.archivedChats.filter((chat) => chat.id !== id),
+        selectedChat: state.selectedChat?.id === id ? updated : state.selectedChat,
+        archivingChatId: null
+      }));
+      useToastStore.getState().show({ type: "success", title: archived ? "Chat archived" : "Chat unarchived" });
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, archivingChatId: null });
+      useToastStore.getState().show({ type: "error", title: "Couldn't update chat", message: appError.message });
+      return false;
     }
   },
   createChat: async (participantId) => {
@@ -98,6 +140,7 @@ export const useChatStore = create<ChatState>((set) => ({
       await chatApi.deleteChat(id);
       set((state) => ({
         chats: state.chats.filter((chat) => chat.id !== id),
+        archivedChats: state.archivedChats.filter((chat) => chat.id !== id),
         selectedChat: state.selectedChat?.id === id ? null : state.selectedChat,
         deletingChatId: null
       }));
@@ -130,6 +173,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
       return {
         chats: sortChats(state.chats.map(applyPatch)),
+        archivedChats: sortChats(state.archivedChats.map(applyPatch)),
         selectedChat: state.selectedChat ? applyPatch(state.selectedChat) : state.selectedChat
       };
     });
@@ -150,6 +194,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
       return {
         chats: state.chats.map(applyPatch),
+        archivedChats: state.archivedChats.map(applyPatch),
         selectedChat: state.selectedChat ? applyPatch(state.selectedChat) : state.selectedChat
       };
     });
