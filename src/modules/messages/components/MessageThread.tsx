@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Image, Keyboard, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import { Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -65,35 +65,9 @@ const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrima
   );
 };
 
-// Manual keyboard tracking instead of KeyboardAvoidingView: this screen is
-// several flex layers deep inside react-native-screens' fragment-based tab
-// navigation, and RN's own layout-measurement approach doesn't reliably see
-// resizes through that fragment boundary — the input row was ending up
-// completely hidden behind the keyboard. Listening to the raw keyboard
-// events and applying the height directly sidesteps that measurement
-// entirely (this is the same reasoning that fixed the comments sheet).
-const useKeyboardHeight = () => {
-  const [height, setHeight] = useState(0);
-
-  useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvent, (event) => setHeight(event.endCoordinates.height));
-    const hideSub = Keyboard.addListener(hideEvent, () => setHeight(0));
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-
-  return height;
-};
-
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
-  const keyboardHeight = useKeyboardHeight();
   const scrollRef = useRef<ScrollView>(null);
   const showToast = useToastStore((state) => state.show);
   const [isSendingAttachment, setIsSendingAttachment] = useState(false);
@@ -146,7 +120,14 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const isBusy = isSending || isSendingAttachment;
 
   return (
-    <View className="min-h-[400px] flex-1 bg-card" style={{ paddingBottom: keyboardHeight }}>
+    // No KeyboardAvoidingView / manual keyboard tracking: AndroidManifest.xml
+    // already sets windowSoftInputMode="adjustResize" on the Activity, which
+    // correctly shrinks the whole screen when the keyboard opens — adding
+    // JS-side compensation on top of that double-counted the keyboard height,
+    // first hiding the input row entirely (old KeyboardAvoidingView) then
+    // leaving a big empty gap above the keyboard (manual padding). A plain
+    // flex-1 view lets the OS resize do this on its own, correctly.
+    <View className="min-h-[400px] flex-1 bg-card">
       <ScrollView
         ref={scrollRef}
         className="flex-1 px-4 py-4"
