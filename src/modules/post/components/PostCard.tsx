@@ -1,7 +1,6 @@
 import { memo, useCallback, useState } from "react";
 import { Alert, Linking, Modal, Pressable, Share, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
@@ -15,8 +14,6 @@ import { usePostLikes } from "@/modules/likes/hooks";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
 import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
-import { PostOverflowMenu } from "@/modules/post/components/PostOverflowMenu";
-import { postApi } from "@/modules/post/api";
 import { postCategoryOptions, usePostActions } from "@/modules/post/hooks";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
 import { Post, PostCategory } from "@/modules/post/types";
@@ -24,14 +21,12 @@ import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { FullPhotoModal } from "@/components/ui/FullPhotoModal";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { iconSize } from "@/theme/designTokens";
-import { useToastStore } from "@/store/toastStore";
 
 type PostCardProps = {
   post: Post;
 };
 
 const actionHitSlop = { top: 8, bottom: 8, left: 8, right: 8 };
-const POST_LINK_BASE = "https://startuphouze.com/p";
 
 const formatRelativeTime = (date: string) => {
   const diffMs = Date.now() - new Date(date).getTime();
@@ -68,12 +63,9 @@ const toFollowProfile = (author: Post["author"]): FollowProfile => ({
 export const PostCard = memo(({ post }: PostCardProps) => {
   const colors = useThemeTokens();
   const openUserProfile = useOpenUserProfile();
-  const showToast = useToastStore((state) => state.show);
   const [showFullPhoto, setShowFullPhoto] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
-  const [hasReported, setHasReported] = useState(false);
   const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
-  const { isSubmitting, updatePost, deletePost } = usePostActions();
+  const { isSubmitting, deletingPostId, updatePost, deletePost } = usePostActions();
   const {
     likesCount,
     isLikedByMe,
@@ -98,6 +90,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   );
   const authorName = post.author?.fullName ??  "Unknown";
   const authorRole = post.author?.headline ??  "";
+  const isDeleting = deletingPostId === post.id;
 
   const hasMedia = post.media && post.media.length > 0;
   const submitEdit = useCallback(async () => {
@@ -140,44 +133,6 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     void toggleFollow();
   }, [toggleFollow]);
 
-  const copyLink = useCallback(async () => {
-    await Clipboard.setStringAsync(`${POST_LINK_BASE}/${post.id}`);
-    showToast({ title: "Link copied to clipboard", type: "success" });
-  }, [post.id, showToast]);
-
-  const markNotInterested = useCallback(() => {
-    setIsHidden(true);
-    void postApi.markNotInterested(post.id).catch(() => {
-      setIsHidden(false);
-      showToast({ title: "Couldn't hide that post — try again.", type: "error" });
-    });
-  }, [post.id, showToast]);
-
-  const reportPost = useCallback(() => {
-    if (hasReported) return;
-    Alert.alert("Report post", "Let us know what's wrong with this post.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Report",
-        style: "destructive",
-        onPress: () => {
-          setHasReported(true);
-          void postApi
-            .reportPost(post.id, "")
-            .then(() => showToast({ title: "Thanks — we'll take a look.", type: "success" }))
-            .catch(() => {
-              setHasReported(false);
-              showToast({ title: "Couldn't report that post — try again.", type: "error" });
-            });
-        }
-      }
-    ]);
-  }, [hasReported, post.id, showToast]);
-
-  if (isHidden) {
-    return null;
-  }
-
   return (
     <View className="bg-card">
       <View className="px-4 pb-0 pt-3">
@@ -192,7 +147,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           <Pressable
             accessibilityRole="button"
             onPress={() => openUserProfile(post.author.id)}
-            className="min-w-0 flex-1 pr-32"
+            className="min-w-0 flex-1 pr-24"
           >
             <View className="flex-row items-center gap-1.5">
               <AppText weight="medium" numberOfLines={1}>
@@ -207,7 +162,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               {formatRelativeTime(post.createdAt)}
             </AppText>
           </Pressable>
-          <View className="absolute right-0 top-0 flex-row items-center gap-1.5">
+          <View className="absolute right-0 top-0">
             {!isOwnPost ? (
               <Pressable
                 accessibilityRole="button"
@@ -223,16 +178,6 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                   {isFollowing ? "Following" : "Follow"}
                 </AppText>
               </Pressable>
-            ) : null}
-            {!isEditing ? (
-              <PostOverflowMenu
-                isOwnPost={isOwnPost}
-                onCopyLink={() => void copyLink()}
-                onEdit={() => setIsEditing(true)}
-                onDelete={confirmDelete}
-                onNotInterested={markNotInterested}
-                onReport={reportPost}
-              />
             ) : null}
           </View>
         </View>
@@ -339,6 +284,30 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               </Pressable>
 
               <View className="flex-1" />
+
+              {isOwnPost ? (
+                <>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setIsEditing(true)}
+                    hitSlop={actionHitSlop}
+                    className="h-9 w-9 items-center justify-center rounded-md"
+                    accessibilityLabel="Edit post"
+                  >
+                    <Feather name="edit-2" size={iconSize.md} color={colors.text} />
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={isDeleting}
+                    onPress={confirmDelete}
+                    hitSlop={actionHitSlop}
+                    className="h-9 w-9 items-center justify-center rounded-md"
+                    accessibilityLabel="Delete post"
+                  >
+                    <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
+                  </Pressable>
+                </>
+              ) : null}
 
               <Pressable
                 accessibilityRole="button"
