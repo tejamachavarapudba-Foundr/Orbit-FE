@@ -47,13 +47,18 @@ const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrima
   }
 
   return (
+    // Fixed width, not flex-1 on the text: this sits inside a bubble that
+    // shrink-wraps to its content (max-w-[78%], no defined width), so a
+    // flex-1 child here has no container width to expand into and collapses
+    // to zero — which is why the filename never showed, icon-only every time.
     <Pressable
       accessibilityRole="button"
       onPress={() => void Linking.openURL(message.attachmentUrl!)}
+      style={{ width: 200 }}
       className={`mb-1.5 flex-row items-center gap-2 rounded-lg p-2.5 ${tint === "onPrimary" ? "bg-white/15" : "bg-background"}`}
     >
       <Feather name="file" size={iconSize.md} color={tint === "onPrimary" ? colors.onPrimary : colors.primary} />
-      <AppText size="sm" tone={tint} numberOfLines={1} className="flex-1">
+      <AppText size="sm" tone={tint} numberOfLines={1} style={{ flex: 1 }}>
         {message.attachmentName || "Attachment"}
       </AppText>
     </Pressable>
