@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Image, Keyboard, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,13 +19,18 @@ type MessageThreadProps = {
   conversationId: string;
 };
 
+type PendingAttachment = {
+  uri: string;
+  name: string;
+  mimeType: string;
+  size: number;
+};
+
 const formatTime = (date: string) =>
   new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
     minute: "2-digit"
   }).format(new Date(date));
-
-const HEADER_HEIGHT = 60;
 
 const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrimary" | "default" }) => {
   const colors = useThemeTokens();
@@ -55,12 +60,39 @@ const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrima
   );
 };
 
+// Manual keyboard tracking instead of KeyboardAvoidingView: this screen is
+// several flex layers deep inside react-native-screens' fragment-based tab
+// navigation, and RN's own layout-measurement approach doesn't reliably see
+// resizes through that fragment boundary — the input row was ending up
+// completely hidden behind the keyboard. Listening to the raw keyboard
+// events and applying the height directly sidesteps that measurement
+// entirely (this is the same reasoning that fixed the comments sheet).
+const useKeyboardHeight = () => {
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (event) => setHeight(event.endCoordinates.height));
+    const hideSub = Keyboard.addListener(hideEvent, () => setHeight(0));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  return height;
+};
+
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardHeight();
   const scrollRef = useRef<ScrollView>(null);
   const showToast = useToastStore((state) => state.show);
-  const [isAttaching, setIsAttaching] = useState(false);
+  const [isSendingAttachment, setIsSendingAttachment] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
   const {
     currentUserId,
     messages,
@@ -74,39 +106,42 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
     reload
   } = useConversationMessages(conversationId);
 
-  const pickAndSendAttachment = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({ type: "*/*", copyToCacheDirectory: true });
-      if (result.canceled || !result.assets[0]) return;
+  const pickAttachment = async () => {
+    const result = await DocumentPicker.getDocumentAsync({ type: "*/*", copyToCacheDirectory: true });
+    if (result.canceled || !result.assets[0]) return;
 
-      const asset = result.assets[0];
-      setIsAttaching(true);
-      const didSucceed = await sendAttachment({
-        uri: asset.uri,
-        name: asset.name,
-        mimeType: asset.mimeType ?? "application/octet-stream",
-        size: asset.size ?? 0
-      });
-      if (!didSucceed) {
-        showToast({ type: "error", title: "Couldn't send that file", message: "Try again." });
-      }
-    } finally {
-      setIsAttaching(false);
-    }
+    const asset = result.assets[0];
+    setPendingAttachment({
+      uri: asset.uri,
+      name: asset.name,
+      mimeType: asset.mimeType ?? "application/octet-stream",
+      size: asset.size ?? 0
+    });
   };
 
+  const handleSend = async () => {
+    if (pendingAttachment) {
+      setIsSendingAttachment(true);
+      try {
+        const didSucceed = await sendAttachment(pendingAttachment);
+        if (didSucceed) {
+          setPendingAttachment(null);
+        } else {
+          showToast({ type: "error", title: "Couldn't send that file", message: "Try again." });
+        }
+      } finally {
+        setIsSendingAttachment(false);
+      }
+      return;
+    }
+
+    void submit();
+  };
+
+  const isBusy = isSending || isSendingAttachment;
+
   return (
-    <KeyboardAvoidingView
-      className="min-h-[400px] flex-1 bg-card"
-      // Android's adjustResize (see AndroidManifest.xml) doesn't reliably
-      // propagate through react-native-screens' fragment-based navigation on
-      // every device/OS version — the input row can end up hidden behind the
-      // keyboard even with adjustResize set. "height" behavior compensates in
-      // JS via the Keyboard event listeners instead of depending on the OS to
-      // resize the window, so it works regardless.
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? HEADER_HEIGHT + insets.top : 0}
-    >
+    <View className="min-h-[400px] flex-1 bg-card" style={{ paddingBottom: keyboardHeight }}>
       <ScrollView
         ref={scrollRef}
         className="flex-1 px-4 py-4"
@@ -176,6 +211,18 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
         )}
       </ScrollView>
 
+      {pendingAttachment ? (
+        <View className="flex-row items-center gap-2 border-t border-border bg-muted-bg px-4 py-2">
+          <Feather name="file" size={iconSize.sm} color={colors.primary} />
+          <AppText size="xs" numberOfLines={1} className="flex-1">
+            {pendingAttachment.name}
+          </AppText>
+          <Pressable accessibilityRole="button" onPress={() => setPendingAttachment(null)} hitSlop={8}>
+            <Feather name="x" size={16} color={colors.muted} />
+          </Pressable>
+        </View>
+      ) : null}
+
       <View
         className="flex-row items-center gap-2 border-t border-border bg-card px-4 py-3"
         style={{ paddingBottom: Math.max(insets.bottom, 12) }}
@@ -183,8 +230,8 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Attach a file"
-          disabled={isAttaching || isSending}
-          onPress={() => void pickAndSendAttachment()}
+          disabled={isBusy}
+          onPress={() => void pickAttachment()}
           hitSlop={8}
           className="h-10 w-10 items-center justify-center rounded-full"
         >
@@ -201,8 +248,8 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
           maxLength={4000}
           className="max-h-28 min-h-10 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm leading-5 text-text"
         />
-        <AppButton label="Send" size="sm" loading={isSending} onPress={() => void submit()} />
+        <AppButton label="Send" size="sm" loading={isBusy} onPress={() => void handleSend()} />
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
