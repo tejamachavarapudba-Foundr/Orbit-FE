@@ -4,11 +4,6 @@ import { useAuthStore } from "@/modules/auth/store";
 import { useCommentStore } from "@/modules/comments/store";
 import { Comment } from "@/modules/comments/types";
 
-export type ThreadedComment = {
-  comment: Comment;
-  replies: Comment[];
-};
-
 export const usePostComments = (
   postId: string,
   initialComments: Comment[],

@@ -15,7 +15,6 @@ import {
   useFonts as useSoraFonts
 } from "@expo-google-fonts/sora";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts as useExpoFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -25,7 +24,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { vars } from "nativewind";
 import { RootNavigator } from "@/app/navigation/RootNavigator";
-import { PostActionsSheet } from "@/modules/post/components/PostActionsSheet";
 import { queryClient } from "@/services/api/queryClient";
 import { useAuthStore } from "@/modules/auth/store";
 import { useThemeStore } from "@/store/themeStore";
@@ -93,11 +91,8 @@ export default function App() {
       <View className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
-            <BottomSheetModalProvider>
-              <RootNavigator />
-              <PostActionsSheet />
-              <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-            </BottomSheetModalProvider>
+            <RootNavigator />
+            <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
           </QueryClientProvider>
         </SafeAreaProvider>
       </View>
