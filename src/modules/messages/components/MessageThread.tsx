@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
@@ -27,22 +27,63 @@ type PendingAttachment = {
   size: number;
 };
 
-const formatTime = (date: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit"
-  }).format(new Date(date));
+// Intl.DateTimeFormat's timezone resolution isn't reliable on every Android
+// + Hermes build (some silently default to UTC instead of the device's
+// zone). Date's own local-time getters read the OS timezone directly, no
+// ICU database involved, so they can't fall back to UTC that way.
+const formatTime = (date: string) => {
+  const d = new Date(date);
+  const hours24 = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  return `${hours12}:${minutes} ${period}`;
+};
 
-const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrimary" | "default" }) => {
+const MessageAttachment = ({
+  message,
+  tint,
+  time
+}: {
+  message: Message;
+  tint: "onPrimary" | "default";
+  // Only set when this attachment is the last thing in its bubble (no
+  // caption text following it) — otherwise the trailing caption text
+  // carries the timestamp instead, so it doesn't show twice.
+  time: string | null;
+}) => {
   const colors = useThemeTokens();
   if (!message.attachmentUrl) return null;
 
   const isImage = message.attachmentType?.startsWith("image/") ?? false;
+  // A low-opacity white border reads as "no border at all" once it's sat on
+  // top of a photo or the blue bubble — use a clearly visible, non-tinted
+  // border color instead so the card edge shows on any background.
+  const borderColor = tint === "onPrimary" ? "rgba(255,255,255,0.6)" : colors.border;
 
   if (isImage) {
     return (
-      <Pressable accessibilityRole="imagebutton" onPress={() => void Linking.openURL(message.attachmentUrl!)}>
-        <Image source={{ uri: message.attachmentUrl }} className="mb-1.5 h-40 w-52 rounded-lg" resizeMode="cover" />
+      <Pressable
+        accessibilityRole="imagebutton"
+        onPress={() => void Linking.openURL(message.attachmentUrl!)}
+        className="mb-1.5"
+      >
+        <Image
+          source={{ uri: message.attachmentUrl }}
+          // WhatsApp-style fixed square preview, not a stretched/oddly-cropped box.
+          className="h-60 w-60 rounded-lg"
+          style={{ borderWidth: StyleSheet.hairlineWidth, borderColor }}
+          resizeMode="cover"
+        />
+        {time ? (
+          // WhatsApp stamps the time directly on the photo, bottom-right —
+          // not as separate text below it.
+          <View className="absolute bottom-1.5 right-1.5 rounded-full bg-black/55 px-2 py-0.5">
+            <AppText size="xs" style={{ color: "#fff" }}>
+              {time}
+            </AppText>
+          </View>
+        ) : null}
       </Pressable>
     );
   }
@@ -55,13 +96,20 @@ const MessageAttachment = ({ message, tint }: { message: Message; tint: "onPrima
     <Pressable
       accessibilityRole="button"
       onPress={() => void Linking.openURL(message.attachmentUrl!)}
-      style={{ width: 200 }}
-      className={`mb-1.5 flex-row items-center gap-2 rounded-lg p-2.5 ${tint === "onPrimary" ? "bg-white/15" : "bg-background"}`}
+      style={{ width: 240, borderWidth: StyleSheet.hairlineWidth, borderColor }}
+      className={`mb-1.5 rounded-lg p-2.5 ${tint === "onPrimary" ? "bg-white/15" : "bg-background"}`}
     >
-      <Feather name="file" size={iconSize.md} color={tint === "onPrimary" ? colors.onPrimary : colors.primary} />
-      <AppText size="sm" tone={tint} numberOfLines={1} style={{ flex: 1 }}>
-        {message.attachmentName || "Attachment"}
-      </AppText>
+      <View className="flex-row items-center gap-2">
+        <Feather name="file" size={iconSize.md} color={tint === "onPrimary" ? colors.onPrimary : colors.primary} />
+        <AppText size="sm" tone={tint} numberOfLines={1} style={{ flex: 1 }}>
+          {message.attachmentName || "Attachment"}
+        </AppText>
+      </View>
+      {time ? (
+        <AppText tone={tint} size="xs" className="mt-1 self-end opacity-70">
+          {time}
+        </AppText>
+      ) : null}
     </Pressable>
   );
 };
@@ -132,7 +180,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
       <ScrollView
         ref={scrollRef}
         className="flex-1 px-4 py-4"
-        contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
+        contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
       >
         {isLoading ? (
@@ -151,19 +199,25 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
             const isLastInGroup = !next || next.senderId !== message.senderId;
             const isLastMineOverall = isMine && messages.slice(index + 1).every((later) => later.senderId !== currentUserId);
             const isSeen = isLastMineOverall && Boolean(message.readAt);
+            // Time goes on the attachment itself only when there's no
+            // caption text after it — otherwise the caption's own trailing
+            // timestamp covers it, so it never shows twice.
+            const attachmentTime =
+              isLastInGroup && !message.content && message.attachmentUrl ? formatTime(message.createdAt) : null;
+            const showCaptionTime = isLastInGroup && (Boolean(message.content) || !message.attachmentUrl);
 
             if (isMine) {
               return (
                 <View key={message.id} className="items-end">
                   <View className="max-w-[78%] rounded-2xl rounded-br-sm bg-primary px-4 py-2">
-                    <MessageAttachment message={message} tint="onPrimary" />
+                    <MessageAttachment message={message} tint="onPrimary" time={attachmentTime} />
                     {message.content ? (
                       <AppText tone="onPrimary" size="sm" className="leading-5">
                         {message.content}
                       </AppText>
                     ) : null}
-                    {isLastInGroup ? (
-                      <AppText tone="onPrimary" size="xs" className="mt-1 opacity-70">
+                    {showCaptionTime ? (
+                      <AppText tone="onPrimary" size="xs" className="mt-1 self-end opacity-70">
                         {formatTime(message.createdAt)}
                       </AppText>
                     ) : null}
@@ -179,14 +233,14 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
 
             return (
               <View key={message.id} className="max-w-[78%] self-start rounded-2xl rounded-bl-sm bg-muted-bg px-4 py-2">
-                <MessageAttachment message={message} tint="default" />
+                <MessageAttachment message={message} tint="default" time={attachmentTime} />
                 {message.content ? (
                   <AppText size="sm" className="leading-5">
                     {message.content}
                   </AppText>
                 ) : null}
-                {isLastInGroup ? (
-                  <AppText tone="muted" size="xs" className="mt-1">
+                {showCaptionTime ? (
+                  <AppText tone="muted" size="xs" className="mt-1 self-end">
                     {formatTime(message.createdAt)}
                   </AppText>
                 ) : null}

@@ -1,4 +1,5 @@
 import { apiClient } from "@/services/api/client";
+import { normalizeAuthProfile } from "@/modules/profile/normalizeProfile";
 import { FollowCounts, FollowProfile, FollowRelationship, FollowStatusResponse } from "@/modules/follows/types";
 
 export const followsApi = {
@@ -8,11 +9,14 @@ export const followsApi = {
   },
   getFollowers: async (userId: string) => {
     const response = await apiClient.get<FollowProfile[]>(`/follows/followers/${userId}`);
-    return response.data;
+    // Backend only returns a display-safe subset (id/fullName/headline/avatarUrl)
+    // — normalize so company/location/skills/etc. default to "" / [] instead
+    // of undefined, since the suggestion engine reads those unconditionally.
+    return response.data.map((profile) => normalizeAuthProfile(profile as FollowProfile & Record<string, unknown>));
   },
   getFollowing: async (userId: string) => {
     const response = await apiClient.get<FollowProfile[]>(`/follows/following/${userId}`);
-    return response.data;
+    return response.data.map((profile) => normalizeAuthProfile(profile as FollowProfile & Record<string, unknown>));
   },
   followUser: async (userId: string) => {
     const response = await apiClient.post<FollowRelationship>(`/follows/${userId}`);

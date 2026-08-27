@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Alert, FlatList, ListRenderItem, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -91,6 +91,22 @@ const filteredChats = useMemo(() => {
 
   const selectedParticipant = selectedChat ? getParticipant(selectedChat) : undefined;
 
+  // An open conversation takes the full screen, like a real messaging app —
+  // hide the app chrome (top bar, bottom tabs) instead of showing them
+  // alongside the thread. Reset to undefined (not the same style object,
+  // since another screen may render before this cleanup runs) when the
+  // chat is closed so the shared tab bar options apply again.
+  // useLayoutEffect, not useEffect: this must land before the screen paints
+  // and before the keyboard can open. A post-paint update left a window
+  // where the tab bar was still reserving its height while the keyboard
+  // opened, so the animated keyboard-offset math in MessageThread ran
+  // against a stale screen height and pushed the input box off-screen.
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      tabBarStyle: selectedChat ? { display: "none" } : undefined
+    } as never);
+  }, [navigation, selectedChat]);
+
     const listHeader = (
       <View className="w-full max-w-2xl self-center pb-2 pt-4">
     
@@ -143,7 +159,7 @@ const filteredChats = useMemo(() => {
 
   return (
     <AppScreen withHorizontalPadding={false}>
-      <AppHeader />
+      {selectedChat ? null : <AppHeader />}
       {selectedChat ? (
         <View className="flex-1">
           <ChatDetailPanel
