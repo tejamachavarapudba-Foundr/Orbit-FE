@@ -28,6 +28,9 @@ export type MainStackParamList = {
   FAQ: undefined;
   Support: undefined;
   Events: undefined;
+  CreateEvent: { isPrivate?: boolean; communityId?: string } | undefined;
+  EventDetail: { id: string };
+  CommunityEvents: undefined;
   ArchivedChats: undefined;
   Network: undefined;
   Search: undefined;

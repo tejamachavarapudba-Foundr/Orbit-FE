@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { EventFilter } from "@/modules/events/types";
 import { useEventsStore } from "@/modules/events/store";
+import { filterEvents } from "@/modules/events/utils";
 
 export const eventFilters: { label: string; value: EventFilter }[] = [
-  { label: "All events", value: "all" },
-  { label: "Upcoming", value: "upcoming" },
+  { label: "All", value: "all" },
   { label: "Joined", value: "joined" },
+  { label: "Upcoming", value: "upcoming" },
+  { label: "Completed", value: "completed" },
   { label: "Cancelled", value: "cancelled" }
 ];
 
@@ -41,22 +43,10 @@ export const useEvents = () => {
     void loadEvents();
   }, [isLoading, loadEvents]);
 
-  const filteredEvents = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const now = Date.now();
-
-    return events.filter((event) => {
-      const isJoined = rsvpStatusByEventId[event.id] === "confirmed";
-      const matchesFilter =
-        filter === "all" ||
-        (filter === "upcoming" && event.status === "ACTIVE" && new Date(event.startsAt).getTime() >= now) ||
-        (filter === "joined" && isJoined) ||
-        (filter === "cancelled" && event.status === "CANCELLED");
-      const haystack = [event.title, event.description, event.location, event.status].join(" ").toLowerCase();
-
-      return matchesFilter && (!normalizedQuery || haystack.includes(normalizedQuery));
-    });
-  }, [events, filter, query, rsvpStatusByEventId]);
+  const filteredEvents = useMemo(
+    () => filterEvents(events, filter, query, rsvpStatusByEventId),
+    [events, filter, query, rsvpStatusByEventId]
+  );
 
   return {
     events: filteredEvents,
@@ -81,7 +71,9 @@ export const useEvents = () => {
 export const useEventDetail = () => {
   const selectedEvent = useEventsStore((state) => state.selectedEvent);
   const attendeesByEventId = useEventsStore((state) => state.attendeesByEventId);
+  const isLoadingDetail = useEventsStore((state) => state.isLoadingDetail);
   const mutatingId = useEventsStore((state) => state.mutatingId);
+  const selectEvent = useEventsStore((state) => state.selectEvent);
   const clearSelectedEvent = useEventsStore((state) => state.clearSelectedEvent);
   const updateEvent = useEventsStore((state) => state.updateEvent);
   const cancelEvent = useEventsStore((state) => state.cancelEvent);
@@ -90,7 +82,9 @@ export const useEventDetail = () => {
   return {
     selectedEvent,
     attendees: selectedEvent ? (attendeesByEventId[selectedEvent.id] ?? []) : [],
+    isLoadingDetail,
     mutatingId,
+    selectEvent,
     clearSelectedEvent,
     updateEvent,
     cancelEvent,

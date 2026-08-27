@@ -6,6 +6,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { useAuthStore } from "@/modules/auth/store";
 import { userApi } from "@/modules/user/api";
 import { iconSize } from "@/theme/designTokens";
 
@@ -20,6 +21,7 @@ type PeoplePickerModalProps = {
 
 export const PeoplePickerModal = ({ visible, selectedIds, onClose, onDone }: PeoplePickerModalProps) => {
   const colors = useThemeTokens();
+  const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState<PersonOption[]>([]);
   const [picked, setPicked] = useState<string[]>(selectedIds);
@@ -29,10 +31,12 @@ export const PeoplePickerModal = ({ visible, selectedIds, onClose, onDone }: Peo
     setPicked(selectedIds);
     userApi.getUsers().then((users) =>
       setPeople(
-        users.map((u) => ({ id: u.id, fullName: u.profile.fullName, headline: u.profile.headline, avatarUrl: u.profile.avatarUrl }))
+        users
+          .filter((u) => u.id !== currentUserId)
+          .map((u) => ({ id: u.id, fullName: u.profile.fullName, headline: u.profile.headline, avatarUrl: u.profile.avatarUrl }))
       )
     );
-  }, [visible, selectedIds]);
+  }, [visible, selectedIds, currentUserId]);
 
   const filtered = useMemo(
     () => people.filter((p) => p.fullName.toLowerCase().includes(query.trim().toLowerCase())),

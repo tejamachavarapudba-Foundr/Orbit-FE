@@ -7,6 +7,7 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { getGoogleMapsUrl } from "@/services/location/geocoding";
 import { StartupEvent } from "@/modules/events/types";
+import { getCountdownLabel, getDisplayStatus, getHostName, isEventExpired } from "@/modules/events/utils";
 
 type EventCardProps = {
   event: StartupEvent;
@@ -36,6 +37,9 @@ export const EventCard = memo(({ event, isJoined, isMutating, onRsvp, onView }: 
     latitude: event.latitude,
     longitude: event.longitude
   });
+  const displayStatus = getDisplayStatus(event);
+  const countdownLabel = getCountdownLabel(event);
+  const canJoin = !isEventExpired(event) && event.status !== "CANCELLED";
 
   return (
     <View className="rounded-md border border-border bg-surface p-5">
@@ -46,19 +50,35 @@ export const EventCard = memo(({ event, isJoined, isMutating, onRsvp, onView }: 
           </AppText>
           <View className="mt-3 flex-row flex-wrap items-center gap-2">
             <AppText tone="muted" size="sm">
-              Hosted by Startuphouze member
+              Hosted by {getHostName(event)}
             </AppText>
             <View className="rounded-md bg-background px-3 py-1">
               <AppText weight="semibold" size="sm">
-                {event.status}
+                {displayStatus}
               </AppText>
             </View>
+            {countdownLabel ? (
+              <View className="rounded-full bg-primary/10 px-3 py-1">
+                <AppText tone="primary" weight="semibold" size="sm">
+                  {countdownLabel}
+                </AppText>
+              </View>
+            ) : null}
           </View>
         </View>
-        <View className="rounded-md bg-primary/10 px-3 py-1">
-          <AppText tone="primary" size="sm" weight="medium">
-            meetup
-          </AppText>
+        <View className="items-end gap-1.5">
+          <View className="rounded-md bg-primary/10 px-3 py-1">
+            <AppText tone="primary" size="sm" weight="medium">
+              meetup
+            </AppText>
+          </View>
+          {isJoined ? (
+            <View className="rounded-full bg-background px-3 py-1">
+              <AppText tone="success" size="xs" weight="medium">
+                You are going
+              </AppText>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -81,31 +101,32 @@ export const EventCard = memo(({ event, isJoined, isMutating, onRsvp, onView }: 
             {event.location}
           </AppText>
         </Pressable>
-        <View className="flex-row items-start gap-3">
+        <Pressable accessibilityRole="button" onPress={() => onView(event.id)} className="flex-row items-start gap-3">
           <Feather name="users" size={16} color={colors.muted} style={{ marginTop: 2 }} />
-          <AppText tone="muted" className="flex-1 leading-5">
+          <AppText tone="primary" className="flex-1 leading-5 underline">
             {event.attendeeCount} joined
           </AppText>
-        </View>
+        </Pressable>
       </View>
 
-      <View className="mt-5 flex-row flex-wrap items-center gap-3">
-        <AppButton
-          label={isJoined ? "Leave event" : "Join event"}
-          variant={isJoined ? "outline" : "primary"}
-          loading={isMutating}
-          disabled={event.status === "CANCELLED"}
-          onPress={() => onRsvp(event.id)}
-          className="h-11 px-5"
-        />
-        <AppButton label="Details" variant="outline" onPress={() => onView(event.id)} className="h-11 px-5" />
-        {isJoined ? (
-          <View className="rounded-md bg-background px-3 py-2">
-            <AppText tone="success" size="sm" weight="medium">
-              You are going
-            </AppText>
-          </View>
+      <View className="mt-5 flex-row items-center gap-3">
+        {canJoin ? (
+          <AppButton
+            label={isJoined ? "Leave event" : "Join event"}
+            variant={isJoined ? "outline" : "primary"}
+            size="default"
+            loading={isMutating}
+            onPress={() => onRsvp(event.id)}
+            className="flex-1 rounded-full"
+          />
         ) : null}
+        <AppButton
+          label="Details"
+          variant="outline"
+          size="default"
+          onPress={() => onView(event.id)}
+          className="flex-1 rounded-full"
+        />
       </View>
     </View>
   );

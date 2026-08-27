@@ -8,9 +8,16 @@ export type EventAttendee = {
   company: string;
 };
 
+export type EventHost = {
+  id: string;
+  fullName: string;
+  avatarUrl: string;
+};
+
 export type StartupEvent = {
   id: string;
   hostId: string;
+  host?: EventHost | null;
   title: string;
   description: string;
   location: string;
@@ -24,13 +31,18 @@ export type StartupEvent = {
   createdAt: string;
   updatedAt: string;
   attendeeCount: number;
+  communityId?: string | null;
+  // Whether the requesting user already has an EventAttendee row — set for
+  // community events auto-joined at creation, so no separate join step.
+  isAttending: boolean;
 };
 
-export type RawStartupEvent = Omit<StartupEvent, "attendeeCount" | "status" | "cancellationReason"> &
-  Partial<Pick<StartupEvent, "attendeeCount" | "status" | "cancellationReason">> & {
+export type RawStartupEvent = Omit<StartupEvent, "attendeeCount" | "status" | "cancellationReason" | "isAttending"> &
+  Partial<Pick<StartupEvent, "attendeeCount" | "status" | "cancellationReason" | "isAttending">> & {
     _count?: {
       attendees: number;
     };
+    attendees?: { id: string }[];
   };
 
 export type CreateEventPayload = {
@@ -67,4 +79,4 @@ export type EventRsvpResponse = {
   };
 };
 
-export type EventFilter = "all" | "upcoming" | "joined" | "cancelled";
+export type EventFilter = "all" | "upcoming" | "joined" | "completed" | "cancelled";

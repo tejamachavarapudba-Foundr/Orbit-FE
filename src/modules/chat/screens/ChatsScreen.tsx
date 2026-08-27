@@ -18,10 +18,12 @@ import { Chat } from "@/modules/chat/types";
 import { iconSize } from "@/theme/designTokens";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { MainStackParamList } from "@/app/navigation/types";
+import { useTabBarStyle } from "@/app/navigation/tabBarStyle";
 
 export const ChatsScreen = () => {
   const colors = useThemeTokens();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+  const defaultTabBarStyle = useTabBarStyle();
 
 const [search, setSearch] = useState("");
 
@@ -103,9 +105,9 @@ const filteredChats = useMemo(() => {
   // against a stale screen height and pushed the input box off-screen.
   useLayoutEffect(() => {
     navigation.setOptions({
-      tabBarStyle: selectedChat ? { display: "none" } : undefined
+      tabBarStyle: selectedChat ? { display: "none" } : defaultTabBarStyle
     } as never);
-  }, [navigation, selectedChat]);
+  }, [navigation, selectedChat, defaultTabBarStyle]);
 
     const listHeader = (
       <View className="w-full max-w-2xl self-center pb-2 pt-4">
@@ -127,9 +129,8 @@ const filteredChats = useMemo(() => {
           </AppText>
         </View>
     
-        <View className="mt-4">
+        <View className="mt-2">
           <AppTextInput
-            label="Search"
             placeholder="Search conversations..."
             value={search}
             onChangeText={setSearch}

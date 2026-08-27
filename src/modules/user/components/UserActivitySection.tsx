@@ -1,11 +1,11 @@
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppText } from "@/components/ui/AppText";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
-import { PostVideo } from "@/modules/post/components/PostVideo";
+import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
 import { Post } from "@/modules/post/types";
 import { useUserPosts } from "@/modules/user/hooks/useUserPosts";
 
@@ -17,8 +17,6 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 
 const ActivityCard = ({ post }: { post: Post }) => {
-  const media = post.media?.[0];
-
   return (
     <View className="rounded-md border border-border bg-background p-4">
       <View className="flex-row items-center justify-between gap-2">
@@ -36,30 +34,9 @@ const ActivityCard = ({ post }: { post: Post }) => {
         </View>
       ) : null}
 
-      {media && media.type === "VIDEO" ? (
-        // PostVideo sizes itself by the clip's own aspect ratio (same as
-        // everywhere else it's used) rather than a fixed crop box — fighting
-        // that with a fixed height is what left video posts blank here.
-        <View className="relative mt-3 w-full overflow-hidden rounded-md bg-muted-bg">
-          <PostVideo postId={post.id} uri={media.url} width={media.width ?? null} height={media.height ?? null} />
-          {post.media.length > 1 ? (
-            <View className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5">
-              <AppText size="xs" className="text-white">
-                +{post.media.length - 1}
-              </AppText>
-            </View>
-          ) : null}
-        </View>
-      ) : media ? (
-        <View className="relative mt-3 h-40 w-full overflow-hidden rounded-md bg-muted-bg">
-          <Image source={{ uri: media.url }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-          {post.media.length > 1 ? (
-            <View className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5">
-              <AppText size="xs" className="text-white">
-                +{post.media.length - 1}
-              </AppText>
-            </View>
-          ) : null}
+      {post.media?.length ? (
+        <View className="mt-3 overflow-hidden rounded-md">
+          <PostMediaCarousel postId={post.id} media={post.media} />
         </View>
       ) : null}
 

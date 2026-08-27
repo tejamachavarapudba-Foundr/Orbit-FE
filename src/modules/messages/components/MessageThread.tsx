@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
@@ -40,10 +40,28 @@ const formatTime = (date: string) => {
   return `${hours12}:${minutes} ${period}`;
 };
 
+// Chrome has no inline renderer for office documents, so it just downloads
+// them — routing office files through Google's public doc viewer instead
+// makes it render a preview like it already does for PDFs/images.
+const OFFICE_MIME_TYPES = new Set([
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+]);
+
+const getViewableFileUrl = (url: string, mimeType?: string | null) =>
+  mimeType && OFFICE_MIME_TYPES.has(mimeType)
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
+    : url;
+
 const MessageAttachment = ({
   message,
   tint,
-  time
+  time,
+  onPressImage
 }: {
   message: Message;
   tint: "onPrimary" | "default";
@@ -51,6 +69,7 @@ const MessageAttachment = ({
   // caption text following it) — otherwise the trailing caption text
   // carries the timestamp instead, so it doesn't show twice.
   time: string | null;
+  onPressImage: (url: string) => void;
 }) => {
   const colors = useThemeTokens();
   if (!message.attachmentUrl) return null;
@@ -65,7 +84,7 @@ const MessageAttachment = ({
     return (
       <Pressable
         accessibilityRole="imagebutton"
-        onPress={() => void Linking.openURL(message.attachmentUrl!)}
+        onPress={() => onPressImage(message.attachmentUrl!)}
         className="mb-1.5"
       >
         <Image
@@ -95,7 +114,7 @@ const MessageAttachment = ({
     // to zero — which is why the filename never showed, icon-only every time.
     <Pressable
       accessibilityRole="button"
-      onPress={() => void Linking.openURL(message.attachmentUrl!)}
+      onPress={() => void Linking.openURL(getViewableFileUrl(message.attachmentUrl!, message.attachmentType))}
       style={{ width: 240, borderWidth: StyleSheet.hairlineWidth, borderColor }}
       className={`mb-1.5 rounded-lg p-2.5 ${tint === "onPrimary" ? "bg-white/15" : "bg-background"}`}
     >
@@ -130,6 +149,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const scrollRef = useRef<ScrollView>(null);
   const showToast = useToastStore((state) => state.show);
   const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const {
     currentUserId,
     messages,
@@ -210,7 +230,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
               return (
                 <View key={message.id} className="items-end">
                   <View className="max-w-[78%] rounded-2xl rounded-br-sm bg-primary px-4 py-2">
-                    <MessageAttachment message={message} tint="onPrimary" time={attachmentTime} />
+                    <MessageAttachment message={message} tint="onPrimary" time={attachmentTime} onPressImage={setViewerUrl} />
                     {message.content ? (
                       <AppText tone="onPrimary" size="sm" className="leading-5">
                         {message.content}
@@ -233,7 +253,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
 
             return (
               <View key={message.id} className="max-w-[78%] self-start rounded-2xl rounded-bl-sm bg-muted-bg px-4 py-2">
-                <MessageAttachment message={message} tint="default" time={attachmentTime} />
+                <MessageAttachment message={message} tint="default" time={attachmentTime} onPressImage={setViewerUrl} />
                 {message.content ? (
                   <AppText size="sm" className="leading-5">
                     {message.content}
@@ -290,6 +310,26 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
         />
         <AppButton label="Send" size="sm" onPress={() => void handleSend()} />
       </View>
+
+      <Modal visible={viewerUrl !== null} transparent animationType="fade" onRequestClose={() => setViewerUrl(null)}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setViewerUrl(null)}
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.92)", alignItems: "center", justifyContent: "center" }}
+        >
+          {viewerUrl ? (
+            <Image source={{ uri: viewerUrl }} style={{ width: "100%", height: "80%" }} resizeMode="contain" />
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            onPress={() => setViewerUrl(null)}
+            style={{ position: "absolute", top: insets.top + 12, right: 16, padding: 8 }}
+          >
+            <Feather name="x" size={28} color="#fff" />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Animated.View>
   );
 };

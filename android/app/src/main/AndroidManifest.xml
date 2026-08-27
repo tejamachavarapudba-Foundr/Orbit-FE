@@ -21,6 +21,10 @@
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/dc4b1e6d-bc45-48df-9fc0-78ad433edfa5"/>
+    <!-- TODO: replace with a real "Maps SDK for Android" key from Google Cloud
+         Console before building — the map screen will show a blank/grey view
+         and log an auth error without one. -->
+    <meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_GOOGLE_MAPS_API_KEY_HERE"/>
     <!-- screenSize deliberately excluded from configChanges: with it present,
          Android does not reliably deliver adjustResize's window resize for
          the keyboard to the main Activity (a message composer buried in the

@@ -47,19 +47,28 @@ export const CommunityDetailScreen = () => {
         </AppText>
       ) : null}
 
-      <View className="mt-4 flex-row items-center justify-between">
+      <View className="mt-4 flex-row items-center justify-between gap-2">
         <AppText weight="semibold">
           {community?.memberCount ?? 0} {community?.memberCount === 1 ? "member" : "members"}
         </AppText>
-        <AppButton
-          label="Invite people"
-          variant="outline"
-          className="h-9 px-3"
-          onPress={() => setIsPickerVisible(true)}
-        />
+        <View className="flex-row gap-2">
+          <AppButton
+            label="Host event"
+            size="sm"
+            className="rounded-full"
+            onPress={() => navigation.navigate("CreateEvent", { isPrivate: true, communityId: route.params.id })}
+          />
+          <AppButton
+            label="Invite people"
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            onPress={() => setIsPickerVisible(true)}
+          />
+        </View>
       </View>
 
-      <ScrollView className="mt-3" showsVerticalScrollIndicator={false}>
+      <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
         {(community?.members ?? []).map((member) => (
           <Pressable
             key={member.id}

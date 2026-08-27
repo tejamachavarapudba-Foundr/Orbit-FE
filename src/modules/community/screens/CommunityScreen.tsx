@@ -34,7 +34,7 @@ export const CommunityScreen = () => {
     {
       label: "Community events",
       description: communities.length
-        ? "Host a private meetup for one of your communities, or join public events."
+        ? "Browse and host private meetups for your communities."
         : "Create a community group first, then host private events for its members.",
       icon: "calendar",
       onPress: () => {
@@ -49,7 +49,7 @@ export const CommunityScreen = () => {
           );
           return;
         }
-        navigation.navigate("Events");
+        navigation.navigate("CommunityEvents");
       }
     }
   ];

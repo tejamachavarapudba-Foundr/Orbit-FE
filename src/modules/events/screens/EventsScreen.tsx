@@ -1,22 +1,29 @@
-import { useCallback } from "react";
-import { FlatList, ListRenderItem, TextInput, View } from "react-native";
+import { useCallback, useState } from "react";
+import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { EventCard } from "@/modules/events/components/EventCard";
 import { EventComposer } from "@/modules/events/components/EventComposer";
-import { EventDetailPanel } from "@/modules/events/components/EventDetailPanel";
+import { EventStatusFilterModal } from "@/modules/events/components/EventStatusFilterModal";
 import { eventFilters, useEvents } from "@/modules/events/hooks";
 import { StartupEvent } from "@/modules/events/types";
+import { getIsJoined } from "@/modules/events/utils";
+import { iconSize } from "@/theme/designTokens";
+import { MainStackParamList } from "@/app/navigation/types";
 
 export const EventsScreen = () => {
   const colors = useThemeTokens();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
   const {
     events,
     rsvpStatusByEventId,
@@ -30,23 +37,24 @@ export const EventsScreen = () => {
     setFilter,
     loadEvents,
     refreshEvents,
-    selectEvent,
     rsvpEvent
   } = useEvents();
+
+  const openDetail = useCallback((id: string) => navigation.navigate("EventDetail", { id }), [navigation]);
 
   const renderEvent = useCallback<ListRenderItem<StartupEvent>>(
     ({ item }) => (
       <View className="w-full max-w-2xl self-center">
         <EventCard
           event={item}
-          isJoined={rsvpStatusByEventId[item.id] === "confirmed"}
+          isJoined={getIsJoined(item, rsvpStatusByEventId[item.id])}
           isMutating={mutatingId === item.id}
           onRsvp={(id) => void rsvpEvent(id)}
-          onView={(id) => void selectEvent(id)}
+          onView={openDetail}
         />
       </View>
     ),
-    [mutatingId, rsvpEvent, rsvpStatusByEventId, selectEvent]
+    [mutatingId, openDetail, rsvpEvent, rsvpStatusByEventId]
   );
 
   return (
@@ -94,23 +102,30 @@ export const EventsScreen = () => {
               />
             </View>
 
-            <View className="mt-4 flex-row flex-wrap gap-2">
-              {eventFilters.map((option) => (
-                <FilterChip
-                  key={option.value}
-                  label={option.label}
-                  isActive={filter === option.value}
-                  activeTone="primary"
-                  onPress={() => setFilter(option.value)}
-                />
-              ))}
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setIsFilterVisible(true)}
+              className="mt-4 flex-row items-center justify-between rounded-md border border-input bg-background px-3 py-2.5"
+            >
+              <AppText size="sm">
+                Status:{" "}
+                <AppText size="sm" weight="semibold">
+                  {eventFilters.find((option) => option.value === filter)?.label ?? "All"}
+                </AppText>
+              </AppText>
+              <Feather name="sliders" size={iconSize.sm} color={colors.text} />
+            </Pressable>
+
+            <EventStatusFilterModal
+              visible={isFilterVisible}
+              onClose={() => setIsFilterVisible(false)}
+              value={filter}
+              onChange={setFilter}
+            />
 
             <View className="mt-5">
               <EventComposer />
             </View>
-
-            <EventDetailPanel />
           </View>
         }
         ListEmptyComponent={

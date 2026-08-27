@@ -12,12 +12,17 @@ export const normalizeEvent = (event: RawStartupEvent) => ({
   ...event,
   status: event.status ?? "ACTIVE",
   cancellationReason: event.cancellationReason ?? null,
-  attendeeCount: event._count?.attendees ?? event.attendeeCount ?? 0
+  attendeeCount: event._count?.attendees ?? event.attendeeCount ?? 0,
+  isAttending: event.isAttending ?? Boolean(event.attendees?.length)
 });
 
 export const eventsApi = {
   getEvents: async () => {
     const response = await apiClient.get<RawStartupEvent[]>("/events");
+    return response.data.map(normalizeEvent);
+  },
+  getCommunityEvents: async (communityId: string) => {
+    const response = await apiClient.get<RawStartupEvent[]>(`/events/community/${communityId}`);
     return response.data.map(normalizeEvent);
   },
   getEvent: async (id: string) => {

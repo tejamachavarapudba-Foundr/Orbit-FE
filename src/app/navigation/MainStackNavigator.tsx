@@ -19,6 +19,9 @@ import { DataPrivacyScreen } from "@/modules/settings/screens/DataPrivacyScreen"
 import { FAQScreen } from "@/modules/settings/screens/FAQScreen";
 import { SupportScreen } from "@/modules/settings/screens/SupportScreen";
 import { EventsScreen } from "@/modules/events/screens/EventsScreen";
+import { CreateEventScreen } from "@/modules/events/screens/CreateEventScreen";
+import { EventDetailScreen } from "@/modules/events/screens/EventDetailScreen";
+import { CommunityEventsScreen } from "@/modules/events/screens/CommunityEventsScreen";
 import { ArchivedChatsScreen } from "@/modules/chat/screens/ArchivedChatsScreen";
 import { NetworkScreen } from "@/modules/user/screens/NetworkScreen";
 import { SearchScreen } from "@/modules/search/screens/SearchScreen";
@@ -86,6 +89,21 @@ export const MainStackNavigator = () => (
     <Stack.Screen
       name="Events"
       component={EventsScreen}
+    />
+
+    <Stack.Screen
+      name="CreateEvent"
+      component={CreateEventScreen}
+    />
+
+    <Stack.Screen
+      name="EventDetail"
+      component={EventDetailScreen}
+    />
+
+    <Stack.Screen
+      name="CommunityEvents"
+      component={CommunityEventsScreen}
     />
 
     <Stack.Screen

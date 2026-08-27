@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { getGoogleMapsDirectionsUrl, getGoogleMapsUrl, LocationValue, searchPlaces } from "@/services/location/geocoding";
+import { EventLocationMapModal } from "@/modules/events/components/EventLocationMapModal";
+import { LocationValue, searchPlaces } from "@/services/location/geocoding";
 
 type EventLocationPickerProps = {
   value: LocationValue;
@@ -18,6 +18,7 @@ export const EventLocationPicker = ({ value, onChange }: EventLocationPickerProp
   const [suggestions, setSuggestions] = useState<{ display_name: string; lat: string; lon: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [isMapVisible, setIsMapVisible] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -66,14 +67,6 @@ export const EventLocationPicker = ({ value, onChange }: EventLocationPickerProp
     setSuggestions([]);
   };
 
-  const openMaps = () => {
-    void Linking.openURL(getGoogleMapsUrl(value));
-  };
-
-  const openDirections = () => {
-    void Linking.openURL(getGoogleMapsDirectionsUrl(value));
-  };
-
   const hasCoordinates = value.latitude != null && value.longitude != null;
 
   return (
@@ -81,28 +74,48 @@ export const EventLocationPicker = ({ value, onChange }: EventLocationPickerProp
       <AppText weight="medium" size="sm" className="mb-2">
         Location
       </AppText>
-      <View className="rounded-md border border-border bg-background px-3">
-        <View className="flex-row items-center gap-2">
-          <Feather name="search" size={18} color={colors.muted} />
-          <TextInput
-            value={search}
-            onChangeText={(text) => {
-              setSearch(text);
-              onChange({ address: text, latitude: value.latitude, longitude: value.longitude });
-            }}
-            onFocus={() => {
-              if (suggestions.length) {
-                setShowSuggestions(true);
-              }
-            }}
-            placeholder="Search address or place..."
-            placeholderTextColor={colors.muted}
-            selectionColor={colors.primary}
-            className="h-11 flex-1 text-base text-text"
-          />
-          {searching ? <ActivityIndicator size="small" color={colors.primary} /> : null}
+      <View className="flex-row items-center gap-2">
+        <View className="flex-1 rounded-md border border-border bg-background px-3">
+          <View className="flex-row items-center gap-2">
+            <Feather name="search" size={18} color={colors.muted} />
+            <TextInput
+              value={search}
+              onChangeText={(text) => {
+                setSearch(text);
+                onChange({ address: text, latitude: value.latitude, longitude: value.longitude });
+              }}
+              onFocus={() => {
+                if (suggestions.length) {
+                  setShowSuggestions(true);
+                }
+              }}
+              placeholder="Search address or place..."
+              placeholderTextColor={colors.muted}
+              selectionColor={colors.primary}
+              className="h-11 flex-1 text-base text-text"
+            />
+            {searching ? <ActivityIndicator size="small" color={colors.primary} /> : null}
+          </View>
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Pin location on map"
+          onPress={() => setIsMapVisible(true)}
+          className="h-11 w-11 items-center justify-center rounded-md border border-border bg-background"
+        >
+          <Feather name="map-pin" size={20} color={colors.primary} />
+        </Pressable>
       </View>
+
+      <EventLocationMapModal
+        visible={isMapVisible}
+        value={value}
+        onClose={() => setIsMapVisible(false)}
+        onConfirm={(next) => {
+          onChange(next);
+          setIsMapVisible(false);
+        }}
+      />
 
       {showSuggestions && suggestions.length > 0 ? (
         <View className="mt-2 max-h-44 overflow-hidden rounded-md border border-border bg-surface">
@@ -135,23 +148,6 @@ export const EventLocationPicker = ({ value, onChange }: EventLocationPickerProp
           Pick a suggestion so we can pin the event on the map.
         </AppText>
       )}
-
-      <View className="mt-3 flex-row flex-wrap gap-2">
-        <AppButton
-          label="Open in Google Maps"
-          variant="outline"
-          disabled={!value.address.trim() && !hasCoordinates}
-          onPress={openMaps}
-          className="h-9 px-3"
-        />
-        <AppButton
-          label="Get directions"
-          variant="outline"
-          disabled={!value.address.trim() && !hasCoordinates}
-          onPress={openDirections}
-          className="h-9 px-3"
-        />
-      </View>
     </View>
   );
 };

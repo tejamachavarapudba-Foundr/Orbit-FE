@@ -22,6 +22,7 @@ type EventsState = {
   isLoading: boolean;
   isRefreshing: boolean;
   isCreating: boolean;
+  isLoadingDetail: boolean;
   mutatingId: string | null;
   errorMessage: string | null;
   setQuery: (query: string) => void;
@@ -52,6 +53,7 @@ export const useEventsStore = create<EventsState>((set) => ({
   isLoading: false,
   isRefreshing: false,
   isCreating: false,
+  isLoadingDetail: false,
   mutatingId: null,
   errorMessage: null,
   setQuery: (query) => set({ query }),
@@ -79,7 +81,10 @@ export const useEventsStore = create<EventsState>((set) => ({
     }
   },
   selectEvent: async (id) => {
-    set({ mutatingId: id, errorMessage: null });
+    // Deliberately its own flag, not mutatingId — mutatingId also drives the
+    // Join/Leave spinner on EventCard (keyed by event id), so reusing it here
+    // made opening Details show a spinner on Join/Leave too.
+    set({ isLoadingDetail: true, errorMessage: null });
 
     try {
       const event = await eventsApi.getEvent(id);
@@ -88,11 +93,11 @@ export const useEventsStore = create<EventsState>((set) => ({
         events: upsertEvent(state.events, { ...event, attendeeCount: attendees.length || event.attendeeCount }),
         selectedEvent: { ...event, attendeeCount: attendees.length || event.attendeeCount },
         attendeesByEventId: { ...state.attendeesByEventId, [id]: attendees },
-        mutatingId: null
+        isLoadingDetail: false
       }));
     } catch (error) {
       const appError = toAppError(error);
-      set({ errorMessage: appError.message, mutatingId: null });
+      set({ errorMessage: appError.message, isLoadingDetail: false });
     }
   },
   clearSelectedEvent: () => set({ selectedEvent: null }),

@@ -16,6 +16,7 @@ import { useChatStore } from "@/modules/chat/store";
 import { useAuthStore } from "@/modules/auth/store";
 import { useNotifications } from "@/modules/notifications/hooks";
 import { countUnreadByType, JOB_NOTIFICATION_TYPES, PROJECT_NOTIFICATION_TYPES } from "@/modules/notifications/categories";
+import { useTabBarStyle } from "@/app/navigation/tabBarStyle";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -54,6 +55,7 @@ const badgeOptions = (tabBarIcon: (props: TabIconProps) => JSX.Element, count: n
 
 export const MainNavigator = () => {
   const colors = useThemeTokens();
+  const tabBarStyle = useTabBarStyle();
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const isInvestor = useAuthStore((state) => state.user?.profile?.role?.toLowerCase() === "investor");
 
@@ -93,14 +95,7 @@ export const MainNavigator = () => {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 80,
-          paddingTop: 8,
-          paddingBottom: 10,
-        },
+        tabBarStyle,
         tabBarItemStyle: {
           flex: 1,
           justifyContent: "center",
