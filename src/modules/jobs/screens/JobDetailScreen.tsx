@@ -117,6 +117,7 @@ export const JobDetailScreen = ({ route }: Props) => {
 
   const isMutating = mutatingId === selectedJob.id;
   const applications = selectedJob.applications ?? [];
+  const applicationsCount = selectedJob.applicationsCount ?? applications.length;
   const skills = selectedJob.skills ?? [];
 
   const role = profile?.role;
@@ -150,7 +151,7 @@ export const JobDetailScreen = ({ route }: Props) => {
           <View className="flex-row items-center gap-2">
             <Feather name="users" size={iconSize.sm} color={colors.muted} />
             <AppText tone="muted" size="sm">
-              {applications.length} {applications.length === 1 ? "applicant" : "applicants"}
+              {applicationsCount} {applicationsCount === 1 ? "applicant" : "applicants"}
             </AppText>
           </View>
           <AppText tone="muted" size="sm">

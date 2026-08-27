@@ -61,11 +61,15 @@ export const useConnectionsStore = create<ConnectionsState>((set, get) => ({
         },
         requestIdByUserId: {
           ...state.requestIdByUserId,
-          ...Object.fromEntries(incomingRequests.map((request) => [request.requesterId, request.id]))
+          ...Object.fromEntries(
+            incomingRequests.map((request) => [request.requesterId || request.requester?.id, request.id])
+          )
         },
         noteByUserId: {
           ...state.noteByUserId,
-          ...Object.fromEntries(incomingRequests.map((request) => [request.requesterId, request.note]))
+          ...Object.fromEntries(
+            incomingRequests.map((request) => [request.requesterId || request.requester?.id, request.note])
+          )
         }
       }));
     } catch (error) {

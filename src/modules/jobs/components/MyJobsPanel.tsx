@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { Avatar } from "@/components/ui/Avatar";
 import { Card } from "@/components/ui/Card";
 import { ApplicationStatusBadge } from "@/modules/jobs/components/ApplicationStatusBadge";
 import { StatusFilter, StatusFilterModal, STATUS_FILTERS } from "@/modules/jobs/components/StatusFilterModal";
@@ -14,6 +15,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { jobsApi } from "@/modules/jobs/api";
 import { useJobsStore } from "@/modules/jobs/store";
 import { Job, JobApplication } from "@/modules/jobs/types";
+import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { iconSize } from "@/theme/designTokens";
 import { toAppError } from "@/utils/errors";
 import { useToastStore } from "@/store/toastStore";
@@ -129,6 +131,8 @@ const ApplicationRow = ({ jobId, application, onChanged }: ApplicationRowProps) 
   const mutatingId = useJobsStore((state) => state.mutatingId);
   const updateApplicationStatus = useJobsStore((state) => state.updateApplicationStatus);
   const [isFetchingResume, setIsFetchingResume] = useState(false);
+  const openUserProfile = useOpenUserProfile();
+  const applicantName = application.applicant?.fullName ?? "Applicant";
 
   const openResume = async () => {
     setIsFetchingResume(true);
@@ -146,9 +150,16 @@ const ApplicationRow = ({ jobId, application, onChanged }: ApplicationRowProps) 
   return (
     <View className="rounded-md border border-border bg-card p-3">
       <View className="flex-row items-center justify-between">
-        <AppText weight="medium" size="sm">
-          {application.applicant?.fullName ?? "Applicant"}
-        </AppText>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => openUserProfile(application.applicantId)}
+          className="flex-1 flex-row items-center gap-2"
+        >
+          <Avatar name={applicantName} imageUrl={application.applicant?.avatarUrl ?? ""} size="sm" fallback="mesh" />
+          <AppText weight="medium" size="sm" className="flex-1" numberOfLines={1}>
+            {applicantName}
+          </AppText>
+        </Pressable>
         <ApplicationStatusBadge status={application.status} />
       </View>
       <AppText tone="muted" size="sm" className="mt-1 leading-5">
@@ -278,21 +289,17 @@ const MyJobPostCard = ({ post, statusFilter, onChanged }: MyJobPostCardProps) =>
               className="flex-1"
               size="sm"
             />
-            <AppButton
-              label="Delete"
-              variant="outline"
-              loading={isMutating}
-              disabled={applications.length > 0}
-              onPress={confirmDelete}
-              className="flex-1"
-              size="sm"
-            />
+            {applications.length === 0 ? (
+              <AppButton
+                label="Delete"
+                variant="outline"
+                loading={isMutating}
+                onPress={confirmDelete}
+                className="flex-1"
+                size="sm"
+              />
+            ) : null}
           </View>
-          {applications.length > 0 ? (
-            <AppText tone="muted" size="xs" className="mt-2">
-              Can't delete a post that already has applications.
-            </AppText>
-          ) : null}
         </View>
       ) : null}
 

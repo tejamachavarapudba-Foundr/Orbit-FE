@@ -43,7 +43,7 @@ const NetworkTabBar = ({
 
   const tabs = useMemo<NetworkTabOption[]>(
     () => [
-      { label: "Feed", value: "feed", icon: "Sparkles" },
+      { label: "Invitations", value: "feed", icon: "Sparkles" },
       { label: "Following", value: "following", icon: "Users", count: followingCount },
       { label: "Followers", value: "followers", count: followersCount }
     ],
@@ -85,36 +85,17 @@ const NetworkTabBar = ({
 };
 
 const FeedView = ({
-  following,
   suggestions,
-  isLoadingNetwork,
   isLoadingSuggestions,
   onPressProfile
 }: {
-  following: FollowProfile[];
   suggestions: SuggestedProfile[];
-  isLoadingNetwork: boolean;
   isLoadingSuggestions: boolean;
   onPressProfile: (userId: string) => void;
 }) => {
-  if (isLoadingNetwork && following.length === 0) {
-    return <UserSkeletonList />;
-  }
-
   return (
     <View className="gap-3">
-      {following.length === 0 ? (
-        <EmptyState
-          title="Your feed is quiet"
-          message="Follow members to see them here and get better suggestions."
-        />
-      ) : (
-        following.map((profile) => (
-          <NetworkMemberRow key={profile.id} profile={profile} onPress={onPressProfile} showFollowButton />
-        ))
-      )}
-
-      <View className="mt-4">
+      <View>
         <AppText weight="bold" size="lg">
           Suggested for you
         </AppText>
@@ -156,7 +137,6 @@ export const NetworkScreen = () => {
   const {
     currentUserId,
     profiles,
-    following,
     followersCount,
     followingCount,
     isLoadingNetwork,
@@ -239,9 +219,7 @@ export const NetworkScreen = () => {
 
             {activeTab === "feed" ? (
               <FeedView
-                following={following}
                 suggestions={suggestions}
-                isLoadingNetwork={isLoadingNetwork}
                 isLoadingSuggestions={isLoadingSuggestions}
                 onPressProfile={openUserProfile}
               />

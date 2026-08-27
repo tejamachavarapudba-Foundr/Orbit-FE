@@ -50,7 +50,11 @@ export type Job = {
   createdAt: string;
   updatedAt: string;
   poster?: AuthProfile;
+  // On the public browse/detail endpoints this only ever contains the
+  // current viewer's own application (0 or 1 entries), never other
+  // applicants' data — use applicationsCount for the real total.
   applications?: JobApplication[];
+  applicationsCount?: number;
 };
 
 export type CreateJobPayload = {

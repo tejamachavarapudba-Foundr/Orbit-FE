@@ -57,7 +57,7 @@ export const JobCard = memo(({ job, onPress }: JobCardProps) => (
 
       <View className="mt-4 flex-row items-center justify-between">
         <AppText tone="muted" size="xs">
-          {job.applications?.length ?? 0} applications
+          {job.applicationsCount ?? 0} applications
         </AppText>
         <AppText tone="muted" size="xs">
           {formatDate(job.createdAt)}

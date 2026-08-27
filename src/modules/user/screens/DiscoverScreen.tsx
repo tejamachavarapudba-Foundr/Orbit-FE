@@ -65,7 +65,20 @@ export const DiscoverScreen = () => {
   return (
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
-      
+
+      {/* Kept outside the FlatList so it stays reachable no matter how far
+          the list is scrolled — nesting it in ListHeaderComponent meant it
+          scrolled away with the title/search block above it. */}
+      <View className="border-b border-border bg-background px-5 pb-3 pt-2">
+        <FlatList
+          data={userRoleFilters}
+          horizontal
+          keyExtractor={(item) => item.value}
+          renderItem={({ item }) => renderRoleChip(item)}
+          showsHorizontalScrollIndicator={false}
+        />
+      </View>
+
       <FlatList
         data={users}
         keyExtractor={keyExtractor}
@@ -94,15 +107,6 @@ export const DiscoverScreen = () => {
                 className="h-12 text-base text-text"
               />
             </View>
-
-            <FlatList
-              data={userRoleFilters}
-              horizontal
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => renderRoleChip(item)}
-              showsHorizontalScrollIndicator={false}
-              className="mt-4"
-            />
 
             {totalCount > 0 ? (
               <AppText tone="muted" size="sm" className="mt-4">

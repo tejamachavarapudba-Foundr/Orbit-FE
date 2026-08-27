@@ -50,17 +50,18 @@ export const ConnectionRequestModal = ({
             value={note}
             onChangeText={setNote}
             multiline
-            placeholder="Hi, I'd love to connect because..."
+            placeholder="Hi, I'm interested in connecting because..."
             className="mt-4 h-28 py-3"
             textAlignVertical="top"
           />
           <View className="mt-5 flex-row gap-3">
-            <AppButton label="Cancel" variant="outline" onPress={onClose} className="flex-1" />
+            <AppButton label="Cancel" variant="outline" size="sm" onPress={onClose} className="flex-1 rounded-full" />
             <AppButton
               label={note.trim() ? "Send invitation" : "Send without a note"}
+              size="sm"
               loading={isSubmitting}
               onPress={() => void handleSubmit()}
-              className="flex-1"
+              className="flex-1 rounded-full"
             />
           </View>
         </Pressable>

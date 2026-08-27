@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
@@ -9,14 +10,17 @@ import { ConnectButton } from "@/modules/connections/components/ConnectButton";
 import { useCanMessageUser, useConnectionAction } from "@/modules/connections/hooks";
 import { useAuthStore } from "@/modules/auth/store";
 import { useChatStore } from "@/modules/chat/store";
+import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { FollowProfile } from "@/modules/follows/types";
 import { useToastStore } from "@/store/toastStore";
+import { iconSize } from "@/theme/designTokens";
 
 type UserConnectActionsProps = {
   profile: FollowProfile;
 };
 
 export const UserConnectActions = ({ profile }: UserConnectActionsProps) => {
+  const colors = useThemeTokens();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const createChat = useChatStore((state) => state.createChat);
@@ -62,16 +66,19 @@ export const UserConnectActions = ({ profile }: UserConnectActionsProps) => {
         </View>
       ) : null}
       <View className="flex-row gap-3">
-        <View className="flex-1">
-          <ConnectButton profile={profile} />
-        </View>
+        {/* ConnectButton renders 1 or 2 AppButtons depending on connection
+            status (e.g. Accept + Decline) — all as direct children of this
+            row, alongside Message, so every button gets an equal flex-1
+            share whether there are two buttons here or three. */}
+        <ConnectButton profile={profile} />
         <AppButton
           label="Message"
-          variant="outline"
+          size="default"
           loading={isCreating}
           disabled={!canMessage}
           onPress={() => void handleMessage()}
-          className="h-11 flex-1"
+          leftIcon={<Feather name="send" size={iconSize.sm} color={colors.onPrimary} />}
+          className="flex-1 rounded-full"
         />
       </View>
     </View>

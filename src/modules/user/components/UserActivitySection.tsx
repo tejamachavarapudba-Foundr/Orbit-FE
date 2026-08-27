@@ -5,6 +5,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
+import { PostVideo } from "@/modules/post/components/PostVideo";
 import { Post } from "@/modules/post/types";
 import { useUserPosts } from "@/modules/user/hooks/useUserPosts";
 
@@ -16,7 +17,6 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 
 const ActivityCard = ({ post }: { post: Post }) => {
-  const colors = useThemeTokens();
   const media = post.media?.[0];
 
   return (
@@ -36,20 +36,23 @@ const ActivityCard = ({ post }: { post: Post }) => {
         </View>
       ) : null}
 
-      {media ? (
-        <View className="mt-3 h-40 w-full overflow-hidden rounded-md bg-muted-bg">
-          <Image
-            source={{ uri: media.thumbnailUrl || media.url }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-          {media.type === "VIDEO" ? (
-            <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-black/50">
-                <Feather name="play" size={18} color="#fff" />
-              </View>
+      {media && media.type === "VIDEO" ? (
+        // PostVideo sizes itself by the clip's own aspect ratio (same as
+        // everywhere else it's used) rather than a fixed crop box — fighting
+        // that with a fixed height is what left video posts blank here.
+        <View className="relative mt-3 w-full overflow-hidden rounded-md bg-muted-bg">
+          <PostVideo postId={post.id} uri={media.url} width={media.width ?? null} height={media.height ?? null} />
+          {post.media.length > 1 ? (
+            <View className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5">
+              <AppText size="xs" className="text-white">
+                +{post.media.length - 1}
+              </AppText>
             </View>
           ) : null}
+        </View>
+      ) : media ? (
+        <View className="relative mt-3 h-40 w-full overflow-hidden rounded-md bg-muted-bg">
+          <Image source={{ uri: media.url }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
           {post.media.length > 1 ? (
             <View className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5">
               <AppText size="xs" className="text-white">

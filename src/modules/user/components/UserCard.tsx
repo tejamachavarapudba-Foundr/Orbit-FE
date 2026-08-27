@@ -31,17 +31,14 @@ export const UserCard = memo(({ user, onPress, showFollowButton = false }: UserC
   const skill = profile.skills[0];
 
   return (
-    <View className="rounded-md border border-border bg-surface p-4 shadow-sm">
+    <View className="relative rounded-md border border-border bg-surface p-4 shadow-sm">
       <Pressable accessibilityRole="button" onPress={() => onPress(user.id)}>
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-3 pr-14">
           <UserAvatar name={profile.fullName} imageUrl={profile.avatarUrl} />
           <View className="flex-1">
-            <View className="flex-row items-center gap-2">
-              <AppText weight="bold" size="lg" className="flex-1">
-                {profile.fullName || "Startuphouze member"}
-              </AppText>
-              {profile.openToConnect ? <View className="h-2 w-2 rounded-md bg-success" /> : null}
-            </View>
+            <AppText weight="bold" size="lg">
+              {profile.fullName || "Startuphouze member"}
+            </AppText>
             <AppText tone="primary" size="sm" weight="medium">
               {profile.headline.trim() || formatRole(profile.role)}
             </AppText>
@@ -68,7 +65,15 @@ export const UserCard = memo(({ user, onPress, showFollowButton = false }: UserC
           </View>
         </View>
       </Pressable>
-      {showFollowButton ? <ConnectButton profile={profile} compact /> : null}
+      {profile.openToConnect || showFollowButton ? (
+        // Rendered after the profile Pressable so it paints on top and
+        // actually receives the tap — the Pressable's empty pr-14 padding
+        // otherwise overlaps this same corner and swallows it first.
+        <View className="absolute right-4 top-4 items-end gap-2">
+          {profile.openToConnect ? <View className="h-2.5 w-2.5 rounded-full bg-success" /> : null}
+          {showFollowButton ? <ConnectButton profile={profile} compact /> : null}
+        </View>
+      ) : null}
     </View>
   );
 });
