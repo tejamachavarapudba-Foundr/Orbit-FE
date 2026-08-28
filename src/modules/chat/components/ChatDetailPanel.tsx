@@ -9,6 +9,7 @@ import { AuthProfile } from "@/modules/auth/types";
 import { Chat } from "@/modules/chat/types";
 import { MessageThread } from "@/modules/messages/components/MessageThread";
 import { Avatar } from "@/components/ui/Avatar";
+import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { iconSize } from "@/theme/designTokens";
 
 type ChatDetailPanelProps = {
@@ -27,6 +28,7 @@ export const ChatDetailPanel = ({
   onClose
 }: ChatDetailPanelProps) => {
   const colors = useThemeTokens();
+  const openUserProfile = useOpenUserProfile();
 
   if (isLoading) {
     return (
@@ -58,21 +60,28 @@ export const ChatDetailPanel = ({
           accessibilityRole="button"
           accessibilityLabel="Back to conversations"
           onPress={onClose}
-          className="h-9 w-9 items-center justify-center rounded-md"
+          hitSlop={8}
+          className="h-11 w-11 items-center justify-center rounded-md"
         >
-          <Feather name="arrow-left" size={iconSize.md} color={colors.text} />
+          <Feather name="arrow-left" size={iconSize.lg} color={colors.text} />
         </Pressable>
-        <Avatar name={participantName} imageUrl={participant?.avatarUrl ?? ""} size="sm" fallback="mesh" />
-        <View className="min-w-0 flex-1">
-          <AppText weight="medium" numberOfLines={1}>
-            {participantName}
-          </AppText>
-          {participant?.headline ? (
-            <AppText tone="muted" size="xs" numberOfLines={1}>
-              {participant.headline}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => participant?.id && openUserProfile(participant.id)}
+          className="min-w-0 flex-1 flex-row items-center gap-2"
+        >
+          <Avatar name={participantName} imageUrl={participant?.avatarUrl ?? ""} size="sm" fallback="mesh" />
+          <View className="min-w-0 flex-1">
+            <AppText weight="medium" numberOfLines={1}>
+              {participantName}
             </AppText>
-          ) : null}
-        </View>
+            {participant?.headline ? (
+              <AppText tone="muted" size="xs" numberOfLines={1}>
+                {participant.headline}
+              </AppText>
+            ) : null}
+          </View>
+        </Pressable>
       </View>
 
       <MessageThread conversationId={chat.id} />

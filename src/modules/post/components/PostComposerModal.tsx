@@ -14,6 +14,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Card } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { PostComposer } from "@/modules/post/components/PostComposer";
+import { TAB_BAR_HEIGHT } from "@/app/navigation/tabBarStyle";
 
 type PostComposerModalProps = {
   visible: boolean;
@@ -60,7 +61,10 @@ const SheetContent = ({ colors, insets, onClose }: SheetContentProps) => (
   // own opaque background always reaches the physical bottom of the screen —
   // short content (e.g. a plain-text post with no media) otherwise left the
   // card shorter than the screen, showing the tab bar through the gap below it.
-  <Card className="rounded-t-3xl" style={{ maxHeight: "92%", paddingBottom: insets.bottom }}>
+  // insets.bottom alone wasn't enough: Android's Modal window doesn't extend
+  // under the tab bar the way the screen underneath it does, so the padding
+  // needs to cover the tab bar's own height too, not just the safe-area inset.
+  <Card className="rounded-t-3xl" style={{ maxHeight: "92%", paddingBottom: insets.bottom + TAB_BAR_HEIGHT }}>
     <View className="flex-row items-center border-b border-border px-5 py-4">
       <View className="flex-1">
         <AppText size="xl" weight="bold">

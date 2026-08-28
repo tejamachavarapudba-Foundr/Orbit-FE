@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from "react";
-import { FlatList, Image, LayoutChangeEvent, View, ViewToken } from "react-native";
+import { FlatList, Image, LayoutChangeEvent, Pressable, View, ViewToken } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
+import { PostMediaViewerModal } from "@/modules/post/components/PostMediaViewerModal";
 import { Post } from "@/modules/post/types";
 import { getMediaAspectRatio } from "@/modules/post/utils/media";
 import { PostVideo } from "@/modules/post/components/PostVideo";
@@ -16,6 +17,7 @@ export const PostMediaCarousel = ({ postId, media }: PostMediaCarouselProps) => 
   const aspectRatio = getMediaAspectRatio(sortedMedia[0]?.width ?? null, sortedMedia[0]?.height ?? null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const width = event.nativeEvent.layout.width;
@@ -37,13 +39,24 @@ export const PostMediaCarousel = ({ postId, media }: PostMediaCarouselProps) => 
     if (!item) return null;
 
     return (
-      <View style={{ width: "100%", aspectRatio, backgroundColor: "#000" }}>
-        {item.type === "VIDEO" ? (
-          <PostVideo postId={postId} uri={item.url} width={item.width ?? null} height={item.height ?? null} />
-        ) : (
-          <Image source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
-        )}
-      </View>
+      <>
+        <View style={{ width: "100%", aspectRatio, backgroundColor: "#000" }}>
+          {item.type === "VIDEO" ? (
+            <PostVideo postId={postId} uri={item.url} width={item.width ?? null} height={item.height ?? null} />
+          ) : (
+            <Pressable accessibilityRole="imagebutton" onPress={() => setViewerIndex(0)} style={{ width: "100%", height: "100%" }}>
+              <Image source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+            </Pressable>
+          )}
+        </View>
+        <PostMediaViewerModal
+          visible={viewerIndex !== null}
+          postId={postId}
+          media={sortedMedia}
+          initialIndex={viewerIndex ?? 0}
+          onClose={() => setViewerIndex(null)}
+        />
+      </>
     );
   }
 
@@ -58,12 +71,18 @@ export const PostMediaCarousel = ({ postId, media }: PostMediaCarouselProps) => 
           keyExtractor={(item) => item.id}
           viewabilityConfig={viewabilityConfig}
           onViewableItemsChanged={onViewableItemsChanged}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View style={{ width: containerWidth, height: "100%" }}>
               {item.type === "VIDEO" ? (
                 <PostVideo postId={postId} uri={item.url} width={item.width ?? null} height={item.height ?? null} />
               ) : (
-                <Image source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+                <Pressable
+                  accessibilityRole="imagebutton"
+                  onPress={() => setViewerIndex(index)}
+                  style={{ width: "100%", height: "100%" }}
+                >
+                  <Image source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+                </Pressable>
               )}
             </View>
           )}
@@ -111,6 +130,14 @@ export const PostMediaCarousel = ({ postId, media }: PostMediaCarouselProps) => 
           {activeIndex + 1}/{sortedMedia.length}
         </AppText>
       </View>
+
+      <PostMediaViewerModal
+        visible={viewerIndex !== null}
+        postId={postId}
+        media={sortedMedia}
+        initialIndex={viewerIndex ?? activeIndex}
+        onClose={() => setViewerIndex(null)}
+      />
     </View>
   );
 };

@@ -1,5 +1,9 @@
-// Instagram clamps posts between a portrait max (4:5) and a landscape max (1.91:1).
-const MIN_RATIO = 4 / 5;
+// Widened from Instagram's tight 4:5 portrait clamp — that cropped anything
+// taller (e.g. 9:16 reel-style images/screenshots) since the feed card's
+// resizeMode is "cover": the box no longer matched the image's own shape,
+// so the overflow got cut off. 9:16 (~0.5625) covers that common case; the
+// landscape cap stays since wide images were never the complaint.
+const MIN_RATIO = 9 / 16;
 const MAX_RATIO = 1.91;
 
 /**

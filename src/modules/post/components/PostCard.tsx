@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from "react";
 import { Alert, Linking, Modal, Pressable, Share, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
@@ -11,6 +12,7 @@ import { usePostComments } from "@/modules/comments/hooks";
 import { useFollowAction } from "@/modules/follows/hooks";
 import { FollowProfile } from "@/modules/follows/types";
 import { usePostLikes } from "@/modules/likes/hooks";
+import { postApi } from "@/modules/post/api";
 import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { ExpandableCaption } from "@/modules/post/components/ExpandableCaption";
 import { PostMediaCarousel } from "@/modules/post/components/PostMediaCarousel";
@@ -20,6 +22,7 @@ import { Post, PostCategory } from "@/modules/post/types";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { FullPhotoModal } from "@/components/ui/FullPhotoModal";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { useToastStore } from "@/store/toastStore";
 import { iconSize } from "@/theme/designTokens";
 
 type PostCardProps = {
@@ -65,6 +68,9 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const openUserProfile = useOpenUserProfile();
   const [showFullPhoto, setShowFullPhoto] = useState(false);
   const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isHiddenLocally, setIsHiddenLocally] = useState(false);
+  const showToast = useToastStore((state) => state.show);
   const { isSubmitting, deletingPostId, updatePost, deletePost } = usePostActions();
   const {
     likesCount,
@@ -132,6 +138,46 @@ export const PostCard = memo(({ post }: PostCardProps) => {
     void toggleFollow();
   }, [toggleFollow]);
 
+  const handleInterested = useCallback(() => {
+    setIsMenuVisible(false);
+    showToast({ type: "success", title: "Thanks — we'll show more like this." });
+  }, [showToast]);
+
+  const handleNotInterested = useCallback(() => {
+    setIsMenuVisible(false);
+    void postApi
+      .markNotInterested(post.id)
+      .then(() => setIsHiddenLocally(true))
+      .catch(() => showToast({ type: "error", title: "Couldn't hide that post", message: "Try again." }));
+  }, [post.id, showToast]);
+
+  const handleCopyLink = useCallback(() => {
+    setIsMenuVisible(false);
+    void Clipboard.setStringAsync(`https://startuphouze.com/p/${post.id}`).then(() =>
+      showToast({ type: "success", title: "Link copied" })
+    );
+  }, [post.id, showToast]);
+
+  const handleReport = useCallback(() => {
+    setIsMenuVisible(false);
+    Alert.alert("Report post", "Report this post for review?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Report",
+        style: "destructive",
+        onPress: () =>
+          void postApi
+            .reportPost(post.id, "")
+            .then(() => showToast({ type: "success", title: "Post reported", message: "Thanks for letting us know." }))
+            .catch(() => showToast({ type: "error", title: "Couldn't report that post", message: "Try again." }))
+      }
+    ]);
+  }, [post.id, showToast]);
+
+  if (isHiddenLocally) {
+    return null;
+  }
+
   return (
     <View className="bg-card">
       <View className="px-4 pb-0 pt-3">
@@ -141,12 +187,12 @@ export const PostCard = memo(({ post }: PostCardProps) => {
             accessibilityLabel={`${authorName}'s photo`}
             onPress={() => (post.author.avatarUrl ? setShowFullPhoto(true) : openUserProfile(post.author.id))}
           >
-            <Avatar name={authorName} imageUrl={post.author.avatarUrl} size="md" fallback="mesh" />
+            <Avatar name={authorName} imageUrl={post.author.avatarUrl} size="md" fallback="mesh" className="h-12 w-12" />
           </Pressable>
           <Pressable
             accessibilityRole="button"
             onPress={() => openUserProfile(post.author.id)}
-            className="min-w-0 flex-1 pr-24"
+            className="min-w-0 flex-1 pr-28"
           >
             <View className="flex-row items-center gap-1.5">
               <AppText weight="medium" numberOfLines={1}>
@@ -161,7 +207,7 @@ export const PostCard = memo(({ post }: PostCardProps) => {
               {formatRelativeTime(post.createdAt)}
             </AppText>
           </Pressable>
-          <View className="absolute right-0 top-0">
+          <View className="absolute right-0 top-0 flex-row items-center gap-1.5">
             {!isOwnPost ? (
               <Pressable
                 accessibilityRole="button"
@@ -178,6 +224,15 @@ export const PostCard = memo(({ post }: PostCardProps) => {
                 </AppText>
               </Pressable>
             ) : null}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Post options"
+              onPress={() => setIsMenuVisible(true)}
+              hitSlop={actionHitSlop}
+              className="h-7 w-7 items-center justify-center rounded-full"
+            >
+              <Feather name="more-horizontal" size={18} color={colors.muted} />
+            </Pressable>
           </View>
         </View>
       </View>
@@ -349,6 +404,34 @@ export const PostCard = memo(({ post }: PostCardProps) => {
           </Pressable>
         </Modal>
       ) : null}
+
+      <Modal visible={isMenuVisible} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setIsMenuVisible(false)}>
+        <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setIsMenuVisible(false)}>
+          <Pressable style={{ backgroundColor: colors.surface }} className="rounded-t-2xl pb-2" onPress={(event) => event.stopPropagation()}>
+            <View className="items-center pt-3">
+              <View className="h-1 w-10 rounded-full bg-border" />
+            </View>
+            <Pressable accessibilityRole="button" onPress={handleInterested} className="flex-row items-center gap-3 px-5 py-3.5">
+              <Feather name="thumbs-up" size={iconSize.md} color={colors.text} />
+              <AppText size="base">Interested</AppText>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={handleNotInterested} className="flex-row items-center gap-3 px-5 py-3.5">
+              <Feather name="eye-off" size={iconSize.md} color={colors.text} />
+              <AppText size="base">Not interested</AppText>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={handleCopyLink} className="flex-row items-center gap-3 px-5 py-3.5">
+              <Feather name="link" size={iconSize.md} color={colors.text} />
+              <AppText size="base">Copy link</AppText>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={handleReport} className="flex-row items-center gap-3 px-5 py-3.5">
+              <Feather name="flag" size={iconSize.md} color={colors.danger} />
+              <AppText size="base" tone="danger">
+                Report post
+              </AppText>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 });
