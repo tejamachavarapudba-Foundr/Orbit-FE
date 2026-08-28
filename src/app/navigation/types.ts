@@ -44,6 +44,7 @@ export type MainStackParamList = {
     id: string;
     edit?: boolean;
   };
+  CreateProject: undefined;
 
   JobDetail: {
     id: string;

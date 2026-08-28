@@ -26,8 +26,6 @@ const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
     { key: "startupName", weight: 10, isFilled: (p, r) => hasText(p.company) || hasText((r as RoleProfileMap["founder"])?.startupName) },
     { key: "industry", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.industry) },
     { key: "startupStage", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.startupStage) },
-    { key: "pitch", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.pitch) },
-    { key: "fundingNeeded", weight: 6, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.fundingNeeded) },
     { key: "teamSize", weight: 4, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.teamSize) },
     { key: "website", weight: 6, isFilled: (p, r) => hasText(p.website) || hasText((r as RoleProfileMap["founder"])?.website) }
   ],
@@ -35,8 +33,7 @@ const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
     { key: "fundName", weight: 10, isFilled: (p, r) => hasText(p.company) || hasText((r as RoleProfileMap["investor"])?.fundName) },
     { key: "investmentRange", weight: 10, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.investmentRange) },
     { key: "industries", weight: 10, isFilled: (_, r) => hasList((r as RoleProfileMap["investor"])?.industries) },
-    { key: "portfolio", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.portfolio) },
-    { key: "geography", weight: 6, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.geography) }
+    { key: "portfolio", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.portfolio) }
   ],
   advisor: [
     { key: "expertise", weight: 12, isFilled: (_, r) => hasList((r as RoleProfileMap["advisor"])?.expertise) },

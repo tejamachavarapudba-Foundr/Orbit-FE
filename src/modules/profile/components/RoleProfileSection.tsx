@@ -37,11 +37,13 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     const data = roleProfile.data;
     return (
       <View className="gap-4">
-        <AppTextInput label="Startup name" value={data.startupName} onChangeText={(v) => setField("startupName", v)} />
+        {/* "Startup name" removed — duplicated the "Company / startup" field
+            already on the main profile form, which is the field this
+            actually saves to during onboarding (see FOUNDER_QUICK_FIELDS'
+            mapsTo: "company"). Editing here never fed back into it, so the
+            two could silently drift out of sync. */}
         <AppTextInput label="Stage" value={data.startupStage} onChangeText={(v) => setField("startupStage", v)} />
         <AppTextInput label="Industry" value={data.industry} onChangeText={(v) => setField("industry", v)} />
-        <AppTextInput label="Pitch" value={data.pitch} multiline onChangeText={(v) => setField("pitch", v)} className="h-24 py-3" />
-        <AppTextInput label="Funding needed" value={data.fundingNeeded} onChangeText={(v) => setField("fundingNeeded", v)} />
         <AppTextInput label="Team size" value={data.teamSize} onChangeText={(v) => setField("teamSize", v)} />
       </View>
     );
@@ -51,11 +53,10 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     const data = roleProfile.data;
     return (
       <View className="gap-4">
-        <AppTextInput label="Fund name" value={data.fundName} onChangeText={(v) => setField("fundName", v)} />
+        <AppTextInput label="Company name" value={data.fundName} onChangeText={(v) => setField("fundName", v)} />
         <AppTextInput label="Investment range" value={data.investmentRange} onChangeText={(v) => setField("investmentRange", v)} />
         <AppTextInput label="Industries" value={toCsv(data.industries)} onChangeText={(v) => setField("industries", fromCsv(v))} />
         <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />
-        <AppTextInput label="Geography" value={data.geography} onChangeText={(v) => setField("geography", v)} />
       </View>
     );
   }

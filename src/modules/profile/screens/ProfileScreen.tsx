@@ -254,7 +254,9 @@ export const ProfileScreen = () => {
           <View className="mt-4 gap-4 rounded-md border border-border bg-surface p-4">
             <AppText weight="bold">{roleLabel} · Role details</AppText>
             <RoleProfileSection role={values.role} roleProfile={values.roleProfile} onChange={setRoleProfile} />
-            <AppTextInput label="Company / startup" value={values.company} onChangeText={(value) => setValue("company", value)} />
+            {memberRole !== "investor" ? (
+              <AppTextInput label="Company / startup" value={values.company} onChangeText={(value) => setValue("company", value)} />
+            ) : null}
             <AppTextInput
               label="Website"
               value={values.website}

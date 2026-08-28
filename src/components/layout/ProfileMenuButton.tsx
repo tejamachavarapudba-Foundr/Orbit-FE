@@ -56,7 +56,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
             {
               label: "New Project",
               icon: "plus" as const,
-              route: "Projects",
+              route: "CreateProject",
             },
           ]
         : []),

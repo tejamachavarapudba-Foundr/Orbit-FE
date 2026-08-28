@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 import { useAuthStore } from "@/modules/auth/store";
 import { useProjectStore } from "@/modules/project/store";
 import { ProjectPayload } from "@/modules/project/types";
+import { getBestLikedIds, getProjectBadge, getSortPriority } from "@/modules/project/utils";
 
 export const useInvestorDiscovery = () => {
   const userId = useAuthStore(
@@ -154,7 +155,6 @@ const csvToArray = (value: string) =>
     .filter(Boolean);
 
 export const useProjects = () => {
-  const userId = useAuthStore((state) => state.user?.id);
   const projects = useProjectStore((state) => state.projects);
   const filters = useProjectStore((state) => state.filters);
   const isLoading = useProjectStore((state) => state.isLoading);
@@ -162,12 +162,10 @@ export const useProjects = () => {
   const errorMessage = useProjectStore((state) => state.errorMessage);
   const loadProjects = useProjectStore((state) => state.loadProjects);
   const loadSavedStartups = useProjectStore((state) => state.loadSavedStartups);
-  const loadViewedStartups = useProjectStore((state) => state.loadViewedStartups);
   const refreshProjects = useProjectStore((state) => state.refreshProjects);
   const loadStartups = useProjectStore((state) => state.loadStartups);
   const loadTrendingStartups = useProjectStore((state) => state.loadTrendingStartups);
   const trendingStartups = useProjectStore((state) => state.trendingStartups);
-  const viewedStartupIds = useProjectStore((state) => state.viewedStartupIds);
   const setQuery = useProjectStore((state) => state.setQuery);
   const setStage = useProjectStore((state) => state.setStage);
   const setProjectType = useProjectStore((state) => state.setProjectType);
@@ -176,9 +174,9 @@ export const useProjects = () => {
     if (hasLoaded.current) {
       return;
     }
-  
+
     hasLoaded.current = true;
-  
+
     void Promise.all([
       loadProjects(),
       loadStartups(),
@@ -187,57 +185,65 @@ export const useProjects = () => {
     ]);
   }, []);
 
-  useEffect(() => {
-    if (userId) {
-      void loadViewedStartups(userId);
-    }
-  }, [userId, loadViewedStartups]);
-
-  const viewedSet = useMemo(() => new Set(viewedStartupIds), [viewedStartupIds]);
-
-  const newStartups = useMemo(
-    () => projects.filter((startup) => !viewedSet.has(startup.id)),
-    [projects, viewedSet],
+  // Reused as-is from the existing /startups/trending algorithm — no second
+  // trending calculation. Capped to the top 3 rather than tagging every id
+  // the endpoint returns (up to 10): with only a handful of startups total,
+  // the full response covers nearly the whole list, so every non-new card
+  // ended up badged "Trending" the moment it was marked viewed.
+  const trendingIds = useMemo(
+    () => new Set(trendingStartups.slice(0, 3).map((startup) => startup.id)),
+    [trendingStartups]
   );
+  const bestLikedIds = useMemo(() => getBestLikedIds(projects), [projects]);
 
-  const viewedStartups = useMemo(
-    () => projects.filter((startup) => viewedSet.has(startup.id)),
-    [projects, viewedSet],
-  );
-
+  // Kept as a plain Project[] (not {project, badge}[]) since other screens
+  // (e.g. CreateMeetingForm's startup picker) share this same hook and only
+  // want the list — badges live in a separate lookup instead.
   const filteredProjects = useMemo(
     () =>
-      projects.filter((project) => {
-        const query = normalize(filters.query);
-        const matchesQuery = !query
-          ? true
-          : [
-              project.name,
-              project.tagline,
-              project.description,
-              project.category,
-              project.projectType,
-              project.stage,
-              project.location,
-              ...project.techStack,
-              ...project.lookingFor,
-              ...project.industryTags
-            ]
-              .map(normalize)
-              .some((value) => value.includes(query));
-        const matchesStage = filters.stage === "all" || project.stage === filters.stage;
-        const matchesType = filters.projectType === "all" || project.projectType === filters.projectType;
+      projects
+        .filter((project) => {
+          const query = normalize(filters.query);
+          const matchesQuery = !query
+            ? true
+            : [
+                project.name,
+                project.tagline,
+                project.description,
+                project.category,
+                project.projectType,
+                project.stage,
+                project.location,
+                ...project.techStack,
+                ...project.lookingFor,
+                ...project.industryTags
+              ]
+                .map(normalize)
+                .some((value) => value.includes(query));
+          const matchesStage = filters.stage === "all" || project.stage === filters.stage;
+          const matchesType = filters.projectType === "all" || project.projectType === filters.projectType;
 
-        return matchesQuery && matchesStage && matchesType;
-      }),
-    [filters.projectType, filters.query, filters.stage, projects]
+          return matchesQuery && matchesStage && matchesType;
+        })
+        .sort(
+          (a, b) =>
+            getSortPriority(a, trendingIds.has(a.id), bestLikedIds.has(a.id)) -
+            getSortPriority(b, trendingIds.has(b.id), bestLikedIds.has(b.id))
+        ),
+    [filters.projectType, filters.query, filters.stage, projects, trendingIds, bestLikedIds]
   );
+
+  const badgesByProjectId = useMemo(() => {
+    const map: Record<string, ReturnType<typeof getProjectBadge>> = {};
+    filteredProjects.forEach((project) => {
+      map[project.id] = getProjectBadge(project, trendingIds.has(project.id), bestLikedIds.has(project.id));
+    });
+    return map;
+  }, [filteredProjects, trendingIds, bestLikedIds]);
 
   return {
     projects: filteredProjects,
-    trendingStartups,
-    newStartups,
-    viewedStartups,
+    badgesByProjectId,
     totalCount: filteredProjects.length,
     filters,
     isLoading,

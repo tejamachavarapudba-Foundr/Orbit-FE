@@ -12,9 +12,7 @@ import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
-import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { ProjectFilterModal } from "@/modules/project/components/ProjectFilterModal";
-import { StartupBrowseSection } from "@/modules/project/components/StartupBrowseSection";
 import { useProjects } from "@/modules/project/hooks";
 import { Project } from "@/modules/project/types";
 import { iconSize } from "@/theme/designTokens";
@@ -25,9 +23,7 @@ export const ProjectsScreen = () => {
   const isFounder = useAuthStore((state) => state.user?.profile?.role === "founder");
   const {
     projects,
-    trendingStartups,
-    newStartups,
-    viewedStartups,
+    badgesByProjectId,
     totalCount,
     filters,
     isLoading,
@@ -70,18 +66,20 @@ export const ProjectsScreen = () => {
   const renderProject = useCallback<ListRenderItem<Project>>(
     ({ item }) => (
       <View className="w-full max-w-2xl self-center">
-        <ProjectCard project={item}
+        <ProjectCard
+          project={item}
+          {...(badgesByProjectId[item.id] ? { badge: badgesByProjectId[item.id] } : {})}
           onPress={(id) => void selectProject(id)}
           onEdit={editProject}
           onBookMeeting={handleBookMeeting}
         />
       </View>
     ),
-    [selectProject, editProject, handleBookMeeting]
+    [selectProject, editProject, handleBookMeeting, badgesByProjectId]
   );
 
   return (
-  <>  
+  <>
     <AppScreen withHorizontalPadding={false}>
       <AppHeader />
       <FlatList
@@ -130,44 +128,8 @@ export const ProjectsScreen = () => {
               </View>
             </View>
 
-            {isFounder ? <ProjectComposer /> : null}
-
-            {trendingStartups.length > 0 ? (
-              <View className="mt-6">
-                <AppText weight="semibold" size="sm">
-                  Trending startups
-                </AppText>
-                <FlatList
-                  data={trendingStartups}
-                  horizontal
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item }) => (
-                    <View className="mr-3 w-56">
-                      <ProjectCard
-                        project={item}
-                        compact
-                        onPress={(id) => void selectProject(id)}
-                        onEdit={editProject}
-                        onBookMeeting={handleBookMeeting}
-                      />
-                    </View>
-                  )}
-                  showsHorizontalScrollIndicator={false}
-                  className="mt-3"
-                />
-              </View>
-            ) : null}
-
-            <StartupBrowseSection
-              newStartups={newStartups}
-              viewedStartups={viewedStartups}
-              onPress={(id) => void selectProject(id)}
-              onEdit={editProject}
-              onBookMeeting={handleBookMeeting}
-            />
-
             {totalCount > 0 ? (
-              <AppText tone="muted" size="xs" className="mb-2 mt-5">
+              <AppText tone="muted" size="xs" className="mb-2">
                 Showing {totalCount} projects
               </AppText>
             ) : null}
@@ -189,6 +151,17 @@ export const ProjectsScreen = () => {
           )
         }
       />
+
+      {isFounder ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="New project"
+          onPress={() => navigation.navigate("CreateProject")}
+          className="absolute bottom-6 right-5 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+        >
+          <Feather name="plus" size={iconSize.lg} color={colors.onPrimary} />
+        </Pressable>
+      ) : null}
     </AppScreen>
     <CreateMeetingModal
       visible={meetingVisible}

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { MainStackParamList } from "@/app/navigation/types";
+import { ProjectBannerGradient } from "@/modules/project/components/ProjectBannerGradient";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { useProjectDetail } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
@@ -32,6 +33,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
   const updateLogo = useProjectStore((state) => state.updateLogo);
+  const updateCover = useProjectStore((state) => state.updateCover);
   const isSubmitting = useProjectStore((state) => state.isSubmitting);
 
   const {
@@ -85,6 +87,24 @@ export const ProjectDetailScreen = ({ route }: Props) => {
     await updateLogo(selectedProject.id, {
       uri: asset.uri,
       name: asset.fileName ?? "logo.jpg",
+      type: asset.mimeType ?? "image/jpeg"
+    });
+  };
+
+  const handlePickCover = async () => {
+    if (!selectedProject) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    await updateCover(selectedProject.id, {
+      uri: asset.uri,
+      name: asset.fileName ?? "cover.jpg",
       type: asset.mimeType ?? "image/jpeg"
     });
   };
@@ -168,7 +188,24 @@ export const ProjectDetailScreen = ({ route }: Props) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}>
-        <View className="h-28 rounded-xl bg-primary/15" />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Change cover photo"
+          disabled={!isFounder || isSubmitting}
+          onPress={() => void handlePickCover()}
+          className="h-28 overflow-hidden rounded-xl"
+        >
+          {selectedProject.coverUrl ? (
+            <Image source={{ uri: selectedProject.coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+          ) : (
+            <ProjectBannerGradient projectType={selectedProject.projectType} height={112} />
+          )}
+          {isFounder ? (
+            <View className="absolute bottom-2 right-2 h-7 w-7 items-center justify-center rounded-full bg-black/40">
+              <Feather name="camera" size={14} color="#fff" />
+            </View>
+          ) : null}
+        </Pressable>
 
         <View className="-mt-10 flex-row items-start gap-3">
           <Pressable
@@ -257,7 +294,8 @@ export const ProjectDetailScreen = ({ route }: Props) => {
         </View>
 
         <View className="mt-5 flex-row flex-wrap gap-2">
-          {[selectedProject.category, selectedProject.projectType, selectedProject.stage, selectedProject.fundingStage, selectedProject.location]
+          {/* category was folded into projectType (Platform) — showing both duplicated the same chip twice */}
+          {[selectedProject.projectType, selectedProject.stage, selectedProject.fundingStage, selectedProject.location]
             .filter(Boolean)
             .map((item) => (
               <View key={item} className="rounded-md bg-background px-3 py-2">

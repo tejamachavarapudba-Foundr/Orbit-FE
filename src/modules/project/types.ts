@@ -32,6 +32,10 @@ export type Project = {
   createdAt: string;
   updatedAt: string;
   founderVerified?: boolean;
+  likeCount?: number;
+  teamMemberCount?: number;
+  isLikedByMe?: boolean;
+  isViewedByMe?: boolean;
 
   investorSnapshot?: {
     completionPercentage: number;

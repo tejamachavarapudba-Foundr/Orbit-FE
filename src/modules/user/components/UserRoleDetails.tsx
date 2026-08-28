@@ -152,7 +152,6 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
         <DetailRow label="Startup" value={data.startupName || profile.company} />
         <DetailRow label="Stage" value={data.startupStage} />
         <DetailRow label="Industry" value={data.industry} />
-        <DetailRow label="Funding" value={data.fundingNeeded} />
         <DetailRow label="Team size" value={data.teamSize} />
       </ProfileSection>
     );
@@ -162,11 +161,10 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     const data = roleProfile.data;
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
-        <DetailRow label="Fund" value={data.fundName || profile.company} />
+        <DetailRow label="Company" value={data.fundName || profile.company} />
         <DetailRow label="Investment range" value={data.investmentRange} />
         <DetailRow label="Industries" value={toCsv(data.industries)} />
         <DetailRow label="Portfolio" value={data.portfolio} />
-        <DetailRow label="Geography" value={data.geography} />
       </ProfileSection>
     );
   }
