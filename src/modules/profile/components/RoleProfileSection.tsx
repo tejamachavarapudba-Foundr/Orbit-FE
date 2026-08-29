@@ -87,6 +87,9 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             onChange={(v) => setField("currentRole", v)}
             placeholder="Select current role"
             title="Current role"
+            otherValue="other"
+            otherText={data.currentRoleOther}
+            onOtherTextChange={(text) => setField("currentRoleOther", text)}
           />
         </View>
         <View className="gap-2">
@@ -157,6 +160,9 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             onChange={(v) => setField("investorType", v)}
             placeholder="Select investor type"
             title="Investor type"
+            otherValue="other"
+            otherText={data.investorTypeOther}
+            onOtherTextChange={(text) => setField("investorTypeOther", text)}
           />
         </View>
         <View className="gap-2">
@@ -245,14 +251,10 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             placeholder="Select expertise"
             title="Expertise"
             max={5}
+            otherValue="other"
+            otherText={data.expertiseOther}
+            onOtherTextChange={(text) => setField("expertiseOther", text)}
           />
-          {data.expertise.includes("other") ? (
-            <AppTextInput
-              placeholder="Describe your expertise"
-              value={data.expertiseOther}
-              onChangeText={(v) => setField("expertiseOther", v)}
-            />
-          ) : null}
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
@@ -328,14 +330,10 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             onChange={(v) => setField("specialization", v)}
             placeholder="Select specialization"
             title="Engineer specialization"
+            otherValue="other"
+            otherText={data.specializationOther}
+            onOtherTextChange={(text) => setField("specializationOther", text)}
           />
-          {data.specialization === "other" ? (
-            <AppTextInput
-              placeholder="Describe your specialization"
-              value={data.specializationOther}
-              onChangeText={(v) => setField("specializationOther", v)}
-            />
-          ) : null}
         </View>
         {/* "Skills" removed — duplicated the shared "Skills" field on the
             main profile form, which is the field this actually saves to
@@ -369,14 +367,10 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             placeholder="Select services offered"
             title="Services offered"
             max={5}
+            otherValue="other"
+            otherText={data.servicesOther}
+            onOtherTextChange={(text) => setField("servicesOther", text)}
           />
-          {data.services.includes("other") ? (
-            <AppTextInput
-              placeholder="Describe the services you offer"
-              value={data.servicesOther}
-              onChangeText={(v) => setField("servicesOther", v)}
-            />
-          ) : null}
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">

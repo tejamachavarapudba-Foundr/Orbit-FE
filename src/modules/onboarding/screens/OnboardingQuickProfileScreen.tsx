@@ -16,9 +16,11 @@ import { ROLE_LABEL } from "@/constants/memberRoles";
 import { getQuickProfileValue } from "@/modules/onboarding/quickProfileConfig";
 import { useOnboarding } from "@/modules/onboarding/hooks";
 import { ExperiencePeriod } from "@/modules/profile/schemas/experience";
-import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
 
 const OTHER_TEXT_FIELD_MAP: Record<string, string> = {
+  specialization: "specializationOther",
+  currentRole: "currentRoleOther",
+  investorType: "investorTypeOther",
   expertise: "expertiseOther",
   services: "servicesOther"
 };
@@ -58,33 +60,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
         </AppText>
         <View className="mt-6 gap-4">
           {quickFields.map((field) => {
-            if (field.type === "specializationBottomSheet") {
-              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
-              const isOther = currentValue === "other";
-
-              return (
-                <View key={field.key} className="gap-2">
-                  <AppText size="sm" weight="medium" tone="muted">
-                    {field.label}
-                  </AppText>
-                  <BottomSheetPicker
-                    value={currentValue}
-                    options={ENGINEER_SPECIALIZATIONS}
-                    onChange={(value) => setQuickField("specialization", value)}
-                    placeholder="Select specialization"
-                    title={field.label}
-                  />
-                  {isOther ? (
-                    <AppTextInput
-                      placeholder="Describe your specialization"
-                      value={getQuickProfileValue(quickFields, draft.quickProfile, "specializationOther")}
-                      onChangeText={(value) => setQuickField("specializationOther", value)}
-                    />
-                  ) : null}
-                </View>
-              );
-            }
-
             if (field.type === "dropdown" && field.options) {
               const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
 
@@ -134,6 +109,7 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                     .map((item) => item.trim())
                     .filter(Boolean)
                 : [];
+              const otherFieldKey = OTHER_TEXT_FIELD_MAP[field.key];
 
               return (
                 <View key={field.key} className="gap-2">
@@ -148,18 +124,10 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     title={field.label}
                     max={field.max}
+                    otherValue={otherFieldKey ? "other" : undefined}
+                    otherText={otherFieldKey ? getQuickProfileValue(quickFields, draft.quickProfile, otherFieldKey) : undefined}
+                    onOtherTextChange={otherFieldKey ? (text) => setQuickField(otherFieldKey, text) : undefined}
                   />
-                  {(() => {
-                    const otherFieldKey = OTHER_TEXT_FIELD_MAP[field.key];
-                    if (!otherFieldKey || !selected.includes("other")) return null;
-                    return (
-                      <AppTextInput
-                        placeholder={`Describe your ${field.label.toLowerCase()}`}
-                        value={getQuickProfileValue(quickFields, draft.quickProfile, otherFieldKey)}
-                        onChangeText={(value) => setQuickField(otherFieldKey, value)}
-                      />
-                    );
-                  })()}
                 </View>
               );
             }
@@ -205,6 +173,7 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
 
             if (field.type === "bottomSheet" && field.options) {
               const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+              const otherFieldKey = OTHER_TEXT_FIELD_MAP[field.key];
 
               return (
                 <View key={field.key} className="gap-2">
@@ -217,6 +186,9 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                     onChange={(value) => setQuickField(field.mapsToShared ?? field.key, value)}
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     title={field.label}
+                    otherValue={otherFieldKey ? "other" : undefined}
+                    otherText={otherFieldKey ? getQuickProfileValue(quickFields, draft.quickProfile, otherFieldKey) : undefined}
+                    onOtherTextChange={otherFieldKey ? (text) => setQuickField(otherFieldKey, text) : undefined}
                   />
                 </View>
               );

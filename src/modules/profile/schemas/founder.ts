@@ -8,6 +8,7 @@ export type FounderProfile = {
   website: string;
   founderStatus: string;
   currentRole: string;
+  currentRoleOther: string;
   portfolio: string[];
   goals: string[];
 };
@@ -72,6 +73,7 @@ export const emptyFounderProfile = (): FounderProfile => ({
   website: "",
   founderStatus: "founder",
   currentRole: "",
+  currentRoleOther: "",
   portfolio: [],
   goals: []
 });

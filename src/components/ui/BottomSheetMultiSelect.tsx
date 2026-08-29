@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
+import { OtherDescribeModal } from "@/components/ui/OtherDescribeModal";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { iconSize } from "@/theme/designTokens";
 
@@ -19,6 +20,12 @@ type BottomSheetMultiSelectProps<T extends string> = {
   placeholder?: string;
   title?: string;
   max?: number | undefined;
+  /** Value that means "Other" (usually "other") — tapping it opens a popup
+   * to describe it instead of toggling the option directly, and the
+   * trigger/list show that description instead of the raw "Other" label. */
+  otherValue?: T | undefined;
+  otherText?: string | undefined;
+  onOtherTextChange?: ((text: string) => void) | undefined;
 };
 
 export const BottomSheetMultiSelect = <T extends string>({
@@ -27,11 +34,15 @@ export const BottomSheetMultiSelect = <T extends string>({
   onChange,
   placeholder = "Select",
   title = "Select options",
-  max
+  max,
+  otherValue,
+  otherText = "",
+  onOtherTextChange
 }: BottomSheetMultiSelectProps<T>) => {
   const colors = useThemeTokens();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<T[]>(value);
+  const [describing, setDescribing] = useState(false);
 
   const openSheet = () => {
     setDraft(value);
@@ -50,12 +61,12 @@ export const BottomSheetMultiSelect = <T extends string>({
     });
   };
 
-  const selectedLabel = value.length
-    ? options
-        .filter((option) => value.includes(option.value))
-        .map((option) => option.label)
-        .join(", ")
-    : placeholder;
+  const labelFor = (optionValue: T) =>
+    otherValue && optionValue === otherValue && otherText
+      ? otherText
+      : options.find((option) => option.value === optionValue)?.label ?? optionValue;
+
+  const selectedLabel = value.length ? value.map((v) => labelFor(v)).join(", ") : placeholder;
 
   return (
     <>
@@ -98,6 +109,7 @@ export const BottomSheetMultiSelect = <T extends string>({
               {options.map((option) => {
                 const isSelected = draft.includes(option.value);
                 const isDisabled = !isSelected && Boolean(max) && draft.length >= (max as number);
+                const isOther = otherValue && option.value === otherValue;
 
                 return (
                   <Pressable
@@ -105,7 +117,13 @@ export const BottomSheetMultiSelect = <T extends string>({
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: isSelected, disabled: isDisabled }}
                     disabled={isDisabled}
-                    onPress={() => toggle(option.value)}
+                    onPress={() => {
+                      if (isOther) {
+                        setDescribing(true);
+                        return;
+                      }
+                      toggle(option.value);
+                    }}
                     className="flex-row items-center gap-2 border-b border-border py-3"
                     style={isDisabled ? { opacity: 0.4 } : undefined}
                   >
@@ -115,7 +133,7 @@ export const BottomSheetMultiSelect = <T extends string>({
                       color={isSelected ? colors.primary : colors.muted}
                     />
                     <AppText size="sm" weight={isSelected ? "semibold" : "medium"}>
-                      {option.label}
+                      {isOther && isSelected && otherText ? otherText : option.label}
                     </AppText>
                   </Pressable>
                 );
@@ -133,6 +151,26 @@ export const BottomSheetMultiSelect = <T extends string>({
           </View>
         </View>
       </Modal>
+
+      {otherValue ? (
+        <OtherDescribeModal
+          visible={describing}
+          label={title}
+          initialText={otherText}
+          allowRemove={draft.includes(otherValue)}
+          onCancel={() => setDescribing(false)}
+          onSave={(text) => {
+            setDraft((current) => (current.includes(otherValue) ? current : [...current, otherValue]));
+            onOtherTextChange?.(text);
+            setDescribing(false);
+          }}
+          onRemove={() => {
+            setDraft((current) => current.filter((item) => item !== otherValue));
+            onOtherTextChange?.("");
+            setDescribing(false);
+          }}
+        />
+      ) : null}
     </>
   );
 };

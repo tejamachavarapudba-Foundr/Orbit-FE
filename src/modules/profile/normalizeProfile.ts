@@ -74,6 +74,7 @@ const normalizeFounderData = (raw: RawRecord = {}): FounderProfile => ({
   website: asString(raw.website),
   founderStatus: asString(raw.founderStatus ?? raw.founder_status),
   currentRole: asString(raw.currentRole ?? raw.current_role),
+  currentRoleOther: asString(raw.currentRoleOther ?? raw.current_role_other),
   portfolio: asStringArray(raw.portfolio),
   goals: asStringArray(raw.goals)
 });
@@ -86,6 +87,7 @@ const normalizeInvestorData = (raw: RawRecord = {}): InvestorProfile => ({
   portfolio: asStringArray(raw.portfolio),
   geography: asString(raw.geography),
   investorType: asString(raw.investorType ?? raw.investor_type),
+  investorTypeOther: asString(raw.investorTypeOther ?? raw.investor_type_other),
   investingAs: asString(raw.investingAs ?? raw.investing_as),
   investmentStage: asStringArray(raw.investmentStage ?? raw.investment_stage),
   yearsInvestingExperience: asString(raw.yearsInvestingExperience ?? raw.years_investing_experience),

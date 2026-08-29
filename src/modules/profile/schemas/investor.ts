@@ -5,6 +5,7 @@ export type InvestorProfile = {
   portfolio: string[];
   geography: string;
   investorType: string;
+  investorTypeOther: string;
   investingAs: string;
   investmentStage: string[];
   yearsInvestingExperience: string;
@@ -96,6 +97,7 @@ export const emptyInvestorProfile = (): InvestorProfile => ({
   portfolio: [],
   geography: "",
   investorType: "",
+  investorTypeOther: "",
   investingAs: "",
   investmentStage: [],
   yearsInvestingExperience: "",

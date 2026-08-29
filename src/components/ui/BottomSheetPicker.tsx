@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { AppText } from "@/components/ui/AppText";
+import { OtherDescribeModal } from "@/components/ui/OtherDescribeModal";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { iconSize } from "@/theme/designTokens";
 
@@ -18,6 +19,12 @@ type BottomSheetPickerProps<T extends string> = {
   placeholder?: string;
   title?: string;
   accessibilityLabel?: string;
+  /** Value that means "Other" (usually "other") — tapping it opens a popup
+   * to describe it instead of selecting the option directly, and the
+   * trigger/list show that description instead of the raw "Other" label. */
+  otherValue?: T | undefined;
+  otherText?: string | undefined;
+  onOtherTextChange?: ((text: string) => void) | undefined;
 };
 
 export const BottomSheetPicker = <T extends string>({
@@ -26,14 +33,23 @@ export const BottomSheetPicker = <T extends string>({
   onChange,
   placeholder = "Select",
   title = "Select an option",
-  accessibilityLabel = "Select option"
+  accessibilityLabel = "Select option",
+  otherValue,
+  otherText = "",
+  onOtherTextChange
 }: BottomSheetPickerProps<T>) => {
   const colors = useThemeTokens();
   const [open, setOpen] = useState(false);
+  const [describing, setDescribing] = useState(false);
+
+  const labelFor = (optionValue: T) =>
+    otherValue && optionValue === otherValue && otherText
+      ? otherText
+      : options.find((option) => option.value === optionValue)?.label;
 
   const selectedLabel = useMemo(
-    () => options.find((option) => option.value === value)?.label ?? placeholder,
-    [options, value, placeholder]
+    () => (value ? (labelFor(value) ?? placeholder) : placeholder),
+    [options, value, placeholder, otherValue, otherText]
   );
 
   return (
@@ -72,19 +88,25 @@ export const BottomSheetPicker = <T extends string>({
             <ScrollView className="mt-3" style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled">
               {options.map((option) => {
                 const isSelected = option.value === value;
+                const isOther = otherValue && option.value === otherValue;
 
                 return (
                   <Pressable
                     key={option.value}
                     accessibilityRole="button"
                     onPress={() => {
+                      if (isOther) {
+                        setOpen(false);
+                        setDescribing(true);
+                        return;
+                      }
                       onChange(option.value);
                       setOpen(false);
                     }}
                     className="flex-row items-center justify-between border-b border-border py-3"
                   >
                     <AppText size="sm" weight={isSelected ? "semibold" : "medium"} tone={isSelected ? "primary" : "default"}>
-                      {option.label}
+                      {isOther && isSelected && otherText ? otherText : option.label}
                     </AppText>
                     {isSelected ? <Feather name="check" size={iconSize.md} color={colors.primary} /> : null}
                   </Pressable>
@@ -94,6 +116,26 @@ export const BottomSheetPicker = <T extends string>({
           </View>
         </View>
       </Modal>
+
+      {otherValue ? (
+        <OtherDescribeModal
+          visible={describing}
+          label={title}
+          initialText={otherText}
+          allowRemove={value === otherValue}
+          onCancel={() => setDescribing(false)}
+          onSave={(text) => {
+            onChange(otherValue);
+            onOtherTextChange?.(text);
+            setDescribing(false);
+          }}
+          onRemove={() => {
+            onChange("" as T);
+            onOtherTextChange?.("");
+            setDescribing(false);
+          }}
+        />
+      ) : null}
     </>
   );
 };

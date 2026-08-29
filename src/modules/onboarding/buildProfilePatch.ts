@@ -49,6 +49,7 @@ const mergeRoleProfile = (
           website: roleFields.website ?? quick?.website ?? prior.website,
           founderStatus: roleFields.founderStatus ?? prior.founderStatus,
           currentRole: roleFields.currentRole ?? prior.currentRole,
+          currentRoleOther: roleFields.currentRoleOther ?? prior.currentRoleOther,
           portfolio: fromCsv(roleFields.portfolio ?? "").length ? fromCsv(roleFields.portfolio ?? "") : prior.portfolio,
           goals
         }
@@ -62,6 +63,7 @@ const mergeRoleProfile = (
           ...prior,
           fundName: roleFields.fundName ?? quick?.company ?? prior.fundName,
           investorType: roleFields.investorType ?? prior.investorType,
+          investorTypeOther: roleFields.investorTypeOther ?? prior.investorTypeOther,
           investingAs: roleFields.investingAs ?? prior.investingAs,
           investmentRange: roleFields.investmentRange ?? prior.investmentRange,
           investmentStage: fromCsv(roleFields.investmentStage ?? "").length

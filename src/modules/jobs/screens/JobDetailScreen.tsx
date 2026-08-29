@@ -3,6 +3,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import * as DocumentPicker from "expo-document-picker";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
@@ -18,6 +19,8 @@ import { MainStackParamList } from "@/app/navigation/types";
 import { ApplicationStatusBadge } from "@/modules/jobs/components/ApplicationStatusBadge";
 import { useJobDetail } from "@/modules/jobs/hooks";
 import { useJobsStore } from "@/modules/jobs/store";
+import { useProfileStore } from "@/modules/profile/store";
+import { useToastStore } from "@/store/toastStore";
 import { iconSize } from "@/theme/designTokens";
 
 type Props = NativeStackScreenProps<MainStackParamList, "JobDetail">;
@@ -58,10 +61,44 @@ export const JobDetailScreen = ({ route }: Props) => {
   const colors = useThemeTokens();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const profile = useAuthStore((state) => state.user?.profile);
+  const updateAuthProfile = useAuthStore((state) => state.updateProfile);
+  const updateResume = useProfileStore((state) => state.updateResume);
+  const isResumeSaving = useProfileStore((state) => state.isResumeSaving);
+  const showToast = useToastStore((state) => state.show);
   const errorMessage = useJobsStore((state) => state.errorMessage);
   const selectJob = useJobsStore((state) => state.selectJob);
   const { selectedJob, mutatingId, clearSelectedJob, applyJob } = useJobDetail();
   const [applicationMessage, setApplicationMessage] = useState("");
+
+  // Uploads straight into the shared profile resume (same field ProfileScreen's
+  // ResumeCard shows) so it's usable here immediately and already saved to
+  // "My Profile" — no separate job-scoped resume, no second upload later.
+  const uploadResume = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+        copyToCacheDirectory: true,
+        multiple: false
+      });
+
+      const file = result.assets?.[0];
+      if (result.canceled || !file) return;
+
+      const formData = new FormData();
+      formData.append("file", { uri: file.uri, name: file.name, type: file.mimeType || "application/octet-stream" } as any);
+
+      const updated = await updateResume(formData);
+      if (!updated) {
+        showToast({ type: "error", title: "Resume upload failed" });
+        return;
+      }
+
+      updateAuthProfile(updated);
+      showToast({ type: "success", title: "Resume uploaded" });
+    } catch {
+      showToast({ type: "error", title: "Resume upload failed" });
+    }
+  };
 
   useEffect(() => {
     void selectJob(id);
@@ -224,27 +261,16 @@ export const JobDetailScreen = ({ route }: Props) => {
             </AppText>
             <ApplicationStatusBadge status={myApplication.status} />
           </View>
-        ) : canApply && !profile?.resumeKey ? (
-          <View className="gap-2 rounded-md border border-border bg-muted-bg p-3">
-            <AppText weight="semibold" size="sm">
-              Resume required
-            </AppText>
-            <AppText tone="muted" size="sm" className="leading-5">
-              Upload a resume to your profile before applying — it's attached automatically, no need to re-upload per job.
-            </AppText>
-            <AppButton
-              label="Go to profile"
-              variant="outline"
-              size="sm"
-              onPress={() => navigation.navigate("Profile")}
-              className="mt-1 self-start"
-            />
-          </View>
         ) : canApply ? (
           <View className="rounded-md border border-border bg-muted-bg p-3">
             <AppText weight="semibold" size="sm">
               Apply
             </AppText>
+            {!profile?.resumeKey ? (
+              <AppText tone="muted" size="sm" className="mt-1 leading-5">
+                Upload a resume to apply — it's saved to your profile and attached automatically, no need to re-upload per job.
+              </AppText>
+            ) : null}
             <AppTextInput
               label="Message"
               value={applicationMessage}
@@ -253,13 +279,26 @@ export const JobDetailScreen = ({ route }: Props) => {
               multiline
               className="mt-2"
             />
-            <AppButton
-              label="Apply for job"
-              loading={isMutating}
-              onPress={() => void submitApply()}
-              className="mt-3"
-              size="sm"
-            />
+            <View className="mt-3 flex-row gap-2">
+              {!profile?.resumeKey ? (
+                <AppButton
+                  label="Upload resume"
+                  variant="outline"
+                  size="default"
+                  loading={isResumeSaving}
+                  onPress={() => void uploadResume()}
+                  className="flex-1 rounded-full"
+                />
+              ) : null}
+              <AppButton
+                label="Apply for job"
+                size="default"
+                loading={isMutating}
+                disabled={!profile?.resumeKey}
+                onPress={() => void submitApply()}
+                className="flex-1 rounded-full"
+              />
+            </View>
           </View>
         ) : null}
       </ScrollView>

@@ -17,6 +17,7 @@ import {
   INVESTMENT_STAGE_OPTIONS,
   INVESTOR_TYPE_OPTIONS
 } from "@/modules/profile/schemas/investor";
+import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
 import { SERVICES_OFFERED_OPTIONS } from "@/modules/profile/schemas/serviceProvider";
 
 export type QuickFieldConfig = {
@@ -27,15 +28,7 @@ export type QuickFieldConfig = {
   multiline?: boolean;
   keyboardType?: "default" | "url";
   mapsToShared?: "fullName" | "headline" | "location" | "linkedinUrl" | "company" | "website" | "skills";
-  type?:
-    | "text"
-    | "specializationBottomSheet"
-    | "dropdown"
-    | "multiSelect"
-    | "bottomSheet"
-    | "multiSelectBottomSheet"
-    | "portfolioNames"
-    | "experiencePeriods";
+  type?: "text" | "dropdown" | "multiSelect" | "bottomSheet" | "multiSelectBottomSheet" | "portfolioNames" | "experiencePeriods";
   options?: readonly { label: string; value: string }[];
   max?: number;
 };
@@ -115,7 +108,13 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
   professional: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline" },
-    { key: "specialization", label: "Engineer specialization (if applicable)", required: false, type: "specializationBottomSheet" },
+    {
+      key: "specialization",
+      label: "Engineer specialization (if applicable)",
+      required: false,
+      type: "bottomSheet",
+      options: ENGINEER_SPECIALIZATIONS
+    },
     { key: "skills", label: "Skills", required: true, mapsToShared: "skills", placeholder: "React, Node.js, UX" },
     { key: "experiencePeriods", label: "Experience", required: false, type: "experiencePeriods" },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },

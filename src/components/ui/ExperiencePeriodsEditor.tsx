@@ -11,6 +11,7 @@ import {
   calculateTotalExperienceLabel,
   emptyExperiencePeriod,
   ExperiencePeriod,
+  findOverlappingPeriodIndices,
   MONTH_OPTIONS,
   YEAR_OPTIONS
 } from "@/modules/profile/schemas/experience";
@@ -69,6 +70,7 @@ export const ExperiencePeriodsEditor = ({ periods, onChange }: ExperiencePeriods
   };
 
   const total = calculateTotalExperienceLabel(periods);
+  const overlapping = findOverlappingPeriodIndices(periods);
 
   return (
     <View className="gap-3">
@@ -100,6 +102,11 @@ export const ExperiencePeriodsEditor = ({ periods, onChange }: ExperiencePeriods
               />
               <AppText size="sm">I currently work here</AppText>
             </Pressable>
+            {overlapping.has(index) ? (
+              <AppText tone="danger" size="xs">
+                These dates overlap with another experience entry — adjust so they don't overlap.
+              </AppText>
+            ) : null}
           </CardContent>
         </Card>
       ))}

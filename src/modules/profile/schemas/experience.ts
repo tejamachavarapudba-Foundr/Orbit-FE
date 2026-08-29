@@ -92,18 +92,64 @@ const currentYearMonth = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 };
 
-const monthsBetween = (start: string, end: string): number => {
-  const [startYear, startMonth] = start.split("-").map(Number);
-  const [endYear, endMonth] = end.split("-").map(Number);
-  if (!startYear || !startMonth || !endYear || !endMonth) return 0;
-  return Math.max(0, (endYear - startYear) * 12 + (endMonth - startMonth));
+const toAbsoluteMonth = (value: string): number | null => {
+  const [year, month] = value.split("-").map(Number);
+  if (!year || !month) return null;
+  return year * 12 + (month - 1);
 };
 
-export const calculateTotalExperienceMonths = (periods: ExperiencePeriod[]): number =>
-  periods.reduce((sum, period) => {
-    const end = period.isCurrent ? currentYearMonth() : period.endDate;
-    return sum + monthsBetween(period.startDate, end);
-  }, 0);
+const periodToRange = (period: ExperiencePeriod): [number, number] | null => {
+  const start = toAbsoluteMonth(period.startDate);
+  const end = toAbsoluteMonth(period.isCurrent ? currentYearMonth() : period.endDate);
+  if (start === null || end === null || end < start) return null;
+  return [start, end];
+};
+
+/** Sums each period's length, but merges overlapping/back-dated ranges
+ * first so a stint that overlaps another is never double-counted. */
+export const calculateTotalExperienceMonths = (periods: ExperiencePeriod[]): number => {
+  const ranges = periods
+    .map(periodToRange)
+    .filter((range): range is [number, number] => range !== null)
+    .sort((a, b) => a[0] - b[0]);
+
+  const first = ranges[0];
+  if (!first) return 0;
+
+  let total = 0;
+  let [mergedStart, mergedEnd] = first;
+  for (const [start, end] of ranges.slice(1)) {
+    if (start <= mergedEnd) {
+      mergedEnd = Math.max(mergedEnd, end);
+    } else {
+      total += mergedEnd - mergedStart;
+      [mergedStart, mergedEnd] = [start, end];
+    }
+  }
+  total += mergedEnd - mergedStart;
+  return total;
+};
+
+/** Indices of periods whose date range overlaps another period's — used to
+ * flag "back-dated"/overlapping entries in the editor so they can be fixed. */
+export const findOverlappingPeriodIndices = (periods: ExperiencePeriod[]): Set<number> => {
+  const ranges = periods.map(periodToRange);
+  const overlapping = new Set<number>();
+
+  for (let i = 0; i < ranges.length; i += 1) {
+    for (let j = i + 1; j < ranges.length; j += 1) {
+      const a = ranges[i];
+      const b = ranges[j];
+      if (!a || !b) continue;
+      if (a[0] <= b[1] && b[0] <= a[1]) {
+        overlapping.add(i);
+        overlapping.add(j);
+      }
+    }
+  }
+
+  return overlapping;
+};
 
 export const formatTotalExperience = (totalMonths: number): string => {
   if (totalMonths <= 0) return "";
