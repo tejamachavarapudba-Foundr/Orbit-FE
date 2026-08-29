@@ -1,6 +1,7 @@
 export type ServiceProviderProfile = {
   company: string;
   services: string[];
+  servicesOther: string;
   website: string;
   companyLinkedinUrl: string;
   clientIndustries: string[];
@@ -17,7 +18,8 @@ export const SERVICES_OFFERED_OPTIONS = [
   { label: "Digital Marketing & SEO", value: "digital_marketing_seo" },
   { label: "Recruitment & HR", value: "recruitment_hr" },
   { label: "Financial & Fundraising Services", value: "financial_fundraising_services" },
-  { label: "IT & Cloud Services", value: "it_cloud_services" }
+  { label: "IT & Cloud Services", value: "it_cloud_services" },
+  { label: "Other", value: "other" }
 ] as const;
 
 export const CLIENT_INDUSTRIES_OPTIONS = [
@@ -45,6 +47,7 @@ export const SERVICE_PROVIDER_QUICK_FIELDS = [
 export const emptyServiceProviderProfile = (): ServiceProviderProfile => ({
   company: "",
   services: [],
+  servicesOther: "",
   website: "",
   companyLinkedinUrl: "",
   clientIndustries: [],

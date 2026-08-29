@@ -242,7 +242,8 @@ export const useProfileForm = () => {
           createdAt: profile?.createdAt ?? "",
           updatedAt: profile?.updatedAt ?? "",
           onboardingGoals: fromCsv(values.lookingFor),
-          roleProfile: values.roleProfile
+          roleProfile: values.roleProfile,
+          resumeKey: profile?.resumeKey ?? ""
         },
         memberRole
       )

@@ -204,7 +204,7 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Skills" value={toCsv(data.skills.length ? data.skills : profile.skills)} />
-        <DetailRow label="Level" value={data.experienceLevel} />
+        <DetailRow label="Experience" value={data.experienceLevel} />
         <DetailRow label="Portfolio" value={data.portfolio} />
         <ExperienceList experiences={data.experiences} />
         <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />

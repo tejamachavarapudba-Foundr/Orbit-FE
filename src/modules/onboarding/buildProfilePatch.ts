@@ -10,12 +10,23 @@ import {
 } from "@/modules/profile/schemas";
 import { CompleteOnboardingPayload, QuickProfileValues, SaveOnboardingPayload } from "@/modules/onboarding/types";
 import { calculateProfileCompletion } from "@/modules/profile/completion";
+import { calculateTotalExperienceLabel, ExperiencePeriod } from "@/modules/profile/schemas/experience";
 
 const fromCsv = (value: string) =>
   value
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+
+const fromJsonArray = <T,>(value: string | undefined): T[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+};
 
 const mergeRoleProfile = (
   memberRole: OnboardingMemberRole,
@@ -79,6 +90,9 @@ const mergeRoleProfile = (
     }
     case "professional": {
       const prior = existing?.role === "professional" ? existing.data : emptyProfessionalProfile();
+      const experiencePeriods = fromJsonArray<ExperiencePeriod>(roleFields.experiencePeriods).length
+        ? fromJsonArray<ExperiencePeriod>(roleFields.experiencePeriods)
+        : prior.experiencePeriods;
       return {
         role: "professional",
         data: {
@@ -86,7 +100,8 @@ const mergeRoleProfile = (
           skills: fromCsv(roleFields.skills ?? quick?.skills ?? "").length
             ? fromCsv(roleFields.skills ?? quick?.skills ?? "")
             : prior.skills,
-          experienceLevel: roleFields.experienceLevel ?? prior.experienceLevel,
+          experiencePeriods,
+          experienceLevel: experiencePeriods.length ? calculateTotalExperienceLabel(experiencePeriods) : prior.experienceLevel,
           specialization: roleFields.specialization ?? prior.specialization,
           specializationOther: roleFields.specializationOther ?? prior.specializationOther,
           goals
@@ -101,6 +116,7 @@ const mergeRoleProfile = (
           ...prior,
           company: roleFields.company ?? quick?.company ?? prior.company,
           services: fromCsv(roleFields.services ?? "").length ? fromCsv(roleFields.services ?? "") : prior.services,
+          servicesOther: roleFields.servicesOther ?? prior.servicesOther,
           website: roleFields.website ?? quick?.website ?? prior.website,
           goals
         }

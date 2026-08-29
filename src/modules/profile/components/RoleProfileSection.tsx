@@ -4,7 +4,7 @@ import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
-import { Dropdown } from "@/components/ui/Dropdown";
+import { ExperiencePeriodsEditor } from "@/components/ui/ExperiencePeriodsEditor";
 import { PortfolioNamesBottomSheet } from "@/components/ui/PortfolioNamesBottomSheet";
 import { normalizeMemberRole } from "@/constants/memberRoles";
 import { RoleProfileData } from "@/modules/profile/schemas";
@@ -21,10 +21,8 @@ import {
   FOUNDER_STATUS_OPTIONS,
   STARTUP_STAGE_OPTIONS
 } from "@/modules/profile/schemas/founder";
-import {
-  ENGINEER_SPECIALIZATIONS,
-  PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS
-} from "@/modules/profile/schemas/professional";
+import { calculateTotalExperienceLabel, ExperiencePeriod } from "@/modules/profile/schemas/experience";
+import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
 import {
   CLIENT_INDUSTRIES_OPTIONS,
   SERVICES_OFFERED_OPTIONS
@@ -312,17 +310,24 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
 
   if (memberRole === "professional" && roleProfile.role === "professional") {
     const data = roleProfile.data;
+    const setExperiencePeriods = (periods: ExperiencePeriod[]) =>
+      onChange({
+        role: roleProfile.role,
+        data: { ...data, experiencePeriods: periods, experienceLevel: calculateTotalExperienceLabel(periods) }
+      });
+
     return (
       <View className="gap-4">
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
             Engineer specialization
           </AppText>
-          <Dropdown
+          <BottomSheetPicker
             value={data.specialization}
             options={ENGINEER_SPECIALIZATIONS}
             onChange={(v) => setField("specialization", v)}
             placeholder="Select specialization"
+            title="Engineer specialization"
           />
           {data.specialization === "other" ? (
             <AppTextInput
@@ -338,15 +343,9 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             never fed back into it, so the two showed as two separate inputs. */}
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
-            Years of experience
+            Experience
           </AppText>
-          <BottomSheetPicker
-            value={data.experienceLevel}
-            options={PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS}
-            onChange={(v) => setField("experienceLevel", v)}
-            placeholder="Select years of experience"
-            title="Years of experience"
-          />
+          <ExperiencePeriodsEditor periods={data.experiencePeriods} onChange={setExperiencePeriods} />
         </View>
         <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />
         <AppTextInput label="Resume link" value={data.resume} onChangeText={(v) => setField("resume", v)} />
@@ -371,6 +370,13 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             title="Services offered"
             max={5}
           />
+          {data.services.includes("other") ? (
+            <AppTextInput
+              placeholder="Describe the services you offer"
+              value={data.servicesOther}
+              onChangeText={(v) => setField("servicesOther", v)}
+            />
+          ) : null}
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">

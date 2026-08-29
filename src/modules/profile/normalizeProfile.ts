@@ -13,7 +13,7 @@ import {
   RoleProfileData,
   ServiceProviderProfile
 } from "@/modules/profile/schemas";
-import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+import { Certification, ExperiencePeriod, WorkExperience } from "@/modules/profile/schemas/experience";
 
 type RawRecord = Record<string, unknown>;
 
@@ -35,6 +35,18 @@ const asWorkExperienceArray = (value: unknown): WorkExperience[] =>
           // Entries saved before the date-picker existed only have this —
           // formatExperienceTimeline() falls back to it when startDate is empty.
           ...(legacyTimeline && { legacyTimeline })
+        };
+      })
+    : [];
+
+const asExperiencePeriodArray = (value: unknown): ExperiencePeriod[] =>
+  Array.isArray(value)
+    ? value.map((item) => {
+        const entry = (item ?? {}) as RawRecord;
+        return {
+          startDate: asString(entry.startDate),
+          endDate: asString(entry.endDate),
+          isCurrent: Boolean(entry.isCurrent)
         };
       })
     : [];
@@ -97,6 +109,7 @@ const normalizeProfessionalData = (raw: RawRecord = {}): ProfessionalProfile => 
   ...emptyProfessionalProfile(),
   skills: asStringArray(raw.skills),
   experienceLevel: asString(raw.experienceLevel ?? raw.experience_level),
+  experiencePeriods: asExperiencePeriodArray(raw.experiencePeriods ?? raw.experience_periods),
   specialization: asString(raw.specialization),
   specializationOther: asString(raw.specializationOther ?? raw.specialization_other),
   portfolio: asString(raw.portfolio),
@@ -110,6 +123,7 @@ const normalizeServiceProviderData = (raw: RawRecord = {}): ServiceProviderProfi
   ...emptyServiceProviderProfile(),
   company: asString(raw.company),
   services: asStringArray(raw.services),
+  servicesOther: asString(raw.servicesOther ?? raw.services_other),
   website: asString(raw.website),
   companyLinkedinUrl: asString(raw.companyLinkedinUrl ?? raw.company_linkedin_url),
   clientIndustries: asStringArray(raw.clientIndustries ?? raw.client_industries),

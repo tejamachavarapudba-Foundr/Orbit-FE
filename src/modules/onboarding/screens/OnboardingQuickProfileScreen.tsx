@@ -9,12 +9,29 @@ import { AppTextInput } from "@/components/ui/AppTextInput";
 import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { ExperiencePeriodsEditor } from "@/components/ui/ExperiencePeriodsEditor";
 import { MultiSelectChecklist } from "@/components/ui/MultiSelectChecklist";
 import { PortfolioNamesBottomSheet } from "@/components/ui/PortfolioNamesBottomSheet";
 import { ROLE_LABEL } from "@/constants/memberRoles";
 import { getQuickProfileValue } from "@/modules/onboarding/quickProfileConfig";
 import { useOnboarding } from "@/modules/onboarding/hooks";
+import { ExperiencePeriod } from "@/modules/profile/schemas/experience";
 import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
+
+const OTHER_TEXT_FIELD_MAP: Record<string, string> = {
+  expertise: "expertiseOther",
+  services: "servicesOther"
+};
+
+const parseExperiencePeriods = (value: string): ExperiencePeriod[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, "OnboardingQuickProfile">;
 
@@ -41,7 +58,7 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
         </AppText>
         <View className="mt-6 gap-4">
           {quickFields.map((field) => {
-            if (field.type === "specializationDropdown") {
+            if (field.type === "specializationBottomSheet") {
               const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
               const isOther = currentValue === "other";
 
@@ -50,11 +67,12 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
                   </AppText>
-                  <Dropdown
+                  <BottomSheetPicker
                     value={currentValue}
                     options={ENGINEER_SPECIALIZATIONS}
                     onChange={(value) => setQuickField("specialization", value)}
                     placeholder="Select specialization"
+                    title={field.label}
                   />
                   {isOther ? (
                     <AppTextInput
@@ -131,13 +149,34 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                     title={field.label}
                     max={field.max}
                   />
-                  {field.key === "expertise" && selected.includes("other") ? (
-                    <AppTextInput
-                      placeholder="Describe your expertise"
-                      value={getQuickProfileValue(quickFields, draft.quickProfile, "expertiseOther")}
-                      onChangeText={(value) => setQuickField("expertiseOther", value)}
-                    />
-                  ) : null}
+                  {(() => {
+                    const otherFieldKey = OTHER_TEXT_FIELD_MAP[field.key];
+                    if (!otherFieldKey || !selected.includes("other")) return null;
+                    return (
+                      <AppTextInput
+                        placeholder={`Describe your ${field.label.toLowerCase()}`}
+                        value={getQuickProfileValue(quickFields, draft.quickProfile, otherFieldKey)}
+                        onChangeText={(value) => setQuickField(otherFieldKey, value)}
+                      />
+                    );
+                  })()}
+                </View>
+              );
+            }
+
+            if (field.type === "experiencePeriods") {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+              const periods = parseExperiencePeriods(currentValue);
+
+              return (
+                <View key={field.key} className="gap-2">
+                  <AppText size="sm" weight="medium" tone="muted">
+                    {field.label}
+                  </AppText>
+                  <ExperiencePeriodsEditor
+                    periods={periods}
+                    onChange={(next) => setQuickField(field.key, JSON.stringify(next))}
+                  />
                 </View>
               );
             }
@@ -200,7 +239,7 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
         <View className="mt-8 flex-row gap-3">
           <AppButton label="Back" variant="outline" onPress={() => navigation.goBack()} className="flex-1" />
           <AppButton
-            label="Explore Startuphouze"
+            label="Explore Orbit"
             loading={isSubmitting}
             onPress={() => void finish()}
             className="flex-1"

@@ -73,6 +73,53 @@ export const emptyWorkExperience = (): WorkExperience => ({
   isCurrent: false
 });
 
+/** A single job stint used only to compute total experience — no company/
+ * designation, just the date range (see ExperiencePeriodsEditor). */
+export type ExperiencePeriod = {
+  startDate: string; // "YYYY-MM"
+  endDate: string; // "YYYY-MM", blank when isCurrent
+  isCurrent: boolean;
+};
+
+export const emptyExperiencePeriod = (): ExperiencePeriod => ({
+  startDate: "",
+  endDate: "",
+  isCurrent: false
+});
+
+const currentYearMonth = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const monthsBetween = (start: string, end: string): number => {
+  const [startYear, startMonth] = start.split("-").map(Number);
+  const [endYear, endMonth] = end.split("-").map(Number);
+  if (!startYear || !startMonth || !endYear || !endMonth) return 0;
+  return Math.max(0, (endYear - startYear) * 12 + (endMonth - startMonth));
+};
+
+export const calculateTotalExperienceMonths = (periods: ExperiencePeriod[]): number =>
+  periods.reduce((sum, period) => {
+    const end = period.isCurrent ? currentYearMonth() : period.endDate;
+    return sum + monthsBetween(period.startDate, end);
+  }, 0);
+
+export const formatTotalExperience = (totalMonths: number): string => {
+  if (totalMonths <= 0) return "";
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+  if (years && months) return `${years} yr${years > 1 ? "s" : ""} ${months} mo${months > 1 ? "s" : ""}`;
+  if (years) return `${years} yr${years > 1 ? "s" : ""}`;
+  return `${months} mo${months > 1 ? "s" : ""}`;
+};
+
+/** Total experience across all periods, formatted as "3 yrs 4 mos" — used
+ * everywhere experience is displayed, so only the total ever shows, never
+ * the individual date ranges. */
+export const calculateTotalExperienceLabel = (periods: ExperiencePeriod[]): string =>
+  formatTotalExperience(calculateTotalExperienceMonths(periods));
+
 export const emptyCertification = (): Certification => ({
   name: "",
   fileUrl: "",

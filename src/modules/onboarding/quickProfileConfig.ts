@@ -17,7 +17,6 @@ import {
   INVESTMENT_STAGE_OPTIONS,
   INVESTOR_TYPE_OPTIONS
 } from "@/modules/profile/schemas/investor";
-import { PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS } from "@/modules/profile/schemas/professional";
 import { SERVICES_OFFERED_OPTIONS } from "@/modules/profile/schemas/serviceProvider";
 
 export type QuickFieldConfig = {
@@ -30,12 +29,13 @@ export type QuickFieldConfig = {
   mapsToShared?: "fullName" | "headline" | "location" | "linkedinUrl" | "company" | "website" | "skills";
   type?:
     | "text"
-    | "specializationDropdown"
+    | "specializationBottomSheet"
     | "dropdown"
     | "multiSelect"
     | "bottomSheet"
     | "multiSelectBottomSheet"
-    | "portfolioNames";
+    | "portfolioNames"
+    | "experiencePeriods";
   options?: readonly { label: string; value: string }[];
   max?: number;
 };
@@ -115,15 +115,9 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
   professional: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline" },
-    { key: "specialization", label: "Engineer specialization (if applicable)", required: false, type: "specializationDropdown" },
+    { key: "specialization", label: "Engineer specialization (if applicable)", required: false, type: "specializationBottomSheet" },
     { key: "skills", label: "Skills", required: true, mapsToShared: "skills", placeholder: "React, Node.js, UX" },
-    {
-      key: "experienceLevel",
-      label: "Years of Experience",
-      required: true,
-      type: "bottomSheet",
-      options: PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS
-    },
+    { key: "experiencePeriods", label: "Experience", required: false, type: "experiencePeriods" },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }
   ],
