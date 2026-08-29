@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useAuthStore } from "@/modules/auth/store";
 import { Message } from "@/modules/messages/types";
@@ -17,30 +17,30 @@ export const useConversationMessages = (conversationId: string) => {
   const errorMessage = useMessageStore((state) => state.errorByConversationId[conversationId] ?? null);
   const loadMessages = useMessageStore((state) => state.loadMessages);
   const sendMessage = useMessageStore((state) => state.sendMessage);
-  const markRead = useMessageStore((state) => state.markRead);
+  const markConversationRead = useMessageStore((state) => state.markConversationRead);
   const deleteMessage = useMessageStore((state) => state.deleteMessage);
   const [draft, setDraft] = useState("");
-  const markedReadIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    markedReadIdsRef.current = new Set();
     void loadMessages(conversationId);
   }, [conversationId, loadMessages]);
 
+  // Marks every unread message in this conversation as read in one request
+  // instead of one PATCH per unread message — the optimistic update this
+  // triggers clears each message's readAt locally, so this naturally stops
+  // re-firing once nothing is unread anymore.
   useEffect(() => {
     if (isLoading || !currentUserId) {
       return;
     }
 
-    for (const message of messages) {
-      if (message.senderId === currentUserId || message.readAt || markedReadIdsRef.current.has(message.id)) {
-        continue;
-      }
-
-      markedReadIdsRef.current.add(message.id);
-      void markRead(message.id, conversationId);
+    const hasUnread = messages.some((message) => message.senderId !== currentUserId && !message.readAt);
+    if (!hasUnread) {
+      return;
     }
-  }, [conversationId, currentUserId, isLoading, markRead, messages]);
+
+    void markConversationRead(conversationId, currentUserId);
+  }, [conversationId, currentUserId, isLoading, markConversationRead, messages]);
 
   const submit = useCallback(async () => {
     const content = draft.trim();

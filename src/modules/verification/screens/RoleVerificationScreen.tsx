@@ -356,6 +356,7 @@ export const RoleVerificationScreen = () => {
       bio: normalized.bio,
       role: normalized.role,
       location: normalized.location,
+      language: normalized.language,
       company: role === "investor" ? company.trim() : normalized.company,
       website: role === "investor" ? website.trim() : normalized.website,
       linkedinUrl: normalized.linkedinUrl,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { VideoPlayerModal } from "@/components/ui/VideoPlayerModal";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { MainStackParamList } from "@/app/navigation/types";
@@ -64,6 +65,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const [reviewsExpanded, setReviewsExpanded] = useState(false);
   const [applyExpanded, setApplyExpanded] = useState(false);
   const [showInvestorGate, setShowInvestorGate] = useState(false);
+  const [showPitchVideo, setShowPitchVideo] = useState(false);
   const { status: verificationStatus } = useVerificationStatus();
 
   useEffect(() => {
@@ -259,9 +261,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
               variant="outline"
               label="▶ Watch Founder Pitch"
               className="self-start"
-              onPress={() => {
-                Linking.openURL(selectedProject.pitchVideoUrl);
-              }}
+              onPress={() => setShowPitchVideo(true)}
             />
           ) : null}
         </View>
@@ -522,6 +522,12 @@ export const ProjectDetailScreen = ({ route }: Props) => {
           setShowInvestorGate(false);
           navigation.navigate("InvestorSnapshotView", { projectId: selectedProject.id });
         }}
+      />
+
+      <VideoPlayerModal
+        visible={showPitchVideo}
+        uri={selectedProject.pitchVideoUrl}
+        onClose={() => setShowPitchVideo(false)}
       />
     </AppScreen>
   );

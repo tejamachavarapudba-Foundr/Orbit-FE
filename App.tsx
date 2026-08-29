@@ -15,6 +15,7 @@ import {
   useFonts as useSoraFonts
 } from "@expo-google-fonts/sora";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { getCrashlytics, recordError, setCrashlyticsCollectionEnabled } from "@react-native-firebase/crashlytics";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts as useExpoFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
@@ -26,12 +27,23 @@ import { vars } from "nativewind";
 import { RootNavigator } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/services/api/queryClient";
 import { useAuthStore } from "@/modules/auth/store";
+import { startPushNotifications } from "@/modules/notifications/pushNotifications";
 import { useThemeStore } from "@/store/themeStore";
 import { darkThemeVars, lightThemeVars } from "@/theme/nativeThemeVars";
+
+const crashlyticsInstance = getCrashlytics();
+void setCrashlyticsCollectionEnabled(crashlyticsInstance, !__DEV__);
+
+const previousHandler = ErrorUtils.getGlobalHandler();
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  recordError(crashlyticsInstance, error);
+  previousHandler(error, isFatal);
+});
 
 export default function App() {
   const bootstrapTheme = useThemeStore((state) => state.bootstrap);
   const bootstrapAuth = useAuthStore((state) => state.bootstrap);
+  const userId = useAuthStore((state) => state.user?.id);
   const colorScheme = useThemeStore((state) => state.resolvedScheme);
   const themeVarsStyle = vars(colorScheme === "dark" ? darkThemeVars : lightThemeVars);
 
@@ -66,6 +78,12 @@ export default function App() {
     void bootstrapTheme();
     void bootstrapAuth();
   }, [bootstrapAuth, bootstrapTheme]);
+
+  useEffect(() => {
+    if (userId) {
+      void startPushNotifications();
+    }
+  }, [userId]);
 
   if (!fontsLoaded && !fontLoadError) {
     return (

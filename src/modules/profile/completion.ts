@@ -24,7 +24,7 @@ const SHARED_FIELDS: CompletionField[] = [
 const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
   founder: [
     { key: "startupName", weight: 10, isFilled: (p, r) => hasText(p.company) || hasText((r as RoleProfileMap["founder"])?.startupName) },
-    { key: "industry", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.industry) },
+    { key: "industry", weight: 8, isFilled: (_, r) => hasList((r as RoleProfileMap["founder"])?.industry) },
     { key: "startupStage", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.startupStage) },
     { key: "teamSize", weight: 4, isFilled: (_, r) => hasText((r as RoleProfileMap["founder"])?.teamSize) },
     { key: "website", weight: 6, isFilled: (p, r) => hasText(p.website) || hasText((r as RoleProfileMap["founder"])?.website) }
@@ -55,13 +55,43 @@ const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
   ]
 };
 
-export const PROFILE_COMPLETION_BENEFITS = [
-  "Better visibility in search",
-  "Smarter founder recommendations",
-  "Investor match suggestions",
-  "Startup discovery",
-  "Networking opportunities"
-];
+export const PROFILE_COMPLETION_BENEFITS: Record<OnboardingMemberRole, string[]> = {
+  founder: [
+    "Better visibility in search",
+    "Investor match suggestions",
+    "Advisor & mentor recommendations",
+    "Talent discovery for your team",
+    "Networking opportunities"
+  ],
+  investor: [
+    "Better visibility in search",
+    "Curated startup deal flow",
+    "Founder introduction requests",
+    "Co-investor networking",
+    "Portfolio discovery tools"
+  ],
+  advisor: [
+    "Better visibility in search",
+    "Founder match suggestions",
+    "Mentorship request alerts",
+    "Industry networking",
+    "Advisory opportunities"
+  ],
+  professional: [
+    "Better visibility in search",
+    "Job match suggestions",
+    "Startup discovery",
+    "Skill-based networking",
+    "Direct recruiter outreach"
+  ],
+  service_provider: [
+    "Better visibility in search",
+    "Client lead suggestions",
+    "Startup discovery",
+    "Referral network access",
+    "Featured service listings"
+  ]
+};
 
 export const calculateProfileCompletion = (
   profile: AuthProfile | undefined,
@@ -81,12 +111,13 @@ export const calculateProfileCompletion = (
   return Math.min(100, Math.round((earnedWeight / totalWeight) * 100));
 };
 
-export const getCompletionBenefit = (percent: number) => {
+export const getCompletionBenefit = (percent: number, role: OnboardingMemberRole | null) => {
+  const benefits = PROFILE_COMPLETION_BENEFITS[role ?? "founder"];
   if (percent >= 80) {
-    return PROFILE_COMPLETION_BENEFITS;
+    return benefits;
   }
   if (percent >= 50) {
-    return PROFILE_COMPLETION_BENEFITS.slice(0, 3);
+    return benefits.slice(0, 3);
   }
-  return PROFILE_COMPLETION_BENEFITS.slice(0, 2);
+  return benefits.slice(0, 2);
 };

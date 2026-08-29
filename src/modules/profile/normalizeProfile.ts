@@ -55,11 +55,13 @@ const normalizeFounderData = (raw: RawRecord = {}): FounderProfile => ({
   ...emptyFounderProfile(),
   startupName: asString(raw.startupName ?? raw.startup_name),
   startupStage: asString(raw.startupStage ?? raw.startup_stage),
-  industry: asString(raw.industry),
+  industry: asStringArray(raw.industry),
   pitch: asString(raw.pitch),
   fundingNeeded: asString(raw.fundingNeeded ?? raw.funding_needed),
   teamSize: asString(raw.teamSize ?? raw.team_size),
   website: asString(raw.website),
+  founderStatus: asString(raw.founderStatus ?? raw.founder_status),
+  currentRole: asString(raw.currentRole ?? raw.current_role),
   goals: asStringArray(raw.goals)
 });
 
@@ -70,6 +72,9 @@ const normalizeInvestorData = (raw: RawRecord = {}): InvestorProfile => ({
   industries: asStringArray(raw.industries),
   portfolio: asString(raw.portfolio),
   geography: asString(raw.geography),
+  investorType: asString(raw.investorType ?? raw.investor_type),
+  investmentStage: asStringArray(raw.investmentStage ?? raw.investment_stage),
+  yearsInvestingExperience: asString(raw.yearsInvestingExperience ?? raw.years_investing_experience),
   goals: asStringArray(raw.goals)
 });
 
@@ -160,6 +165,7 @@ export const normalizeAuthProfile = (raw: AuthProfile & RawRecord): AuthProfile 
     bio: asString(raw.bio),
     role: asString(raw.role, "other"),
     location: asString(raw.location),
+    language: asStringArray(raw.language),
     company: asString(raw.company),
     website: asString(raw.website),
     linkedinUrl: asString(raw.linkedinUrl ?? raw.linkedin_url),

@@ -64,12 +64,17 @@ export const buildClientSideMatches = (profiles: AuthProfile[], query: MatchQuer
     };
   }
 
+  // Base score for any profile with a recognizable role is 40 (see
+  // scoreProfile) — a >=50 floor silently dropped every match that didn't
+  // also have a role-match bonus, a shared goal, or both headline AND
+  // location filled in, which is most sparse/test profiles. >=40 keeps any
+  // profile with a valid role as at least a loose match instead of zero.
   const scored = profiles
     .map((profile) => {
       const { score, reasons } = scoreProfile(viewerRole, query.goals, profile);
       return { profile, score, reasons };
     })
-    .filter((item) => item.score >= 50)
+    .filter((item) => item.score >= 40)
     .sort((a, b) => b.score - a.score);
 
   const people = scored.slice(0, 12).map((item) => toPerson(item.profile, item.score, item.reasons));
@@ -89,7 +94,7 @@ export const buildClientSideMatches = (profiles: AuthProfile[], query: MatchQuer
       id: item.profile.id,
       name: item.profile.company,
       stage: item.profile.roleProfile?.role === "founder" ? item.profile.roleProfile.data.startupStage : "",
-      industry: item.profile.roleProfile?.role === "founder" ? item.profile.roleProfile.data.industry : "",
+      industry: item.profile.roleProfile?.role === "founder" ? item.profile.roleProfile.data.industry.join(", ") : "",
       matchScore: item.score
     }));
 

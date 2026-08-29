@@ -3,8 +3,8 @@ import { CreatePostPayload, Post, UpdatePostPayload } from "@/modules/post/types
 import * as ImagePicker from "expo-image-picker";
 
 export const postApi = {
-  getPosts: async () => {
-    const response = await apiClient.get<Post[]>("/posts");
+  getPosts: async (page = 1, limit = 10) => {
+    const response = await apiClient.get<Post[]>("/posts", { params: { page, limit } });
     return response.data;
   },
   getPostById: async (id: string) => {

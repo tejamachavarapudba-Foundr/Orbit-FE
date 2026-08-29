@@ -41,7 +41,11 @@ export const Dropdown = <T extends string>({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         onPress={() => setOpen(true)}
-        className={["h-10 w-full flex-row items-center justify-between rounded-md border border-border bg-card px-3", className]
+        className={[
+          "h-11 w-full flex-row items-center justify-between rounded-t-lg border-b-2 bg-surface-elevated px-3",
+          open ? "border-primary" : "border-input",
+          className
+        ]
           .filter(Boolean)
           .join(" ")}
       >

@@ -52,6 +52,7 @@ const toFollowProfile = (author: Post["author"]): FollowProfile => ({
   bio: "",
   role: "",
   location: "",
+  language: [],
   company: "",
   website: "",
   linkedinUrl: "",

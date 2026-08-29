@@ -41,6 +41,7 @@ export const InvestorGateModal = ({ visible, onClose, onVerified }: InvestorGate
       bio: normalized.bio,
       role: normalized.role,
       location: normalized.location,
+      language: normalized.language,
       company: company.trim(),
       website: website.trim(),
       linkedinUrl: normalized.linkedinUrl,

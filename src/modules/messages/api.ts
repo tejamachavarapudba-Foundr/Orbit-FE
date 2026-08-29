@@ -33,6 +33,10 @@ export const messagesApi = {
     const response = await apiClient.patch<Message>(`/messages/${id}/read`, {});
     return response.data;
   },
+  markConversationRead: async (conversationId: string) => {
+    const response = await apiClient.patch(`/messages/conversation/${conversationId}/read`, {});
+    return response.data;
+  },
   deleteMessage: async (id: string) => {
     const response = await apiClient.delete<Message>(`/messages/${id}`, { data: {} });
     return response.data;

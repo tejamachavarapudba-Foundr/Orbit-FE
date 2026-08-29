@@ -63,6 +63,7 @@ export const UserDetailPanel = ({ user, isLoading, errorMessage, onClose }: User
           <View className="mt-4 gap-2">
             {user.profile.company ? <AppText tone="muted">Company: {user.profile.company}</AppText> : null}
             {user.profile.location ? <AppText tone="muted">Location: {user.profile.location}</AppText> : null}
+            {user.profile.language ? <AppText tone="muted">Language: {user.profile.language}</AppText> : null}
             {user.profile.website ? <AppText tone="muted">Website: {user.profile.website}</AppText> : null}
           </View>
 

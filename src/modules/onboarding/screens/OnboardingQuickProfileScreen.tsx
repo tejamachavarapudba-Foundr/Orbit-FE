@@ -6,7 +6,10 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
+import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { MultiSelectChecklist } from "@/components/ui/MultiSelectChecklist";
 import { ROLE_LABEL } from "@/constants/memberRoles";
 import { getQuickProfileValue } from "@/modules/onboarding/quickProfileConfig";
 import { useOnboarding } from "@/modules/onboarding/hooks";
@@ -42,6 +45,7 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                 <View key={field.key} className="gap-2">
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
+                    {field.required ? <AppText tone="danger"> *</AppText> : null}
                   </AppText>
                   <Dropdown
                     value={currentValue}
@@ -60,10 +64,102 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
               );
             }
 
+            if (field.type === "dropdown" && field.options) {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+
+              return (
+                <View key={field.key} className="gap-2">
+                  <AppText size="sm" weight="medium" tone="muted">
+                    {field.label}
+                    {field.required ? <AppText tone="danger"> *</AppText> : null}
+                  </AppText>
+                  <Dropdown
+                    value={currentValue}
+                    options={field.options}
+                    onChange={(value) => setQuickField(field.mapsToShared ?? field.key, value)}
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                  />
+                </View>
+              );
+            }
+
+            if (field.type === "multiSelect" && field.options) {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+              const selected = currentValue
+                ? currentValue
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                : [];
+
+              return (
+                <View key={field.key} className="gap-2">
+                  <AppText size="sm" weight="medium" tone="muted">
+                    {field.label}
+                    {field.required ? <AppText tone="danger"> *</AppText> : null}
+                  </AppText>
+                  <MultiSelectChecklist
+                    options={field.options}
+                    value={selected}
+                    onChange={(values) => setQuickField(field.mapsToShared ?? field.key, values.join(", "))}
+                  />
+                </View>
+              );
+            }
+
+            if (field.type === "multiSelectBottomSheet" && field.options) {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+              const selected = currentValue
+                ? currentValue
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                : [];
+
+              return (
+                <View key={field.key} className="gap-2">
+                  <AppText size="sm" weight="medium" tone="muted">
+                    {field.label}
+                    {field.max ? ` (select up to ${field.max})` : ""}
+                    {field.required ? <AppText tone="danger"> *</AppText> : null}
+                  </AppText>
+                  <BottomSheetMultiSelect
+                    value={selected}
+                    options={field.options}
+                    onChange={(values) => setQuickField(field.mapsToShared ?? field.key, values.join(", "))}
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                    title={field.label}
+                    max={field.max}
+                  />
+                </View>
+              );
+            }
+
+            if (field.type === "bottomSheet" && field.options) {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+
+              return (
+                <View key={field.key} className="gap-2">
+                  <AppText size="sm" weight="medium" tone="muted">
+                    {field.label}
+                    {field.required ? <AppText tone="danger"> *</AppText> : null}
+                  </AppText>
+                  <BottomSheetPicker
+                    value={currentValue}
+                    options={field.options}
+                    onChange={(value) => setQuickField(field.mapsToShared ?? field.key, value)}
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                    title={field.label}
+                  />
+                </View>
+              );
+            }
+
             return (
               <AppTextInput
                 key={field.key}
                 label={field.label}
+                required={field.required}
                 value={getQuickProfileValue(quickFields, draft.quickProfile, field.key)}
                 placeholder={field.placeholder}
                 multiline={field.multiline}

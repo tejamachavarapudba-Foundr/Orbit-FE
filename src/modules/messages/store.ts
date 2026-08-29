@@ -24,13 +24,14 @@ type MessageState = {
   loadMessages: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, content: string, attachment?: PendingAttachment) => Promise<boolean>;
   markRead: (messageId: string, conversationId: string) => Promise<boolean>;
+  markConversationRead: (conversationId: string, currentUserId: string) => Promise<boolean>;
   deleteMessage: (messageId: string, conversationId: string) => Promise<boolean>;
 };
 
 const sortMessages = (messages: Message[]) =>
   [...messages].sort((first, second) => new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime());
 
-export const useMessageStore = create<MessageState>((set) => ({
+export const useMessageStore = create<MessageState>((set, get) => ({
   messagesByConversationId: {},
   isLoadingByConversationId: {},
   isSendingByConversationId: {},
@@ -165,6 +166,37 @@ export const useMessageStore = create<MessageState>((set) => ({
       set((state) => ({
         errorByConversationId: { ...state.errorByConversationId, [conversationId]: appError.message },
         readingMessageId: null
+      }));
+      return false;
+    }
+  },
+  markConversationRead: async (conversationId, currentUserId) => {
+    const optimisticReadAt = new Date().toISOString();
+    const unreadIds = (get().messagesByConversationId[conversationId] ?? [])
+      .filter((item) => item.senderId !== currentUserId && !item.readAt)
+      .map((item) => item.id);
+
+    if (unreadIds.length === 0) {
+      return true;
+    }
+
+    set((state) => ({
+      messagesByConversationId: {
+        ...state.messagesByConversationId,
+        [conversationId]: (state.messagesByConversationId[conversationId] ?? []).map((item) =>
+          unreadIds.includes(item.id) ? { ...item, readAt: optimisticReadAt } : item
+        )
+      }
+    }));
+
+    try {
+      await messagesApi.markConversationRead(conversationId);
+      useChatStore.getState().markLastMessageRead(conversationId, unreadIds[unreadIds.length - 1]!);
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set((state) => ({
+        errorByConversationId: { ...state.errorByConversationId, [conversationId]: appError.message }
       }));
       return false;
     }

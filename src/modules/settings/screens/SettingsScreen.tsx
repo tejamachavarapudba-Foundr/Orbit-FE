@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
+import { crash, getCrashlytics } from "@react-native-firebase/crashlytics";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppButton } from "@/components/ui/AppButton";
@@ -35,6 +36,10 @@ export const SettingsScreen = () => {
 
   const handleLogout = () => {
     void logout();
+  };
+
+  const handleTestCrash = () => {
+    crash(getCrashlytics());
   };
 
   return (
@@ -90,6 +95,11 @@ export const SettingsScreen = () => {
         </Card>
 
         <AppButton label="Sign out" variant="outline" onPress={handleLogout} className="mt-4" />
+
+        {/* Verifies Crashlytics is actually reporting from this build —
+            crashes force-quit the app immediately, so check the Firebase
+            console after reopening rather than expecting anything on-screen. */}
+        <AppButton label="Test crash (Crashlytics)" variant="destructive" onPress={handleTestCrash} className="mt-3" />
       </ScrollView>
     </AppScreen>
   );

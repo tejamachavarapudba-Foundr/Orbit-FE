@@ -1,15 +1,18 @@
 import { View } from "react-native";
 
+import { OnboardingMemberRole } from "@/constants/memberRoles";
 import { AppText } from "@/components/ui/AppText";
 import { getCompletionBenefit, PROFILE_COMPLETION_BENEFITS } from "@/modules/profile/completion";
 
 type ProfileCompletionBarProps = {
   percent: number;
+  role?: OnboardingMemberRole | null;
   showBenefits?: boolean;
 };
 
-export const ProfileCompletionBar = ({ percent, showBenefits = true }: ProfileCompletionBarProps) => {
-  const benefits = showBenefits ? getCompletionBenefit(percent) : [];
+export const ProfileCompletionBar = ({ percent, role = null, showBenefits = true }: ProfileCompletionBarProps) => {
+  const allBenefits = PROFILE_COMPLETION_BENEFITS[role ?? "founder"];
+  const unlockedBenefits = showBenefits ? getCompletionBenefit(percent, role) : [];
 
   return (
     <View className="rounded-xl border border-border bg-surface p-4">
@@ -27,8 +30,8 @@ export const ProfileCompletionBar = ({ percent, showBenefits = true }: ProfileCo
           <AppText tone="muted" size="sm" weight="medium">
             Unlock benefits:
           </AppText>
-          {PROFILE_COMPLETION_BENEFITS.map((benefit) => {
-            const unlocked = benefits.includes(benefit);
+          {allBenefits.map((benefit) => {
+            const unlocked = unlockedBenefits.includes(benefit);
             return (
               <AppText key={benefit} tone={unlocked ? "default" : "muted"} size="sm">
                 {unlocked ? "✓" : "○"} {benefit}

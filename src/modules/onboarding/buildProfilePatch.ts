@@ -34,8 +34,10 @@ const mergeRoleProfile = (
           ...prior,
           startupName: roleFields.startupName ?? quick?.company ?? prior.startupName,
           startupStage: roleFields.startupStage ?? prior.startupStage,
-          industry: roleFields.industry ?? prior.industry,
+          industry: fromCsv(roleFields.industry ?? "").length ? fromCsv(roleFields.industry ?? "") : prior.industry,
           website: roleFields.website ?? quick?.website ?? prior.website,
+          founderStatus: roleFields.founderStatus ?? prior.founderStatus,
+          currentRole: roleFields.currentRole ?? prior.currentRole,
           goals
         }
       };
@@ -47,8 +49,13 @@ const mergeRoleProfile = (
         data: {
           ...prior,
           fundName: roleFields.fundName ?? quick?.company ?? prior.fundName,
+          investorType: roleFields.investorType ?? prior.investorType,
           investmentRange: roleFields.investmentRange ?? prior.investmentRange,
+          investmentStage: fromCsv(roleFields.investmentStage ?? "").length
+            ? fromCsv(roleFields.investmentStage ?? "")
+            : prior.investmentStage,
           industries: fromCsv(roleFields.industries ?? "").length ? fromCsv(roleFields.industries ?? "") : prior.industries,
+          yearsInvestingExperience: roleFields.yearsInvestingExperience ?? prior.yearsInvestingExperience,
           goals
         }
       };
@@ -115,6 +122,7 @@ export const buildProfilePatchFromOnboarding = (
     bio: "",
     role: payload.memberRole,
     location: quick?.location?.trim() ?? "",
+    language: [],
     company: quick?.company?.trim() ?? "",
     website: quick?.website?.trim() ?? "",
     linkedinUrl: quick?.linkedinUrl?.trim() ?? "",

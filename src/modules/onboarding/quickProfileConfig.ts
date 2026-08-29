@@ -1,4 +1,20 @@
 import { OnboardingMemberRole } from "@/constants/memberRoles";
+import { EXPERTISE_OPTIONS, YEARS_OF_EXPERIENCE_OPTIONS } from "@/modules/profile/schemas/advisor";
+import {
+  CURRENT_ROLE_OPTIONS,
+  FOUNDER_INDUSTRY_OPTIONS,
+  FOUNDER_STATUS_OPTIONS,
+  STARTUP_STAGE_OPTIONS
+} from "@/modules/profile/schemas/founder";
+import {
+  INDUSTRY_OPTIONS,
+  INVESTMENT_RANGE_OPTIONS,
+  INVESTMENT_STAGE_OPTIONS,
+  INVESTOR_TYPE_OPTIONS,
+  YEARS_INVESTING_EXPERIENCE_OPTIONS
+} from "@/modules/profile/schemas/investor";
+import { PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS } from "@/modules/profile/schemas/professional";
+import { SERVICES_OFFERED_OPTIONS } from "@/modules/profile/schemas/serviceProvider";
 
 export type QuickFieldConfig = {
   key: string;
@@ -8,7 +24,9 @@ export type QuickFieldConfig = {
   multiline?: boolean;
   keyboardType?: "default" | "url";
   mapsToShared?: "fullName" | "headline" | "location" | "linkedinUrl" | "company" | "website" | "skills";
-  type?: "text" | "specializationDropdown";
+  type?: "text" | "specializationDropdown" | "dropdown" | "multiSelect" | "bottomSheet" | "multiSelectBottomSheet";
+  options?: readonly { label: string; value: string }[];
+  max?: number;
 };
 
 export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig[]> = {
@@ -16,24 +34,62 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName", placeholder: "Your name" },
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline", placeholder: "Building the future of..." },
     { key: "startupName", label: "Startup Name", required: true, mapsToShared: "company", placeholder: "Acme Inc." },
-    { key: "industry", label: "Industry", required: true, placeholder: "FinTech, HealthTech..." },
-    { key: "startupStage", label: "Stage", required: true, placeholder: "Idea, MVP, Seed..." },
+    { key: "founderStatus", label: "Founder Status", required: true, type: "bottomSheet", options: FOUNDER_STATUS_OPTIONS },
+    { key: "currentRole", label: "Current Role", required: true, type: "bottomSheet", options: CURRENT_ROLE_OPTIONS },
+    {
+      key: "industry",
+      label: "Industry",
+      required: true,
+      type: "multiSelectBottomSheet",
+      options: FOUNDER_INDUSTRY_OPTIONS,
+      max: 5
+    },
+    { key: "startupStage", label: "Startup Stage", required: true, type: "bottomSheet", options: STARTUP_STAGE_OPTIONS },
     { key: "location", label: "Location", required: true, mapsToShared: "location", placeholder: "San Francisco, CA" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url", placeholder: "https://linkedin.com/in/you" }
   ],
   investor: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
     { key: "fundName", label: "Fund Name", required: true, mapsToShared: "company", placeholder: "Horizon Ventures" },
-    { key: "investmentRange", label: "Investment Range", required: true, placeholder: "$100K – $2M" },
-    { key: "industries", label: "Industries", required: true, placeholder: "AI, SaaS, Climate" },
+    { key: "investorType", label: "Investor Type", required: true, type: "bottomSheet", options: INVESTOR_TYPE_OPTIONS },
+    { key: "investmentRange", label: "Investment Range", required: true, type: "bottomSheet", options: INVESTMENT_RANGE_OPTIONS },
+    {
+      key: "investmentStage",
+      label: "Investment Stage",
+      required: true,
+      type: "multiSelectBottomSheet",
+      options: INVESTMENT_STAGE_OPTIONS
+    },
+    {
+      key: "industries",
+      label: "Industry",
+      required: true,
+      type: "multiSelectBottomSheet",
+      options: INDUSTRY_OPTIONS,
+      max: 5
+    },
+    {
+      key: "yearsInvestingExperience",
+      label: "Years of Investing Experience",
+      required: true,
+      type: "bottomSheet",
+      options: YEARS_INVESTING_EXPERIENCE_OPTIONS
+    },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }
   ],
   advisor: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline", placeholder: "Product leader & startup advisor" },
-    { key: "expertise", label: "Expertise", required: true, placeholder: "Product, GTM, Fundraising" },
-    { key: "yearsExperience", label: "Years Experience", required: true, placeholder: "10+" },
+    {
+      key: "expertise",
+      label: "Expertise",
+      required: true,
+      type: "multiSelectBottomSheet",
+      options: EXPERTISE_OPTIONS,
+      max: 5
+    },
+    { key: "yearsExperience", label: "Years Experience", required: true, type: "bottomSheet", options: YEARS_OF_EXPERIENCE_OPTIONS },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }
   ],
@@ -42,14 +98,28 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline" },
     { key: "specialization", label: "Engineer specialization (if applicable)", required: false, type: "specializationDropdown" },
     { key: "skills", label: "Skills", required: true, mapsToShared: "skills", placeholder: "React, Node.js, UX" },
-    { key: "experienceLevel", label: "Experience Level", required: true, placeholder: "Junior, Mid, Senior" },
+    {
+      key: "experienceLevel",
+      label: "Years of Experience",
+      required: true,
+      type: "bottomSheet",
+      options: PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS
+    },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }
   ],
   service_provider: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
+    { key: "headline", label: "Headline", required: true, mapsToShared: "headline", placeholder: "Helping startups with legal, accounting, and more" },
     { key: "company", label: "Company", required: true, mapsToShared: "company" },
-    { key: "services", label: "Services Offered", required: true, placeholder: "Legal, Accounting, DevOps" },
+    {
+      key: "services",
+      label: "Services Offered",
+      required: true,
+      type: "multiSelectBottomSheet",
+      options: SERVICES_OFFERED_OPTIONS,
+      max: 5
+    },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "website", label: "Website", required: true, mapsToShared: "website", keyboardType: "url" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }

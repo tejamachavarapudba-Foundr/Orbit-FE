@@ -2,23 +2,45 @@ import { View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
+import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { normalizeMemberRole } from "@/constants/memberRoles";
 import { RoleProfileData } from "@/modules/profile/schemas";
-import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
+import {
+  EXPERTISE_OPTIONS,
+  INDUSTRY_EXPERIENCE_OPTIONS,
+  MENTORSHIP_AREAS_OPTIONS,
+  YEARS_OF_EXPERIENCE_OPTIONS
+} from "@/modules/profile/schemas/advisor";
+import {
+  CURRENT_ROLE_OPTIONS,
+  FOUNDER_INDUSTRY_OPTIONS,
+  FOUNDER_STATUS_OPTIONS,
+  STARTUP_STAGE_OPTIONS
+} from "@/modules/profile/schemas/founder";
+import {
+  ENGINEER_SPECIALIZATIONS,
+  PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS
+} from "@/modules/profile/schemas/professional";
+import {
+  CLIENT_INDUSTRIES_OPTIONS,
+  SERVICES_OFFERED_OPTIONS
+} from "@/modules/profile/schemas/serviceProvider";
+import {
+  INDUSTRY_OPTIONS,
+  INVESTMENT_GEOGRAPHY_OPTIONS,
+  INVESTMENT_RANGE_OPTIONS,
+  INVESTMENT_STAGE_OPTIONS,
+  INVESTOR_TYPE_OPTIONS,
+  YEARS_INVESTING_EXPERIENCE_OPTIONS
+} from "@/modules/profile/schemas/investor";
 
 type RoleProfileSectionProps = {
   role: string;
   roleProfile: RoleProfileData | null | undefined;
   onChange: (roleProfile: RoleProfileData) => void;
 };
-
-const toCsv = (values: string[]) => values.join(", ");
-const fromCsv = (value: string) =>
-  value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
 
 export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileSectionProps) => {
   const memberRole = normalizeMemberRole(role);
@@ -42,9 +64,61 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             actually saves to during onboarding (see FOUNDER_QUICK_FIELDS'
             mapsTo: "company"). Editing here never fed back into it, so the
             two could silently drift out of sync. */}
-        <AppTextInput label="Stage" value={data.startupStage} onChangeText={(v) => setField("startupStage", v)} />
-        <AppTextInput label="Industry" value={data.industry} onChangeText={(v) => setField("industry", v)} />
-        <AppTextInput label="Team size" value={data.teamSize} onChangeText={(v) => setField("teamSize", v)} />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Founder status
+          </AppText>
+          <BottomSheetPicker
+            value={data.founderStatus}
+            options={FOUNDER_STATUS_OPTIONS}
+            onChange={(v) => setField("founderStatus", v)}
+            placeholder="Select founder status"
+            title="Founder status"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Current role
+          </AppText>
+          <BottomSheetPicker
+            value={data.currentRole}
+            options={CURRENT_ROLE_OPTIONS}
+            onChange={(v) => setField("currentRole", v)}
+            placeholder="Select current role"
+            title="Current role"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Startup stage
+          </AppText>
+          <BottomSheetPicker
+            value={data.startupStage}
+            options={STARTUP_STAGE_OPTIONS}
+            onChange={(v) => setField("startupStage", v)}
+            placeholder="Select startup stage"
+            title="Startup stage"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Industry (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.industry}
+            options={FOUNDER_INDUSTRY_OPTIONS}
+            onChange={(v) => setField("industry", v)}
+            placeholder="Select industry"
+            title="Industry"
+            max={5}
+          />
+        </View>
+        <AppTextInput
+          label="Team size"
+          value={data.teamSize}
+          keyboardType="numeric"
+          onChangeText={(v) => setField("teamSize", v)}
+        />
       </View>
     );
   }
@@ -54,8 +128,79 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     return (
       <View className="gap-4">
         <AppTextInput label="Company name" value={data.fundName} onChangeText={(v) => setField("fundName", v)} />
-        <AppTextInput label="Investment range" value={data.investmentRange} onChangeText={(v) => setField("investmentRange", v)} />
-        <AppTextInput label="Industries" value={toCsv(data.industries)} onChangeText={(v) => setField("industries", fromCsv(v))} />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Investor type
+          </AppText>
+          <BottomSheetPicker
+            value={data.investorType}
+            options={INVESTOR_TYPE_OPTIONS}
+            onChange={(v) => setField("investorType", v)}
+            placeholder="Select investor type"
+            title="Investor type"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Investment range
+          </AppText>
+          <BottomSheetPicker
+            value={data.investmentRange}
+            options={INVESTMENT_RANGE_OPTIONS}
+            onChange={(v) => setField("investmentRange", v)}
+            placeholder="Select investment range"
+            title="Investment range"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Investment stage
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.investmentStage}
+            options={INVESTMENT_STAGE_OPTIONS}
+            onChange={(v) => setField("investmentStage", v)}
+            placeholder="Select investment stage"
+            title="Investment stage"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Investment geography
+          </AppText>
+          <BottomSheetPicker
+            value={data.geography}
+            options={INVESTMENT_GEOGRAPHY_OPTIONS}
+            onChange={(v) => setField("geography", v)}
+            placeholder="Select geography"
+            title="Investment geography"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Years of investing experience
+          </AppText>
+          <BottomSheetPicker
+            value={data.yearsInvestingExperience}
+            options={YEARS_INVESTING_EXPERIENCE_OPTIONS}
+            onChange={(v) => setField("yearsInvestingExperience", v)}
+            placeholder="Select years of experience"
+            title="Years of investing experience"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Industry (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.industries}
+            options={INDUSTRY_OPTIONS}
+            onChange={(v) => setField("industries", v)}
+            placeholder="Select industries"
+            title="Industry"
+            max={5}
+          />
+        </View>
         <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />
       </View>
     );
@@ -65,14 +210,57 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     const data = roleProfile.data;
     return (
       <View className="gap-4">
-        <AppTextInput label="Expertise" value={toCsv(data.expertise)} onChangeText={(v) => setField("expertise", fromCsv(v))} />
-        <AppTextInput label="Years experience" value={data.yearsExperience} onChangeText={(v) => setField("yearsExperience", v)} />
-        <AppTextInput label="Industries" value={toCsv(data.industries)} onChangeText={(v) => setField("industries", fromCsv(v))} />
-        <AppTextInput
-          label="Mentorship areas"
-          value={toCsv(data.mentorshipAreas)}
-          onChangeText={(v) => setField("mentorshipAreas", fromCsv(v))}
-        />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Expertise (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.expertise}
+            options={EXPERTISE_OPTIONS}
+            onChange={(v) => setField("expertise", v)}
+            placeholder="Select expertise"
+            title="Expertise"
+            max={5}
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Years experience
+          </AppText>
+          <BottomSheetPicker
+            value={data.yearsExperience}
+            options={YEARS_OF_EXPERIENCE_OPTIONS}
+            onChange={(v) => setField("yearsExperience", v)}
+            placeholder="Select years of experience"
+            title="Years experience"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Industry experience (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.industries}
+            options={INDUSTRY_EXPERIENCE_OPTIONS}
+            onChange={(v) => setField("industries", v)}
+            placeholder="Select industry experience"
+            title="Industry experience"
+            max={5}
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Mentorship areas (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.mentorshipAreas}
+            options={MENTORSHIP_AREAS_OPTIONS}
+            onChange={(v) => setField("mentorshipAreas", v)}
+            placeholder="Select mentorship areas"
+            title="Mentorship areas"
+            max={5}
+          />
+        </View>
       </View>
     );
   }
@@ -99,8 +287,22 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             />
           ) : null}
         </View>
-        <AppTextInput label="Skills" value={toCsv(data.skills)} onChangeText={(v) => setField("skills", fromCsv(v))} />
-        <AppTextInput label="Experience level" value={data.experienceLevel} onChangeText={(v) => setField("experienceLevel", v)} />
+        {/* "Skills" removed — duplicated the shared "Skills" field on the
+            main profile form, which is the field this actually saves to
+            (see PROFESSIONAL_QUICK_FIELDS' mapsTo: "skills"). Editing here
+            never fed back into it, so the two showed as two separate inputs. */}
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Years of experience
+          </AppText>
+          <BottomSheetPicker
+            value={data.experienceLevel}
+            options={PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS}
+            onChange={(v) => setField("experienceLevel", v)}
+            placeholder="Select years of experience"
+            title="Years of experience"
+          />
+        </View>
         <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />
         <AppTextInput label="Resume link" value={data.resume} onChangeText={(v) => setField("resume", v)} />
       </View>
@@ -112,12 +314,32 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     return (
       <View className="gap-4">
         <AppTextInput label="Company" value={data.company} onChangeText={(v) => setField("company", v)} />
-        <AppTextInput label="Services" value={toCsv(data.services)} onChangeText={(v) => setField("services", fromCsv(v))} />
-        <AppTextInput
-          label="Client industries"
-          value={toCsv(data.clientIndustries)}
-          onChangeText={(v) => setField("clientIndustries", fromCsv(v))}
-        />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Services offered (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.services}
+            options={SERVICES_OFFERED_OPTIONS}
+            onChange={(v) => setField("services", v)}
+            placeholder="Select services offered"
+            title="Services offered"
+            max={5}
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Client industries (select up to 5)
+          </AppText>
+          <BottomSheetMultiSelect
+            value={data.clientIndustries}
+            options={CLIENT_INDUSTRIES_OPTIONS}
+            onChange={(v) => setField("clientIndustries", v)}
+            placeholder="Select client industries"
+            title="Client industries"
+            max={5}
+          />
+        </View>
       </View>
     );
   }

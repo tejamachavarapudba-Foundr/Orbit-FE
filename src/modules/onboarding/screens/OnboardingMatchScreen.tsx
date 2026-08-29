@@ -41,35 +41,16 @@ export const OnboardingMatchScreen = (_props: Props) => {
           Your matches are ready
         </AppText>
         <AppText tone="muted" className="mt-2 leading-6">
-          Based on your role and goals, here is who you should meet first.
+          Explore Startuphouze to discover and connect with people who match your profile.
         </AppText>
 
         <View className="mt-6">
           {isLoading ? (
             <ActivityIndicator />
           ) : (
-            <MatchPreviewCard matches={matches} />
+            <MatchPreviewCard matches={matches} viewerRole={draft.memberRole} />
           )}
         </View>
-
-        {matches.people.length > 0 ? (
-          <View className="mt-6 gap-3">
-            <AppText weight="bold">Recommended people</AppText>
-            {matches.people.slice(0, 5).map((person) => (
-              <View key={person.id} className="rounded-md border border-border bg-surface p-3">
-                <AppText weight="semibold">{person.fullName}</AppText>
-                <AppText tone="muted" size="sm" className="mt-1">
-                  {person.headline || person.role}
-                </AppText>
-                {person.matchReasons?.[0] ? (
-                  <AppText tone="primary" size="xs" className="mt-2">
-                    {person.matchReasons[0]}
-                  </AppText>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        ) : null}
 
         {matches.startups.length > 0 ? (
           <View className="mt-6 gap-3">
@@ -86,7 +67,7 @@ export const OnboardingMatchScreen = (_props: Props) => {
         ) : null}
 
         <View className="mt-6">
-          <ProfileCompletionBar percent={completion} />
+          <ProfileCompletionBar percent={completion} role={draft.memberRole} />
         </View>
 
         <AppButton label="Enter Startuphouze" loading={isSubmitting} onPress={() => void finish()} className="mt-8" />

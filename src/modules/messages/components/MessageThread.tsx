@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
@@ -133,6 +133,81 @@ const MessageAttachment = ({
   );
 };
 
+// Rendering the message list is the expensive part of this screen (one
+// bubble + attachment per message). Isolating it behind memo() means typing
+// in the input below — which re-renders MessageThread on every keystroke via
+// the `draft` state — doesn't also re-render the entire message history.
+const MessageList = memo(
+  ({
+    messages,
+    currentUserId,
+    onPressImage
+  }: {
+    messages: Message[];
+    currentUserId: string | undefined;
+    onPressImage: (url: string) => void;
+  }) => (
+    <>
+      {messages.map((message, index) => {
+        const isMine = message.senderId === currentUserId;
+        const next = messages[index + 1];
+        // LinkedIn only stamps the last bubble in a run from the same sender —
+        // collapses a burst of quick messages into one visual group.
+        const isLastInGroup = !next || next.senderId !== message.senderId;
+        const isLastMineOverall = isMine && messages.slice(index + 1).every((later) => later.senderId !== currentUserId);
+        const isSeen = isLastMineOverall && Boolean(message.readAt);
+        // Time goes on the attachment itself only when there's no
+        // caption text after it — otherwise the caption's own trailing
+        // timestamp covers it, so it never shows twice.
+        const attachmentTime =
+          isLastInGroup && !message.content && message.attachmentUrl ? formatTime(message.createdAt) : null;
+        const showCaptionTime = isLastInGroup && (Boolean(message.content) || !message.attachmentUrl);
+
+        if (isMine) {
+          return (
+            <View key={message.id} className="items-end">
+              <View className="max-w-[78%] rounded-2xl rounded-br-sm bg-primary px-4 py-2">
+                <MessageAttachment message={message} tint="onPrimary" time={attachmentTime} onPressImage={onPressImage} />
+                {message.content ? (
+                  <AppText tone="onPrimary" size="sm" className="leading-5">
+                    {message.content}
+                  </AppText>
+                ) : null}
+                {showCaptionTime ? (
+                  <AppText tone="onPrimary" size="xs" className="mt-1 self-end opacity-70">
+                    {formatTime(message.createdAt)}
+                  </AppText>
+                ) : null}
+              </View>
+              {isSeen ? (
+                <AppText tone="muted" size="xs" className="mt-1 mr-1">
+                  Seen
+                </AppText>
+              ) : null}
+            </View>
+          );
+        }
+
+        return (
+          <View key={message.id} className="max-w-[78%] self-start rounded-2xl rounded-bl-sm bg-muted-bg px-4 py-2">
+            <MessageAttachment message={message} tint="default" time={attachmentTime} onPressImage={onPressImage} />
+            {message.content ? (
+              <AppText size="sm" className="leading-5">
+                {message.content}
+              </AppText>
+            ) : null}
+            {showCaptionTime ? (
+              <AppText tone="muted" size="xs" className="mt-1 self-end">
+                {formatTime(message.createdAt)}
+              </AppText>
+            ) : null}
+          </View>
+        );
+      })}
+    </>
+  )
+);
+
 export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   const colors = useThemeTokens();
   const insets = useSafeAreaInsets();
@@ -211,62 +286,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
         ) : errorMessage ? (
           <ErrorState message={errorMessage} onRetry={() => void reload()} />
         ) : messages.length > 0 ? (
-          messages.map((message, index) => {
-            const isMine = message.senderId === currentUserId;
-            const next = messages[index + 1];
-            // LinkedIn only stamps the last bubble in a run from the same sender —
-            // collapses a burst of quick messages into one visual group.
-            const isLastInGroup = !next || next.senderId !== message.senderId;
-            const isLastMineOverall = isMine && messages.slice(index + 1).every((later) => later.senderId !== currentUserId);
-            const isSeen = isLastMineOverall && Boolean(message.readAt);
-            // Time goes on the attachment itself only when there's no
-            // caption text after it — otherwise the caption's own trailing
-            // timestamp covers it, so it never shows twice.
-            const attachmentTime =
-              isLastInGroup && !message.content && message.attachmentUrl ? formatTime(message.createdAt) : null;
-            const showCaptionTime = isLastInGroup && (Boolean(message.content) || !message.attachmentUrl);
-
-            if (isMine) {
-              return (
-                <View key={message.id} className="items-end">
-                  <View className="max-w-[78%] rounded-2xl rounded-br-sm bg-primary px-4 py-2">
-                    <MessageAttachment message={message} tint="onPrimary" time={attachmentTime} onPressImage={setViewerUrl} />
-                    {message.content ? (
-                      <AppText tone="onPrimary" size="sm" className="leading-5">
-                        {message.content}
-                      </AppText>
-                    ) : null}
-                    {showCaptionTime ? (
-                      <AppText tone="onPrimary" size="xs" className="mt-1 self-end opacity-70">
-                        {formatTime(message.createdAt)}
-                      </AppText>
-                    ) : null}
-                  </View>
-                  {isSeen ? (
-                    <AppText tone="muted" size="xs" className="mt-1 mr-1">
-                      Seen
-                    </AppText>
-                  ) : null}
-                </View>
-              );
-            }
-
-            return (
-              <View key={message.id} className="max-w-[78%] self-start rounded-2xl rounded-bl-sm bg-muted-bg px-4 py-2">
-                <MessageAttachment message={message} tint="default" time={attachmentTime} onPressImage={setViewerUrl} />
-                {message.content ? (
-                  <AppText size="sm" className="leading-5">
-                    {message.content}
-                  </AppText>
-                ) : null}
-                {showCaptionTime ? (
-                  <AppText tone="muted" size="xs" className="mt-1 self-end">
-                    {formatTime(message.createdAt)}
-                  </AppText>
-                ) : null}
-              </View>
-            );
-          })
+          <MessageList messages={messages} currentUserId={currentUserId} onPressImage={setViewerUrl} />
         ) : (
           <EmptyState title="No messages yet" message="Say hello to start the conversation." />
         )}

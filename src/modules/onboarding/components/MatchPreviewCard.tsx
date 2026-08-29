@@ -1,23 +1,36 @@
 import { View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
+import { OnboardingMemberRole } from "@/constants/memberRoles";
 import { MatchRecommendations } from "@/modules/recommendations/types";
 
 type MatchPreviewCardProps = {
   matches: MatchRecommendations;
+  viewerRole?: OnboardingMemberRole | null;
 };
 
-export const MatchPreviewCard = ({ matches }: MatchPreviewCardProps) => (
+// The backend excludes the viewer's own role from candidates entirely
+// (a founder isn't matched with other founders), so that bucket is always
+// 0 — not because there are no founders on the platform, just because
+// they're not relevant matches for a founder. Showing "0" there read as
+// broken rather than as "not applicable", so that tile is skipped instead.
+const ROLE_PILLS: { role: OnboardingMemberRole; label: string; key: keyof MatchRecommendations["breakdown"] }[] = [
+  { role: "investor", label: "Investors", key: "investors" },
+  { role: "founder", label: "Founders", key: "founders" },
+  { role: "advisor", label: "Advisors", key: "advisors" },
+  { role: "professional", label: "Professionals", key: "professionals" },
+  { role: "service_provider", label: "Service Providers", key: "serviceProviders" }
+];
+
+export const MatchPreviewCard = ({ matches, viewerRole = null }: MatchPreviewCardProps) => (
   <View className="rounded-xl border border-border bg-surface p-4">
     <AppText size="lg" weight="bold">
       ✨ We found {matches.total} relevant people
     </AppText>
     <View className="mt-4 flex-row flex-wrap gap-3">
-      <StatPill label="Investors" value={matches.breakdown.investors} />
-      <StatPill label="Founders" value={matches.breakdown.founders} />
-      <StatPill label="Advisors" value={matches.breakdown.advisors} />
-      <StatPill label="Professionals" value={matches.breakdown.professionals} />
-      <StatPill label="Service Providers" value={matches.breakdown.serviceProviders} />
+      {ROLE_PILLS.filter((pill) => pill.role !== viewerRole).map((pill) => (
+        <StatPill key={pill.key} label={pill.label} value={matches.breakdown[pill.key]} />
+      ))}
     </View>
   </View>
 );

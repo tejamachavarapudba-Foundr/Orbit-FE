@@ -15,6 +15,7 @@ export type AuthProfile = {
   bio: string;
   role: string;
   location: string;
+  language: string[];
   company: string;
   website: string;
   linkedinUrl: string;

@@ -29,6 +29,11 @@ export type ProfessionalProfile = {
   specializationOther: string;
 };
 
+export const PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS = Array.from({ length: 30 }, (_, i) => {
+  const year = i + 1;
+  return { label: `${year} year${year > 1 ? "s" : ""}`, value: String(year) };
+});
+
 export const PROFESSIONAL_QUICK_FIELDS = [
   { key: "fullName", label: "Name", required: true },
   { key: "headline", label: "Headline", required: true },

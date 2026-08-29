@@ -10,6 +10,7 @@ export type UpdateProfilePayload = {
   bio: string;
   role: string;
   location: string;
+  language: string[];
   company: string;
   website: string;
   linkedinUrl: string;
