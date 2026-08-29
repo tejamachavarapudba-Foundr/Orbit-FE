@@ -38,6 +38,7 @@ const mergeRoleProfile = (
           website: roleFields.website ?? quick?.website ?? prior.website,
           founderStatus: roleFields.founderStatus ?? prior.founderStatus,
           currentRole: roleFields.currentRole ?? prior.currentRole,
+          portfolio: fromCsv(roleFields.portfolio ?? "").length ? fromCsv(roleFields.portfolio ?? "") : prior.portfolio,
           goals
         }
       };
@@ -50,12 +51,14 @@ const mergeRoleProfile = (
           ...prior,
           fundName: roleFields.fundName ?? quick?.company ?? prior.fundName,
           investorType: roleFields.investorType ?? prior.investorType,
+          investingAs: roleFields.investingAs ?? prior.investingAs,
           investmentRange: roleFields.investmentRange ?? prior.investmentRange,
           investmentStage: fromCsv(roleFields.investmentStage ?? "").length
             ? fromCsv(roleFields.investmentStage ?? "")
             : prior.investmentStage,
           industries: fromCsv(roleFields.industries ?? "").length ? fromCsv(roleFields.industries ?? "") : prior.industries,
           yearsInvestingExperience: roleFields.yearsInvestingExperience ?? prior.yearsInvestingExperience,
+          portfolio: fromCsv(roleFields.portfolio ?? "").length ? fromCsv(roleFields.portfolio ?? "") : prior.portfolio,
           goals
         }
       };
@@ -67,7 +70,9 @@ const mergeRoleProfile = (
         data: {
           ...prior,
           expertise: fromCsv(roleFields.expertise ?? "").length ? fromCsv(roleFields.expertise ?? "") : prior.expertise,
+          expertiseOther: roleFields.expertiseOther ?? prior.expertiseOther,
           yearsExperience: roleFields.yearsExperience ?? prior.yearsExperience,
+          mentorshipExperience: roleFields.mentorshipExperience ?? prior.mentorshipExperience,
           goals
         }
       };

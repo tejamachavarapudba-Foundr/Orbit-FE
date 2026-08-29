@@ -5,13 +5,15 @@ import { AppTextInput } from "@/components/ui/AppTextInput";
 import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { PortfolioNamesBottomSheet } from "@/components/ui/PortfolioNamesBottomSheet";
 import { normalizeMemberRole } from "@/constants/memberRoles";
 import { RoleProfileData } from "@/modules/profile/schemas";
 import {
   EXPERTISE_OPTIONS,
   INDUSTRY_EXPERIENCE_OPTIONS,
   MENTORSHIP_AREAS_OPTIONS,
-  YEARS_OF_EXPERIENCE_OPTIONS
+  MENTORSHIP_EXPERIENCE_OPTIONS,
+  PROFESSIONAL_EXPERIENCE_OPTIONS
 } from "@/modules/profile/schemas/advisor";
 import {
   CURRENT_ROLE_OPTIONS,
@@ -29,11 +31,12 @@ import {
 } from "@/modules/profile/schemas/serviceProvider";
 import {
   INDUSTRY_OPTIONS,
+  INVESTING_AS_OPTIONS,
+  INVESTMENT_EXPERIENCE_OPTIONS,
   INVESTMENT_GEOGRAPHY_OPTIONS,
   INVESTMENT_RANGE_OPTIONS,
   INVESTMENT_STAGE_OPTIONS,
-  INVESTOR_TYPE_OPTIONS,
-  YEARS_INVESTING_EXPERIENCE_OPTIONS
+  INVESTOR_TYPE_OPTIONS
 } from "@/modules/profile/schemas/investor";
 
 type RoleProfileSectionProps = {
@@ -119,6 +122,12 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
           keyboardType="numeric"
           onChangeText={(v) => setField("teamSize", v)}
         />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Portfolio
+          </AppText>
+          <PortfolioNamesBottomSheet value={data.portfolio} onChange={(v) => setField("portfolio", v)} />
+        </View>
       </View>
     );
   }
@@ -128,6 +137,18 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     return (
       <View className="gap-4">
         <AppTextInput label="Company name" value={data.fundName} onChangeText={(v) => setField("fundName", v)} />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Investing as
+          </AppText>
+          <BottomSheetPicker
+            value={data.investingAs}
+            options={INVESTING_AS_OPTIONS}
+            onChange={(v) => setField("investingAs", v)}
+            placeholder="Select investing as"
+            title="Investing as"
+          />
+        </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
             Investor type
@@ -178,14 +199,14 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
-            Years of investing experience
+            Investment experience
           </AppText>
           <BottomSheetPicker
             value={data.yearsInvestingExperience}
-            options={YEARS_INVESTING_EXPERIENCE_OPTIONS}
+            options={INVESTMENT_EXPERIENCE_OPTIONS}
             onChange={(v) => setField("yearsInvestingExperience", v)}
-            placeholder="Select years of experience"
-            title="Years of investing experience"
+            placeholder="Select investment experience"
+            title="Investment experience"
           />
         </View>
         <View className="gap-2">
@@ -201,7 +222,12 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             max={5}
           />
         </View>
-        <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Portfolio
+          </AppText>
+          <PortfolioNamesBottomSheet value={data.portfolio} onChange={(v) => setField("portfolio", v)} />
+        </View>
       </View>
     );
   }
@@ -222,17 +248,36 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
             title="Expertise"
             max={5}
           />
+          {data.expertise.includes("other") ? (
+            <AppTextInput
+              placeholder="Describe your expertise"
+              value={data.expertiseOther}
+              onChangeText={(v) => setField("expertiseOther", v)}
+            />
+          ) : null}
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
-            Years experience
+            Professional experience
           </AppText>
           <BottomSheetPicker
             value={data.yearsExperience}
-            options={YEARS_OF_EXPERIENCE_OPTIONS}
+            options={PROFESSIONAL_EXPERIENCE_OPTIONS}
             onChange={(v) => setField("yearsExperience", v)}
-            placeholder="Select years of experience"
-            title="Years experience"
+            placeholder="Select professional experience"
+            title="Professional experience"
+          />
+        </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium" tone="muted">
+            Mentorship experience
+          </AppText>
+          <BottomSheetPicker
+            value={data.mentorshipExperience}
+            options={MENTORSHIP_EXPERIENCE_OPTIONS}
+            onChange={(v) => setField("mentorshipExperience", v)}
+            placeholder="Select mentorship experience"
+            title="Mentorship experience"
           />
         </View>
         <View className="gap-2">

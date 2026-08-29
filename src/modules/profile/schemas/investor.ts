@@ -2,9 +2,10 @@ export type InvestorProfile = {
   fundName: string;
   investmentRange: string;
   industries: string[];
-  portfolio: string;
+  portfolio: string[];
   geography: string;
   investorType: string;
+  investingAs: string;
   investmentStage: string[];
   yearsInvestingExperience: string;
   goals: string[];
@@ -72,18 +73,30 @@ export const INVESTMENT_GEOGRAPHY_OPTIONS = [
   { label: "Global", value: "global" }
 ] as const;
 
-export const YEARS_INVESTING_EXPERIENCE_OPTIONS = Array.from({ length: 30 }, (_, i) => {
-  const year = i + 1;
-  return { label: `${year} year${year > 1 ? "s" : ""}`, value: String(year) };
-});
+// Replaces the old 1-30 individual-year picker with the same bracket
+// pattern used elsewhere (Investment Range, Advisor's Professional
+// Experience) — a rounder, faster choice than scrolling to a specific year.
+export const INVESTMENT_EXPERIENCE_OPTIONS = [
+  { label: "Less than 2 years", value: "lt_2" },
+  { label: "2–5 years", value: "2_5" },
+  { label: "6–10 years", value: "6_10" },
+  { label: "11–15 years", value: "11_15" },
+  { label: "16+ years", value: "16_plus" }
+] as const;
+
+export const INVESTING_AS_OPTIONS = [
+  { label: "Individual", value: "individual" },
+  { label: "Organization", value: "organization" }
+] as const;
 
 export const emptyInvestorProfile = (): InvestorProfile => ({
   fundName: "",
   investmentRange: "",
   industries: [],
-  portfolio: "",
+  portfolio: [],
   geography: "",
   investorType: "",
+  investingAs: "",
   investmentStage: [],
   yearsInvestingExperience: "",
   goals: []

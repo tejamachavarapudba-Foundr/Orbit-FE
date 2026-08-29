@@ -10,6 +10,7 @@ import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { MultiSelectChecklist } from "@/components/ui/MultiSelectChecklist";
+import { PortfolioNamesBottomSheet } from "@/components/ui/PortfolioNamesBottomSheet";
 import { ROLE_LABEL } from "@/constants/memberRoles";
 import { getQuickProfileValue } from "@/modules/onboarding/quickProfileConfig";
 import { useOnboarding } from "@/modules/onboarding/hooks";
@@ -18,12 +19,15 @@ import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional
 type Props = NativeStackScreenProps<OnboardingStackParamList, "OnboardingQuickProfile">;
 
 export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
-  const { draft, quickFields, canContinueQuickProfile, isSubmitting, setQuickField, saveProgress } = useOnboarding();
+  const { draft, quickFields, isSubmitting, setQuickField, completeOnboarding } = useOnboarding();
   const roleLabel = draft.memberRole ? ROLE_LABEL[draft.memberRole] : "your";
 
-  const continueNext = async () => {
-    await saveProgress();
-    navigation.navigate("OnboardingMatch");
+  // Fields can be left blank — nothing here blocks continuing, so this
+  // finishes onboarding directly instead of routing through a separate
+  // matches screen.
+  const finish = async () => {
+    if (isSubmitting) return;
+    await completeOnboarding();
   };
 
   return (
@@ -45,7 +49,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                 <View key={field.key} className="gap-2">
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
-                    {field.required ? <AppText tone="danger"> *</AppText> : null}
                   </AppText>
                   <Dropdown
                     value={currentValue}
@@ -71,7 +74,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                 <View key={field.key} className="gap-2">
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
-                    {field.required ? <AppText tone="danger"> *</AppText> : null}
                   </AppText>
                   <Dropdown
                     value={currentValue}
@@ -96,7 +98,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                 <View key={field.key} className="gap-2">
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
-                    {field.required ? <AppText tone="danger"> *</AppText> : null}
                   </AppText>
                   <MultiSelectChecklist
                     options={field.options}
@@ -121,7 +122,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
                     {field.max ? ` (select up to ${field.max})` : ""}
-                    {field.required ? <AppText tone="danger"> *</AppText> : null}
                   </AppText>
                   <BottomSheetMultiSelect
                     value={selected}
@@ -130,6 +130,35 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                     placeholder={`Select ${field.label.toLowerCase()}`}
                     title={field.label}
                     max={field.max}
+                  />
+                  {field.key === "expertise" && selected.includes("other") ? (
+                    <AppTextInput
+                      placeholder="Describe your expertise"
+                      value={getQuickProfileValue(quickFields, draft.quickProfile, "expertiseOther")}
+                      onChangeText={(value) => setQuickField("expertiseOther", value)}
+                    />
+                  ) : null}
+                </View>
+              );
+            }
+
+            if (field.type === "portfolioNames") {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+              const names = currentValue
+                ? currentValue
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                : [];
+
+              return (
+                <View key={field.key} className="gap-2">
+                  <AppText size="sm" weight="medium" tone="muted">
+                    {field.label}
+                  </AppText>
+                  <PortfolioNamesBottomSheet
+                    value={names}
+                    onChange={(values) => setQuickField(field.mapsToShared ?? field.key, values.join(", "))}
                   />
                 </View>
               );
@@ -142,7 +171,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                 <View key={field.key} className="gap-2">
                   <AppText size="sm" weight="medium" tone="muted">
                     {field.label}
-                    {field.required ? <AppText tone="danger"> *</AppText> : null}
                   </AppText>
                   <BottomSheetPicker
                     value={currentValue}
@@ -159,7 +187,6 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
               <AppTextInput
                 key={field.key}
                 label={field.label}
-                required={field.required}
                 value={getQuickProfileValue(quickFields, draft.quickProfile, field.key)}
                 placeholder={field.placeholder}
                 multiline={field.multiline}
@@ -173,10 +200,9 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
         <View className="mt-8 flex-row gap-3">
           <AppButton label="Back" variant="outline" onPress={() => navigation.goBack()} className="flex-1" />
           <AppButton
-            label="See matches"
-            disabled={!canContinueQuickProfile}
+            label="Explore Startuphouze"
             loading={isSubmitting}
-            onPress={() => void continueNext()}
+            onPress={() => void finish()}
             className="flex-1"
           />
         </View>

@@ -1,17 +1,21 @@
 import { OnboardingMemberRole } from "@/constants/memberRoles";
-import { EXPERTISE_OPTIONS, YEARS_OF_EXPERIENCE_OPTIONS } from "@/modules/profile/schemas/advisor";
+import {
+  EXPERTISE_OPTIONS,
+  MENTORSHIP_EXPERIENCE_OPTIONS,
+  PROFESSIONAL_EXPERIENCE_OPTIONS
+} from "@/modules/profile/schemas/advisor";
 import {
   CURRENT_ROLE_OPTIONS,
-  FOUNDER_INDUSTRY_OPTIONS,
   FOUNDER_STATUS_OPTIONS,
   STARTUP_STAGE_OPTIONS
 } from "@/modules/profile/schemas/founder";
 import {
   INDUSTRY_OPTIONS,
+  INVESTING_AS_OPTIONS,
+  INVESTMENT_EXPERIENCE_OPTIONS,
   INVESTMENT_RANGE_OPTIONS,
   INVESTMENT_STAGE_OPTIONS,
-  INVESTOR_TYPE_OPTIONS,
-  YEARS_INVESTING_EXPERIENCE_OPTIONS
+  INVESTOR_TYPE_OPTIONS
 } from "@/modules/profile/schemas/investor";
 import { PROFESSIONAL_YEARS_OF_EXPERIENCE_OPTIONS } from "@/modules/profile/schemas/professional";
 import { SERVICES_OFFERED_OPTIONS } from "@/modules/profile/schemas/serviceProvider";
@@ -24,7 +28,14 @@ export type QuickFieldConfig = {
   multiline?: boolean;
   keyboardType?: "default" | "url";
   mapsToShared?: "fullName" | "headline" | "location" | "linkedinUrl" | "company" | "website" | "skills";
-  type?: "text" | "specializationDropdown" | "dropdown" | "multiSelect" | "bottomSheet" | "multiSelectBottomSheet";
+  type?:
+    | "text"
+    | "specializationDropdown"
+    | "dropdown"
+    | "multiSelect"
+    | "bottomSheet"
+    | "multiSelectBottomSheet"
+    | "portfolioNames";
   options?: readonly { label: string; value: string }[];
   max?: number;
 };
@@ -33,24 +44,18 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
   founder: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName", placeholder: "Your name" },
     { key: "headline", label: "Headline", required: true, mapsToShared: "headline", placeholder: "Building the future of..." },
-    { key: "startupName", label: "Startup Name", required: true, mapsToShared: "company", placeholder: "Acme Inc." },
+    { key: "startupName", label: "Organization Name", required: true, mapsToShared: "company", placeholder: "Acme Inc." },
     { key: "founderStatus", label: "Founder Status", required: true, type: "bottomSheet", options: FOUNDER_STATUS_OPTIONS },
     { key: "currentRole", label: "Current Role", required: true, type: "bottomSheet", options: CURRENT_ROLE_OPTIONS },
-    {
-      key: "industry",
-      label: "Industry",
-      required: true,
-      type: "multiSelectBottomSheet",
-      options: FOUNDER_INDUSTRY_OPTIONS,
-      max: 5
-    },
     { key: "startupStage", label: "Startup Stage", required: true, type: "bottomSheet", options: STARTUP_STAGE_OPTIONS },
+    { key: "portfolio", label: "Portfolio", required: false, type: "portfolioNames" },
     { key: "location", label: "Location", required: true, mapsToShared: "location", placeholder: "San Francisco, CA" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url", placeholder: "https://linkedin.com/in/you" }
   ],
   investor: [
     { key: "fullName", label: "Name", required: true, mapsToShared: "fullName" },
-    { key: "fundName", label: "Fund Name", required: true, mapsToShared: "company", placeholder: "Horizon Ventures" },
+    { key: "fundName", label: "Company Name", required: true, mapsToShared: "company", placeholder: "Horizon Ventures" },
+    { key: "investingAs", label: "Investing As", required: true, type: "bottomSheet", options: INVESTING_AS_OPTIONS },
     { key: "investorType", label: "Investor Type", required: true, type: "bottomSheet", options: INVESTOR_TYPE_OPTIONS },
     { key: "investmentRange", label: "Investment Range", required: true, type: "bottomSheet", options: INVESTMENT_RANGE_OPTIONS },
     {
@@ -70,11 +75,12 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
     },
     {
       key: "yearsInvestingExperience",
-      label: "Years of Investing Experience",
+      label: "Investment Experience",
       required: true,
       type: "bottomSheet",
-      options: YEARS_INVESTING_EXPERIENCE_OPTIONS
+      options: INVESTMENT_EXPERIENCE_OPTIONS
     },
+    { key: "portfolio", label: "Portfolio", required: false, type: "portfolioNames" },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }
   ],
@@ -89,7 +95,20 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
       options: EXPERTISE_OPTIONS,
       max: 5
     },
-    { key: "yearsExperience", label: "Years Experience", required: true, type: "bottomSheet", options: YEARS_OF_EXPERIENCE_OPTIONS },
+    {
+      key: "yearsExperience",
+      label: "Professional Experience",
+      required: true,
+      type: "bottomSheet",
+      options: PROFESSIONAL_EXPERIENCE_OPTIONS
+    },
+    {
+      key: "mentorshipExperience",
+      label: "Mentorship Experience",
+      required: true,
+      type: "bottomSheet",
+      options: MENTORSHIP_EXPERIENCE_OPTIONS
+    },
     { key: "location", label: "Location", required: true, mapsToShared: "location" },
     { key: "linkedinUrl", label: "LinkedIn", required: true, mapsToShared: "linkedinUrl", keyboardType: "url" }
   ],

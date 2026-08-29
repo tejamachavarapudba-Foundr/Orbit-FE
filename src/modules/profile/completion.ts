@@ -33,7 +33,7 @@ const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
     { key: "fundName", weight: 10, isFilled: (p, r) => hasText(p.company) || hasText((r as RoleProfileMap["investor"])?.fundName) },
     { key: "investmentRange", weight: 10, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.investmentRange) },
     { key: "industries", weight: 10, isFilled: (_, r) => hasList((r as RoleProfileMap["investor"])?.industries) },
-    { key: "portfolio", weight: 8, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.portfolio) }
+    { key: "portfolio", weight: 8, isFilled: (_, r) => hasList((r as RoleProfileMap["investor"])?.portfolio) }
   ],
   advisor: [
     { key: "expertise", weight: 12, isFilled: (_, r) => hasList((r as RoleProfileMap["advisor"])?.expertise) },

@@ -2,9 +2,11 @@ import { Certification, WorkExperience } from "@/modules/profile/schemas/experie
 
 export type AdvisorProfile = {
   expertise: string[];
+  expertiseOther: string;
   yearsExperience: string;
   industries: string[];
   mentorshipAreas: string[];
+  mentorshipExperience: string;
   certifications: Certification[];
   experiences: WorkExperience[];
   goals: string[];
@@ -20,7 +22,8 @@ export const EXPERTISE_OPTIONS = [
   { label: "Fundraising", value: "fundraising" },
   { label: "Finance", value: "finance" },
   { label: "Operations", value: "operations" },
-  { label: "Leadership & Management", value: "leadership_management" }
+  { label: "Leadership & Management", value: "leadership_management" },
+  { label: "Other", value: "other" }
 ] as const;
 
 export const MENTORSHIP_AREAS_OPTIONS = [
@@ -36,10 +39,23 @@ export const MENTORSHIP_AREAS_OPTIONS = [
   { label: "Startup Scaling", value: "startup_scaling" }
 ] as const;
 
-export const YEARS_OF_EXPERIENCE_OPTIONS = Array.from({ length: 30 }, (_, i) => {
-  const year = i + 1;
-  return { label: `${year} year${year > 1 ? "s" : ""}`, value: String(year) };
-});
+// Replaces the old 1-30 individual-year picker with brackets, same idea as
+// Investor's Investment Experience field.
+export const PROFESSIONAL_EXPERIENCE_OPTIONS = [
+  { label: "0–2 years", value: "0_2" },
+  { label: "3–5 years", value: "3_5" },
+  { label: "6–10 years", value: "6_10" },
+  { label: "11–15 years", value: "11_15" },
+  { label: "16+ years", value: "16_plus" }
+] as const;
+
+export const MENTORSHIP_EXPERIENCE_OPTIONS = [
+  { label: "No prior mentorship experience", value: "none" },
+  { label: "Less than 2 years", value: "lt_2" },
+  { label: "2–5 years", value: "2_5" },
+  { label: "6–10 years", value: "6_10" },
+  { label: "11+ years", value: "11_plus" }
+] as const;
 
 /** Maps to AdvisorProfile.industries — same column the old free-text "Industries" field used. */
 export const INDUSTRY_EXPERIENCE_OPTIONS = [
@@ -66,9 +82,11 @@ export const ADVISOR_QUICK_FIELDS = [
 
 export const emptyAdvisorProfile = (): AdvisorProfile => ({
   expertise: [],
+  expertiseOther: "",
   yearsExperience: "",
   industries: [],
   mentorshipAreas: [],
+  mentorshipExperience: "",
   certifications: [],
   experiences: [],
   goals: []

@@ -8,6 +8,7 @@ export type FounderProfile = {
   website: string;
   founderStatus: string;
   currentRole: string;
+  portfolio: string[];
   goals: string[];
 };
 
@@ -27,12 +28,12 @@ export const FOUNDER_STATUS_OPTIONS = [
 ] as const;
 
 export const CURRENT_ROLE_OPTIONS = [
-  { label: "CEO", value: "ceo" },
-  { label: "CTO", value: "cto" },
-  { label: "COO", value: "coo" },
-  { label: "CPO", value: "cpo" },
-  { label: "CMO", value: "cmo" },
-  { label: "CFO", value: "cfo" },
+  { label: "CEO - Chief Executive Officer", value: "ceo" },
+  { label: "CTO - Chief Technology Officer", value: "cto" },
+  { label: "COO - Chief Operating Officer", value: "coo" },
+  { label: "CPO - Chief Product Officer", value: "cpo" },
+  { label: "CMO - Chief Marketing Officer", value: "cmo" },
+  { label: "CFO - Chief Financial Officer", value: "cfo" },
   { label: "Other", value: "other" }
 ] as const;
 
@@ -69,7 +70,8 @@ export const emptyFounderProfile = (): FounderProfile => ({
   fundingNeeded: "",
   teamSize: "",
   website: "",
-  founderStatus: "",
+  founderStatus: "founder",
   currentRole: "",
+  portfolio: [],
   goals: []
 });

@@ -62,6 +62,7 @@ const normalizeFounderData = (raw: RawRecord = {}): FounderProfile => ({
   website: asString(raw.website),
   founderStatus: asString(raw.founderStatus ?? raw.founder_status),
   currentRole: asString(raw.currentRole ?? raw.current_role),
+  portfolio: asStringArray(raw.portfolio),
   goals: asStringArray(raw.goals)
 });
 
@@ -70,9 +71,10 @@ const normalizeInvestorData = (raw: RawRecord = {}): InvestorProfile => ({
   fundName: asString(raw.fundName ?? raw.fund_name),
   investmentRange: asString(raw.investmentRange ?? raw.investment_range),
   industries: asStringArray(raw.industries),
-  portfolio: asString(raw.portfolio),
+  portfolio: asStringArray(raw.portfolio),
   geography: asString(raw.geography),
   investorType: asString(raw.investorType ?? raw.investor_type),
+  investingAs: asString(raw.investingAs ?? raw.investing_as),
   investmentStage: asStringArray(raw.investmentStage ?? raw.investment_stage),
   yearsInvestingExperience: asString(raw.yearsInvestingExperience ?? raw.years_investing_experience),
   goals: asStringArray(raw.goals)
@@ -81,9 +83,11 @@ const normalizeInvestorData = (raw: RawRecord = {}): InvestorProfile => ({
 const normalizeAdvisorData = (raw: RawRecord = {}): AdvisorProfile => ({
   ...emptyAdvisorProfile(),
   expertise: asStringArray(raw.expertise),
+  expertiseOther: asString(raw.expertiseOther ?? raw.expertise_other),
   yearsExperience: asString(raw.yearsExperience ?? raw.years_experience),
   industries: asStringArray(raw.industries),
   mentorshipAreas: asStringArray(raw.mentorshipAreas ?? raw.mentorship_areas),
+  mentorshipExperience: asString(raw.mentorshipExperience ?? raw.mentorship_experience),
   certifications: asCertificationArray(raw.certifications),
   experiences: asWorkExperienceArray(raw.experiences),
   goals: asStringArray(raw.goals)

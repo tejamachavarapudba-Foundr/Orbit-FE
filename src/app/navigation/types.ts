@@ -97,7 +97,6 @@ export type OnboardingStackParamList = {
   OnboardingWelcome: undefined;
   OnboardingGoals: undefined;
   OnboardingQuickProfile: undefined;
-  OnboardingMatch: undefined;
 };
 
 export type RootStackParamList = {
