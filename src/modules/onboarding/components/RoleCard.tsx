@@ -5,7 +5,6 @@ import { AppText } from "@/components/ui/AppText";
 import { OnboardingMemberRole, ROLE_ACCENT_COLORS } from "@/constants/memberRoles";
 import { useThemeStore } from "@/store/themeStore";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { getShadowStyle } from "@/theme/shadows";
 import { iconSize } from "@/theme/designTokens";
 
 type RoleCardProps = {
@@ -27,8 +26,11 @@ export const RoleCard = ({ icon, label, description, value, selected, onSelect }
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={() => onSelect(value)}
-      className={selected ? "flex-row items-center gap-3 rounded-2xl border-2 border-primary bg-primary/5 p-3.5" : "flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"}
-      style={selected ? getShadowStyle("card") : undefined}
+      className={
+        selected
+          ? "flex-row items-center gap-3 rounded-2xl border-2 border-primary bg-primary/5 p-3.5"
+          : "flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"
+      }
     >
       <View
         className="h-11 w-11 items-center justify-center rounded-full"

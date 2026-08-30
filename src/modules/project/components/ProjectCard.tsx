@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { ProjectBannerGradient } from "@/modules/project/components/ProjectBannerGradient";
 import { Project } from "@/modules/project/types";
+import { ProjectBadge } from "@/modules/project/utils";
 
 type ProjectCardProps = {
   project: Project;
@@ -17,15 +19,28 @@ type ProjectCardProps = {
   onBookMeeting: (project: Project) => void;
   onEdit?: (id: string) => void;
   compact?: boolean;
+  badge?: ProjectBadge;
+};
+
+// Inline colors instead of AppText's fixed tone set — "danger" red read as
+// an alert/error rather than "hot", so Trending gets its own warm amber.
+const badgeColors: Record<ProjectBadge, { bg: string; text: string }> = {
+  New: { bg: "rgba(37, 99, 235, 0.1)", text: "#2563eb" },
+  Trending: { bg: "rgba(245, 158, 11, 0.14)", text: "#b45309" },
+  "Best liked": { bg: "rgba(22, 163, 74, 0.1)", text: "#16a34a" },
+  Viewed: { bg: "rgba(100, 116, 139, 0.12)", text: "#64748b" }
 };
 
 const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, compact = false }: ProjectCardProps) => {
+export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, compact = false, badge }: ProjectCardProps) => {
   const colors = useThemeTokens();
   const savedStartupIds = useProjectStore((state) => state.savedStartupIds);
   const toggleSaveStartup = useProjectStore((state) => state.toggleSaveStartup);
+  const toggleLikeStartup = useProjectStore((state) => state.toggleLikeStartup);
   const isSaved = savedStartupIds.includes(project.id);
+  const isLiked = Boolean(project.isLikedByMe);
+  const likeCount = project.likeCount ?? 0;
   const user = useAuthStore((state) => state.user);
   const isInvestor = user?.profile?.role === "investor";
   const isOwner = user?.profile?.id === project.ownerId;
@@ -34,7 +49,15 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, comp
   return (
     <Pressable accessibilityRole="button" onPress={() => onPress(project.id)} className="mb-6">
       <Card className="overflow-hidden">
-        <View className={compact ? "h-16 bg-primary/15" : "h-24 bg-primary/15"} />
+        {project.coverUrl ? (
+          <Image
+            source={{ uri: project.coverUrl }}
+            style={{ width: "100%", height: compact ? 64 : 96 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <ProjectBannerGradient projectType={project.projectType} height={compact ? 64 : 96} />
+        )}
         <View className={compact ? "px-3 pb-3" : "px-4 pb-4"}>
           <View
             className={
@@ -61,7 +84,14 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, comp
               {project.founderVerified ? <VerifiedBadge /> : null}
             </View>
 
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center gap-2.5">
+              {badge ? (
+                <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: badgeColors[badge].bg }}>
+                  <AppText size="xs" weight="semibold" style={{ color: badgeColors[badge].text }}>
+                    {badge}
+                  </AppText>
+                </View>
+              ) : null}
               {isOwner ? (
                 <Pressable
                   accessibilityRole="button"
@@ -76,14 +106,32 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, comp
               ) : null}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={isSaved ? "Unsave startup" : "Save startup"}
+                accessibilityLabel={isLiked ? "Unlike startup" : "Like startup"}
                 onPress={(event) => {
                   event.stopPropagation?.();
-                  toggleSaveStartup(project.id);
+                  void toggleLikeStartup(project.id);
                 }}
+                className="flex-row items-center gap-1"
               >
-                <Feather name="heart" size={18} color={isSaved ? "#ef4444" : colors.muted} />
+                <Feather name="thumbs-up" size={17} color={isLiked ? colors.primary : colors.muted} />
+                {likeCount > 0 ? (
+                  <AppText size="xs" tone={isLiked ? "primary" : "muted"}>
+                    {likeCount}
+                  </AppText>
+                ) : null}
               </Pressable>
+              {isInvestor ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={isSaved ? "Unsave startup" : "Save startup"}
+                  onPress={(event) => {
+                    event.stopPropagation?.();
+                    toggleSaveStartup(project.id);
+                  }}
+                >
+                  <Feather name="bookmark" size={18} color={isSaved ? colors.primary : colors.muted} />
+                </Pressable>
+              ) : null}
             </View>
           </View>
 
@@ -136,7 +184,7 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, comp
               <View className="flex-row items-center gap-1 rounded-md border border-border bg-muted-bg px-2 py-1">
                 <Feather name="users" size={12} color={colors.muted} />
                 <AppText tone="muted" size="xs">
-                  Team {project.teamSize || 1}
+                  Team {project.teamMemberCount ?? 0}
                 </AppText>
               </View>
             ) : null}

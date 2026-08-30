@@ -6,11 +6,12 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 
 type AppTextInputProps = TextInputProps & {
   label?: string;
+  required?: boolean | undefined;
   error?: string | undefined;
   className?: string;
 };
 
-export const AppTextInput = ({ label, error, className = "", ...props }: AppTextInputProps) => {
+export const AppTextInput = ({ label, required, error, className = "", ...props }: AppTextInputProps) => {
   const colors = useThemeTokens();
   const [isFocused, setIsFocused] = useState(false);
 
@@ -19,6 +20,7 @@ export const AppTextInput = ({ label, error, className = "", ...props }: AppText
       {label ? (
         <AppText size="sm" weight="medium">
           {label}
+          {required ? <AppText tone="danger"> *</AppText> : null}
         </AppText>
       ) : null}
       <TextInput
@@ -32,8 +34,8 @@ export const AppTextInput = ({ label, error, className = "", ...props }: AppText
           setIsFocused(false);
           props.onBlur?.(event);
         }}
-        className={`min-h-[40px] rounded-md border bg-transparent px-3 py-2 text-sm leading-5 text-text shadow-sm ${
-          isFocused ? "border-ring" : "border-input"
+        className={`min-h-[44px] rounded-t-lg border-b-2 bg-surface-elevated px-3 py-2 text-sm leading-5 text-text ${
+          isFocused ? "border-primary" : "border-input"
         } ${error ? "border-danger" : ""} ${className}`}
         {...props}
       />

@@ -51,7 +51,18 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       draft: {
         ...state.draft,
         memberRole,
-        roleProfile: toRoleProfileData(memberRole, emptyRoleProfile(memberRole))
+        roleProfile: toRoleProfileData(memberRole, emptyRoleProfile(memberRole)),
+        // Pre-fill "Founder" as the visible default in the quick-profile
+        // bottom sheet — without this, the picker sits on its blank
+        // placeholder even though emptyFounderProfile() defaults to
+        // "founder" behind the scenes, which only ever showed up after save.
+        quickProfile:
+          memberRole === "founder" && !state.draft.quickProfile.roleFields.founderStatus
+            ? {
+                ...state.draft.quickProfile,
+                roleFields: { ...state.draft.quickProfile.roleFields, founderStatus: "founder" }
+              }
+            : state.draft.quickProfile
       }
     })),
   toggleGoal: (goal) =>

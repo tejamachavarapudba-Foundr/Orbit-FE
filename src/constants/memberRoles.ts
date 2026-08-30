@@ -104,7 +104,7 @@ export const ROLE_GOAL_TITLES: Record<OnboardingMemberRole, string> = {
   founder: "What are you looking for?",
   investor: "What do you want to discover?",
   advisor: "I want to help with:",
-  professional: "What brings you to Startuphouze?",
+  professional: "What are you looking for?",
   service_provider: "What are you looking for?"
 };
 

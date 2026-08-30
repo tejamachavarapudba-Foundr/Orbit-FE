@@ -10,12 +10,23 @@ import {
 } from "@/modules/profile/schemas";
 import { CompleteOnboardingPayload, QuickProfileValues, SaveOnboardingPayload } from "@/modules/onboarding/types";
 import { calculateProfileCompletion } from "@/modules/profile/completion";
+import { calculateTotalExperienceLabel, ExperiencePeriod } from "@/modules/profile/schemas/experience";
 
 const fromCsv = (value: string) =>
   value
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+
+const fromJsonArray = <T,>(value: string | undefined): T[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+};
 
 const mergeRoleProfile = (
   memberRole: OnboardingMemberRole,
@@ -34,8 +45,12 @@ const mergeRoleProfile = (
           ...prior,
           startupName: roleFields.startupName ?? quick?.company ?? prior.startupName,
           startupStage: roleFields.startupStage ?? prior.startupStage,
-          industry: roleFields.industry ?? prior.industry,
+          industry: fromCsv(roleFields.industry ?? "").length ? fromCsv(roleFields.industry ?? "") : prior.industry,
           website: roleFields.website ?? quick?.website ?? prior.website,
+          founderStatus: roleFields.founderStatus ?? prior.founderStatus,
+          currentRole: roleFields.currentRole ?? prior.currentRole,
+          currentRoleOther: roleFields.currentRoleOther ?? prior.currentRoleOther,
+          portfolio: fromCsv(roleFields.portfolio ?? "").length ? fromCsv(roleFields.portfolio ?? "") : prior.portfolio,
           goals
         }
       };
@@ -47,8 +62,16 @@ const mergeRoleProfile = (
         data: {
           ...prior,
           fundName: roleFields.fundName ?? quick?.company ?? prior.fundName,
+          investorType: roleFields.investorType ?? prior.investorType,
+          investorTypeOther: roleFields.investorTypeOther ?? prior.investorTypeOther,
+          investingAs: roleFields.investingAs ?? prior.investingAs,
           investmentRange: roleFields.investmentRange ?? prior.investmentRange,
+          investmentStage: fromCsv(roleFields.investmentStage ?? "").length
+            ? fromCsv(roleFields.investmentStage ?? "")
+            : prior.investmentStage,
           industries: fromCsv(roleFields.industries ?? "").length ? fromCsv(roleFields.industries ?? "") : prior.industries,
+          yearsInvestingExperience: roleFields.yearsInvestingExperience ?? prior.yearsInvestingExperience,
+          portfolio: fromCsv(roleFields.portfolio ?? "").length ? fromCsv(roleFields.portfolio ?? "") : prior.portfolio,
           goals
         }
       };
@@ -60,13 +83,18 @@ const mergeRoleProfile = (
         data: {
           ...prior,
           expertise: fromCsv(roleFields.expertise ?? "").length ? fromCsv(roleFields.expertise ?? "") : prior.expertise,
+          expertiseOther: roleFields.expertiseOther ?? prior.expertiseOther,
           yearsExperience: roleFields.yearsExperience ?? prior.yearsExperience,
+          mentorshipExperience: roleFields.mentorshipExperience ?? prior.mentorshipExperience,
           goals
         }
       };
     }
     case "professional": {
       const prior = existing?.role === "professional" ? existing.data : emptyProfessionalProfile();
+      const experiencePeriods = fromJsonArray<ExperiencePeriod>(roleFields.experiencePeriods).length
+        ? fromJsonArray<ExperiencePeriod>(roleFields.experiencePeriods)
+        : prior.experiencePeriods;
       return {
         role: "professional",
         data: {
@@ -74,7 +102,8 @@ const mergeRoleProfile = (
           skills: fromCsv(roleFields.skills ?? quick?.skills ?? "").length
             ? fromCsv(roleFields.skills ?? quick?.skills ?? "")
             : prior.skills,
-          experienceLevel: roleFields.experienceLevel ?? prior.experienceLevel,
+          experiencePeriods,
+          experienceLevel: experiencePeriods.length ? calculateTotalExperienceLabel(experiencePeriods) : prior.experienceLevel,
           specialization: roleFields.specialization ?? prior.specialization,
           specializationOther: roleFields.specializationOther ?? prior.specializationOther,
           goals
@@ -89,6 +118,7 @@ const mergeRoleProfile = (
           ...prior,
           company: roleFields.company ?? quick?.company ?? prior.company,
           services: fromCsv(roleFields.services ?? "").length ? fromCsv(roleFields.services ?? "") : prior.services,
+          servicesOther: roleFields.servicesOther ?? prior.servicesOther,
           website: roleFields.website ?? quick?.website ?? prior.website,
           goals
         }
@@ -115,6 +145,7 @@ export const buildProfilePatchFromOnboarding = (
     bio: "",
     role: payload.memberRole,
     location: quick?.location?.trim() ?? "",
+    language: [],
     company: quick?.company?.trim() ?? "",
     website: quick?.website?.trim() ?? "",
     linkedinUrl: quick?.linkedinUrl?.trim() ?? "",

@@ -204,7 +204,7 @@ export const ConnectButton = memo(({ profile, compact = false }: ConnectButtonPr
         label="Connect"
         variant="outline"
         size="default"
-        loading={isStatusLoading || isMutating}
+        loading={isMutating}
         onPress={openConnectModal}
         leftIcon={<Feather name="user-plus" size={iconSize.sm} color={colors.primary} />}
         className={rowClass}

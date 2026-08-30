@@ -13,7 +13,7 @@ import {
   RoleProfileData,
   ServiceProviderProfile
 } from "@/modules/profile/schemas";
-import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+import { Certification, ExperiencePeriod, WorkExperience } from "@/modules/profile/schemas/experience";
 
 type RawRecord = Record<string, unknown>;
 
@@ -39,6 +39,18 @@ const asWorkExperienceArray = (value: unknown): WorkExperience[] =>
       })
     : [];
 
+const asExperiencePeriodArray = (value: unknown): ExperiencePeriod[] =>
+  Array.isArray(value)
+    ? value.map((item) => {
+        const entry = (item ?? {}) as RawRecord;
+        return {
+          startDate: asString(entry.startDate),
+          endDate: asString(entry.endDate),
+          isCurrent: Boolean(entry.isCurrent)
+        };
+      })
+    : [];
+
 const asCertificationArray = (value: unknown): Certification[] =>
   Array.isArray(value)
     ? value.map((item) => {
@@ -55,11 +67,15 @@ const normalizeFounderData = (raw: RawRecord = {}): FounderProfile => ({
   ...emptyFounderProfile(),
   startupName: asString(raw.startupName ?? raw.startup_name),
   startupStage: asString(raw.startupStage ?? raw.startup_stage),
-  industry: asString(raw.industry),
+  industry: asStringArray(raw.industry),
   pitch: asString(raw.pitch),
   fundingNeeded: asString(raw.fundingNeeded ?? raw.funding_needed),
   teamSize: asString(raw.teamSize ?? raw.team_size),
   website: asString(raw.website),
+  founderStatus: asString(raw.founderStatus ?? raw.founder_status),
+  currentRole: asString(raw.currentRole ?? raw.current_role),
+  currentRoleOther: asString(raw.currentRoleOther ?? raw.current_role_other),
+  portfolio: asStringArray(raw.portfolio),
   goals: asStringArray(raw.goals)
 });
 
@@ -68,17 +84,24 @@ const normalizeInvestorData = (raw: RawRecord = {}): InvestorProfile => ({
   fundName: asString(raw.fundName ?? raw.fund_name),
   investmentRange: asString(raw.investmentRange ?? raw.investment_range),
   industries: asStringArray(raw.industries),
-  portfolio: asString(raw.portfolio),
+  portfolio: asStringArray(raw.portfolio),
   geography: asString(raw.geography),
+  investorType: asString(raw.investorType ?? raw.investor_type),
+  investorTypeOther: asString(raw.investorTypeOther ?? raw.investor_type_other),
+  investingAs: asString(raw.investingAs ?? raw.investing_as),
+  investmentStage: asStringArray(raw.investmentStage ?? raw.investment_stage),
+  yearsInvestingExperience: asString(raw.yearsInvestingExperience ?? raw.years_investing_experience),
   goals: asStringArray(raw.goals)
 });
 
 const normalizeAdvisorData = (raw: RawRecord = {}): AdvisorProfile => ({
   ...emptyAdvisorProfile(),
   expertise: asStringArray(raw.expertise),
+  expertiseOther: asString(raw.expertiseOther ?? raw.expertise_other),
   yearsExperience: asString(raw.yearsExperience ?? raw.years_experience),
   industries: asStringArray(raw.industries),
   mentorshipAreas: asStringArray(raw.mentorshipAreas ?? raw.mentorship_areas),
+  mentorshipExperience: asString(raw.mentorshipExperience ?? raw.mentorship_experience),
   certifications: asCertificationArray(raw.certifications),
   experiences: asWorkExperienceArray(raw.experiences),
   goals: asStringArray(raw.goals)
@@ -88,6 +111,7 @@ const normalizeProfessionalData = (raw: RawRecord = {}): ProfessionalProfile => 
   ...emptyProfessionalProfile(),
   skills: asStringArray(raw.skills),
   experienceLevel: asString(raw.experienceLevel ?? raw.experience_level),
+  experiencePeriods: asExperiencePeriodArray(raw.experiencePeriods ?? raw.experience_periods),
   specialization: asString(raw.specialization),
   specializationOther: asString(raw.specializationOther ?? raw.specialization_other),
   portfolio: asString(raw.portfolio),
@@ -101,6 +125,7 @@ const normalizeServiceProviderData = (raw: RawRecord = {}): ServiceProviderProfi
   ...emptyServiceProviderProfile(),
   company: asString(raw.company),
   services: asStringArray(raw.services),
+  servicesOther: asString(raw.servicesOther ?? raw.services_other),
   website: asString(raw.website),
   companyLinkedinUrl: asString(raw.companyLinkedinUrl ?? raw.company_linkedin_url),
   clientIndustries: asStringArray(raw.clientIndustries ?? raw.client_industries),
@@ -160,6 +185,7 @@ export const normalizeAuthProfile = (raw: AuthProfile & RawRecord): AuthProfile 
     bio: asString(raw.bio),
     role: asString(raw.role, "other"),
     location: asString(raw.location),
+    language: asStringArray(raw.language),
     company: asString(raw.company),
     website: asString(raw.website),
     linkedinUrl: asString(raw.linkedinUrl ?? raw.linkedin_url),

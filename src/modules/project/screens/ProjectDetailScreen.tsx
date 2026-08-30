@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -12,9 +12,11 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { VideoPlayerModal } from "@/components/ui/VideoPlayerModal";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { MainStackParamList } from "@/app/navigation/types";
+import { ProjectBannerGradient } from "@/modules/project/components/ProjectBannerGradient";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
 import { useProjectDetail } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
@@ -32,6 +34,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
   const updateLogo = useProjectStore((state) => state.updateLogo);
+  const updateCover = useProjectStore((state) => state.updateCover);
   const isSubmitting = useProjectStore((state) => state.isSubmitting);
 
   const {
@@ -62,6 +65,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const [reviewsExpanded, setReviewsExpanded] = useState(false);
   const [applyExpanded, setApplyExpanded] = useState(false);
   const [showInvestorGate, setShowInvestorGate] = useState(false);
+  const [showPitchVideo, setShowPitchVideo] = useState(false);
   const { status: verificationStatus } = useVerificationStatus();
 
   useEffect(() => {
@@ -85,6 +89,24 @@ export const ProjectDetailScreen = ({ route }: Props) => {
     await updateLogo(selectedProject.id, {
       uri: asset.uri,
       name: asset.fileName ?? "logo.jpg",
+      type: asset.mimeType ?? "image/jpeg"
+    });
+  };
+
+  const handlePickCover = async () => {
+    if (!selectedProject) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    await updateCover(selectedProject.id, {
+      uri: asset.uri,
+      name: asset.fileName ?? "cover.jpg",
       type: asset.mimeType ?? "image/jpeg"
     });
   };
@@ -168,7 +190,24 @@ export const ProjectDetailScreen = ({ route }: Props) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}>
-        <View className="h-28 rounded-xl bg-primary/15" />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Change cover photo"
+          disabled={!isFounder || isSubmitting}
+          onPress={() => void handlePickCover()}
+          className="h-28 overflow-hidden rounded-xl"
+        >
+          {selectedProject.coverUrl ? (
+            <Image source={{ uri: selectedProject.coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+          ) : (
+            <ProjectBannerGradient projectType={selectedProject.projectType} height={112} />
+          )}
+          {isFounder ? (
+            <View className="absolute bottom-2 right-2 h-7 w-7 items-center justify-center rounded-full bg-black/40">
+              <Feather name="camera" size={14} color="#fff" />
+            </View>
+          ) : null}
+        </Pressable>
 
         <View className="-mt-10 flex-row items-start gap-3">
           <Pressable
@@ -222,9 +261,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
               variant="outline"
               label="▶ Watch Founder Pitch"
               className="self-start"
-              onPress={() => {
-                Linking.openURL(selectedProject.pitchVideoUrl);
-              }}
+              onPress={() => setShowPitchVideo(true)}
             />
           ) : null}
         </View>
@@ -257,7 +294,8 @@ export const ProjectDetailScreen = ({ route }: Props) => {
         </View>
 
         <View className="mt-5 flex-row flex-wrap gap-2">
-          {[selectedProject.category, selectedProject.projectType, selectedProject.stage, selectedProject.fundingStage, selectedProject.location]
+          {/* category was folded into projectType (Platform) — showing both duplicated the same chip twice */}
+          {[selectedProject.projectType, selectedProject.stage, selectedProject.fundingStage, selectedProject.location]
             .filter(Boolean)
             .map((item) => (
               <View key={item} className="rounded-md bg-background px-3 py-2">
@@ -484,6 +522,12 @@ export const ProjectDetailScreen = ({ route }: Props) => {
           setShowInvestorGate(false);
           navigation.navigate("InvestorSnapshotView", { projectId: selectedProject.id });
         }}
+      />
+
+      <VideoPlayerModal
+        visible={showPitchVideo}
+        uri={selectedProject.pitchVideoUrl}
+        onClose={() => setShowPitchVideo(false)}
       />
     </AppScreen>
   );

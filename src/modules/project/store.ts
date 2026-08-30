@@ -1,6 +1,5 @@
 import { create } from "zustand";
 
-import { useAuthStore } from "@/modules/auth/store";
 import { projectApi } from "@/modules/project/api";
 import {
   Project,
@@ -14,10 +13,6 @@ import {
 } from "@/modules/project/types";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
-import {
-  loadViewedStartupIds,
-  saveViewedStartupIds,
-} from "@/modules/project/services/viewedStartupsStorage";
 
 type ProjectState = {
   projects: Project[];
@@ -37,11 +32,10 @@ type ProjectState = {
   investorStartups: Project[];
   savedStartupIds: string[];
   savedStartups: Project[];
-  viewedStartupIds: string[];
   loadSavedStartups: () => Promise<void>;
-  loadViewedStartups: (userId: string) => Promise<void>;
-  markStartupViewed: (userId: string, projectId: string) => Promise<void>;
+  markStartupViewed: (projectId: string) => Promise<void>;
   toggleSaveStartup: (projectId: string) => Promise<void>;
+  toggleLikeStartup: (projectId: string) => Promise<void>;
   loadProjects: () => Promise<void>;
   refreshProjects: () => Promise<void>;
   loadStartups: () => Promise<void>;
@@ -52,6 +46,7 @@ type ProjectState = {
   createProject: (payload: ProjectPayload) => Promise<boolean>;
   updateProject: (id: string, payload: ProjectPayload) => Promise<boolean>;
   updateLogo: (id: string, file: { uri: string; name: string; type: string }) => Promise<boolean>;
+  updateCover: (id: string, file: { uri: string; name: string; type: string }) => Promise<boolean>;
   loadMembers: (id: string) => Promise<void>;
   applyToProject: (id: string, payload: ProjectApplicationPayload) => Promise<boolean>;
   createReview: (id: string, payload: ProjectReviewPayload) => Promise<boolean>;
@@ -81,7 +76,6 @@ export const useProjectStore = create<ProjectState>((set) => ({
   detailErrorMessage: null,
   savedStartupIds: [],
   savedStartups: [],
-  viewedStartupIds: [],
 
   loadProjects: async () => {
     set({ isLoading: true, errorMessage: null });
@@ -142,19 +136,26 @@ export const useProjectStore = create<ProjectState>((set) => ({
       });
     }
   },
-  loadViewedStartups: async (userId) => {
-    const viewedStartupIds = await loadViewedStartupIds(userId);
-    set({ viewedStartupIds });
-  },
-  markStartupViewed: async (userId, projectId) => {
+  // Backend-tracked now (StartupView table) instead of device-local storage
+  // — "viewed" used to reset on reinstall/new device, now follows the account.
+  markStartupViewed: async (projectId) => {
     const state = useProjectStore.getState();
-    if (state.viewedStartupIds.includes(projectId)) {
+    const target = state.projects.find((project) => project.id === projectId);
+    if (target?.isViewedByMe) {
       return;
     }
 
-    const viewedStartupIds = [...state.viewedStartupIds, projectId];
-    set({ viewedStartupIds });
-    await saveViewedStartupIds(userId, viewedStartupIds);
+    set((current) => ({
+      projects: current.projects.map((project) =>
+        project.id === projectId ? { ...project, isViewedByMe: true } : project
+      )
+    }));
+
+    try {
+      await projectApi.markViewed(projectId);
+    } catch {
+      // Non-critical — badge state just stays optimistic until the next full reload.
+    }
   },
   toggleSaveStartup: async (
     projectId,
@@ -189,6 +190,39 @@ export const useProjectStore = create<ProjectState>((set) => ({
       });
     }
   },
+  toggleLikeStartup: async (projectId) => {
+    // Optimistic — flip immediately, roll back only if the request fails,
+    // so the like button feels instant instead of waiting on a round trip.
+    set((state) => ({
+      projects: state.projects.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              isLikedByMe: !project.isLikedByMe,
+              likeCount: (project.likeCount ?? 0) + (project.isLikedByMe ? -1 : 1)
+            }
+          : project
+      )
+    }));
+
+    try {
+      await projectApi.toggleLike(projectId);
+    } catch (error) {
+      set((state) => ({
+        projects: state.projects.map((project) =>
+          project.id === projectId
+            ? {
+                ...project,
+                isLikedByMe: !project.isLikedByMe,
+                likeCount: (project.likeCount ?? 0) + (project.isLikedByMe ? -1 : 1)
+              }
+            : project
+        )
+      }));
+      const appError = toAppError(error);
+      useToastStore.getState().show({ type: "error", title: "Couldn't like that", message: appError.message });
+    }
+  },
   loadInvestorDiscovery: async () => {
     try {
       const startups =
@@ -206,11 +240,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
   selectProject: async (id) => {
     set({ isDetailLoading: true, detailErrorMessage: null });
 
-    const { markStartupViewed } = useProjectStore.getState();
-    const userId = useAuthStore.getState().user?.id;
-    if (userId) {
-      void markStartupViewed(userId, id);
-    }
+    void useProjectStore.getState().markStartupViewed(id);
 
     try {
       const selectedProject = await projectApi.getStartupById(id);
@@ -275,6 +305,25 @@ export const useProjectStore = create<ProjectState>((set) => ({
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isSubmitting: false });
       useToastStore.getState().show({ type: "error", title: "Logo update failed", message: appError.message });
+      return false;
+    }
+  },
+  updateCover: async (id, file) => {
+    set({ isSubmitting: true, errorMessage: null });
+
+    try {
+      const project = await projectApi.updateCover(id, file);
+      set((state) => ({
+        projects: sortProjects(state.projects.map((item) => (item.id === id ? { ...item, ...project } : item))),
+        selectedProject: state.selectedProject?.id === id ? { ...state.selectedProject, ...project } : state.selectedProject,
+        isSubmitting: false
+      }));
+      useToastStore.getState().show({ type: "success", title: "Cover updated" });
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isSubmitting: false });
+      useToastStore.getState().show({ type: "error", title: "Cover update failed", message: appError.message });
       return false;
     }
   },

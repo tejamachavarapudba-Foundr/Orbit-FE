@@ -20,4 +20,14 @@ export const notificationsApi = {
     );
     return data;
   },
+
+  async registerDeviceToken(token: string) {
+    const { data } = await apiClient.post('/notifications/device-token', { token });
+    return data;
+  },
+
+  async unregisterDeviceToken(token: string) {
+    const { data } = await apiClient.delete('/notifications/device-token', { data: { token } });
+    return data;
+  },
 };

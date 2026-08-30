@@ -7,6 +7,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ROLE_LABEL, normalizeMemberRole } from "@/constants/memberRoles";
 import { AuthProfile } from "@/modules/auth/types";
 import { Certification, formatExperienceTimeline, WorkExperience } from "@/modules/profile/schemas/experience";
+import { CURRENT_ROLE_OPTIONS, FOUNDER_STATUS_OPTIONS } from "@/modules/profile/schemas/founder";
 import { verificationApi } from "@/modules/verification/api";
 import { iconSize } from "@/theme/designTokens";
 
@@ -147,13 +148,27 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
 
   if (memberRole === "founder" && roleProfile.role === "founder") {
     const data = roleProfile.data;
+    const company = data.startupName || profile.company;
+    const statusLabel = FOUNDER_STATUS_OPTIONS.find((option) => option.value === data.founderStatus)?.label;
+    // Current Role's own label is the full form ("CEO - Chief Executive
+    // Officer") for clarity in the picker — too long for this one-line
+    // headline, so just the abbreviation before the dash is used here.
+    const roleLabel = CURRENT_ROLE_OPTIONS.find((option) => option.value === data.currentRole)?.label.split(" - ")[0];
+    const roleLine = [statusLabel, roleLabel].filter(Boolean).join(" & ");
+    const displayLine = roleLine && company ? `${roleLine} at ${company}` : roleLine;
+
     return (
       <ProfileSection title={title}>
-        <DetailRow label="Startup" value={data.startupName || profile.company} />
+        {displayLine ? (
+          <AppText weight="semibold" className="pb-2">
+            {displayLine}
+          </AppText>
+        ) : null}
+        <DetailRow label="Startup" value={company} />
         <DetailRow label="Stage" value={data.startupStage} />
-        <DetailRow label="Industry" value={data.industry} />
-        <DetailRow label="Funding" value={data.fundingNeeded} />
+        <DetailRow label="Industry" value={toCsv(data.industry)} />
         <DetailRow label="Team size" value={data.teamSize} />
+        <DetailRow label="Portfolio" value={toCsv(data.portfolio)} />
       </ProfileSection>
     );
   }
@@ -162,11 +177,10 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     const data = roleProfile.data;
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
-        <DetailRow label="Fund" value={data.fundName || profile.company} />
+        <DetailRow label="Company" value={data.fundName || profile.company} />
         <DetailRow label="Investment range" value={data.investmentRange} />
         <DetailRow label="Industries" value={toCsv(data.industries)} />
-        <DetailRow label="Portfolio" value={data.portfolio} />
-        <DetailRow label="Geography" value={data.geography} />
+        <DetailRow label="Portfolio" value={toCsv(data.portfolio)} />
       </ProfileSection>
     );
   }
@@ -190,7 +204,7 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Skills" value={toCsv(data.skills.length ? data.skills : profile.skills)} />
-        <DetailRow label="Level" value={data.experienceLevel} />
+        <DetailRow label="Experience" value={data.experienceLevel} />
         <DetailRow label="Portfolio" value={data.portfolio} />
         <ExperienceList experiences={data.experiences} />
         <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />

@@ -1,4 +1,4 @@
-import { Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+import { Certification, ExperiencePeriod, WorkExperience } from "@/modules/profile/schemas/experience";
 
 export const ENGINEER_SPECIALIZATIONS = [
   { label: "Software Engineer", value: "software_engineer" },
@@ -19,7 +19,10 @@ export type EngineerSpecializationValue = (typeof ENGINEER_SPECIALIZATIONS)[numb
 
 export type ProfessionalProfile = {
   skills: string[];
+  /** Computed from experiencePeriods (see calculateTotalExperienceLabel) —
+   * never picked directly, kept as a plain string for display/completion. */
   experienceLevel: string;
+  experiencePeriods: ExperiencePeriod[];
   portfolio: string;
   resume: string;
   certifications: Certification[];
@@ -42,6 +45,7 @@ export const PROFESSIONAL_QUICK_FIELDS = [
 export const emptyProfessionalProfile = (): ProfessionalProfile => ({
   skills: [],
   experienceLevel: "",
+  experiencePeriods: [],
   portfolio: "",
   resume: "",
   certifications: [],

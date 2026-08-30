@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
 import { AppHeader } from "@/components/layout/AppHeader";
 
-import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -123,9 +122,6 @@ export const DiscoverScreen = () => {
           ) : (
             <EmptyState title="No members found" message="Try another search term or role filter." />
           )
-        }
-        ListFooterComponent={
-          hasMore ? <AppButton label="Load more" variant="outline" onPress={loadMore} className="mt-2" /> : null
         }
       />
     </AppScreen>

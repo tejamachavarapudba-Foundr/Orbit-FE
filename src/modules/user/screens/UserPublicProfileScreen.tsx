@@ -73,11 +73,13 @@ export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
 
   return (
     <AppScreen withHorizontalPadding={false}>
-      <View className="border-b border-border bg-surface px-5 py-4">
-        <Pressable accessibilityRole="button" onPress={() => navigation.goBack()} className="flex-row items-center gap-2 self-start">
+      <View className="flex-row items-center gap-2 border-b border-border bg-surface px-5 py-4">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()}>
           <Feather name="arrow-left" size={20} color={colors.text} />
-          <AppText weight="medium">Back</AppText>
         </Pressable>
+        <AppText weight="bold" size="lg">
+          Profile
+        </AppText>
       </View>
 
       {isLoading ? (

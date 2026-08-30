@@ -8,6 +8,8 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { useConnectionsStore } from "@/modules/connections/store";
+import { EVENT_NOTIFICATION_TYPES, countUnreadByType } from "@/modules/notifications/categories";
+import { useNotifications } from "@/modules/notifications/hooks";
 
 const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Meetings", "Discover"]);
 
@@ -40,6 +42,13 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
   const isInvestor = user?.profile?.role?.toLowerCase() === "investor";
   const isFounder = user?.profile?.role?.toLowerCase() === "founder";
   const pendingRequestsCount = useConnectionsStore((state) => state.incomingRequests.length);
+  // Event reminders are excluded from the bell count (categories.ts routes
+  // them here instead, same as Messages/Projects/Jobs) but nothing was ever
+  // reading that category — every menu item except "My network" was hardcoded
+  // to badgeCount 0, so an event reminder showed up in the notifications list
+  // but never incremented any badge anywhere in the app.
+  const { data: notifications } = useNotifications();
+  const eventsAlertCount = countUnreadByType(notifications ?? [], EVENT_NOTIFICATION_TYPES);
 
   const menuItems = [
     ...profileMenuItems,
@@ -56,7 +65,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
             {
               label: "New Project",
               icon: "plus" as const,
-              route: "Projects",
+              route: "CreateProject",
             },
           ]
         : []),
@@ -139,7 +148,12 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
 
                 <View className="py-2">
                   {menuItems.map((item) => {
-                    const badgeCount = item.route === "Network" ? pendingRequestsCount : 0;
+                    const badgeCount =
+                      item.route === "Network"
+                        ? pendingRequestsCount
+                        : item.route === "Events"
+                          ? eventsAlertCount
+                          : 0;
                     return (
                       <Pressable
                         key={item.label}

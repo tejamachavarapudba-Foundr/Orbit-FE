@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { useProjectStore } from "@/modules/project/store";
 import { authApi } from "@/modules/auth/api";
+import { stopPushNotifications } from "@/modules/notifications/pushNotifications";
+import { withTrace } from "@/utils/perfTrace";
 import { AuthProfile, AuthUser, LoginPayload, RegisterPayload } from "@/modules/auth/types";
 import { tokenService } from "@/services/api/tokenService";
 import { useToastStore } from "@/store/toastStore";
@@ -67,7 +69,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isSubmitting: true, errorMessage: null });
 
     try {
-      const response = await authApi.login(payload);
+      const response = await withTrace("auth_login", () => authApi.login(payload));
       await tokenService.set({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken
@@ -85,7 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isSubmitting: true, errorMessage: null });
 
     try {
-      const response = await authApi.register(payload);
+      const response = await withTrace("auth_register", () => authApi.register(payload));
       await tokenService.set({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken
@@ -106,7 +108,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   logout: async () => {
     const email = get().user?.email;
-  
+
+    await stopPushNotifications();
+
     try {
       if (email) {
         await authApi.logout(email);

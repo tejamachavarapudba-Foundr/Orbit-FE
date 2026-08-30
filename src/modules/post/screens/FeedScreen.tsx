@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   FlatList,
   ListRenderItem,
@@ -47,6 +48,7 @@ export const FeedScreen = () => {
     hasMore,
     isLoading,
     isRefreshing,
+    isLoadingMore,
     errorMessage,
     loadPosts,
     refreshPosts,
@@ -183,6 +185,13 @@ export const FeedScreen = () => {
           viewabilityConfig={viewabilityConfig}
           onViewableItemsChanged={onViewableItemsChanged}
           contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top, paddingBottom: 32 }}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View className="items-center py-4">
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : null
+          }
           ListHeaderComponent={
             !user ? (
               <Card className="mx-4 mt-3 mb-1">

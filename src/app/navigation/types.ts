@@ -44,6 +44,7 @@ export type MainStackParamList = {
     id: string;
     edit?: boolean;
   };
+  CreateProject: undefined;
 
   JobDetail: {
     id: string;
@@ -96,7 +97,6 @@ export type OnboardingStackParamList = {
   OnboardingWelcome: undefined;
   OnboardingGoals: undefined;
   OnboardingQuickProfile: undefined;
-  OnboardingMatch: undefined;
 };
 
 export type RootStackParamList = {

@@ -9,6 +9,8 @@ import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Avatar } from "@/components/ui/Avatar";
+import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
+import { LANGUAGE_OPTIONS } from "@/constants/languageOptions";
 import { ONBOARDING_ROLES } from "@/constants/memberRoles";
 import { AuthErrorBanner } from "@/modules/auth/components/AuthErrorBanner";
 import { useAuthStore } from "@/modules/auth/store";
@@ -204,7 +206,7 @@ export const ProfileScreen = () => {
         </View>
 
         <View className="mt-6">
-          <ProfileCompletionBar percent={profileCompletion} />
+          <ProfileCompletionBar percent={profileCompletion} role={memberRole} />
         </View>
 
         <View className="mt-6 gap-4 rounded-md border border-border bg-surface p-4">
@@ -221,6 +223,18 @@ export const ProfileScreen = () => {
             className="h-24 py-3"
           />
           <AppTextInput label="Location" value={values.location} onChangeText={(value) => setValue("location", value)} />
+          <View className="gap-2">
+            <AppText size="sm" weight="medium">
+              Language
+            </AppText>
+            <BottomSheetMultiSelect
+              value={values.language ? values.language.split(",").map((item) => item.trim()).filter(Boolean) : []}
+              options={LANGUAGE_OPTIONS}
+              onChange={(value) => setValue("language", value.join(", "))}
+              placeholder="Select languages"
+              title="Language"
+            />
+          </View>
           <AppTextInput
             label="LinkedIn URL"
             value={values.linkedinUrl}
@@ -253,15 +267,23 @@ export const ProfileScreen = () => {
         {memberRole ? (
           <View className="mt-4 gap-4 rounded-md border border-border bg-surface p-4">
             <AppText weight="bold">{roleLabel} · Role details</AppText>
+            {memberRole === "founder" ? (
+              <AppTextInput
+                label="Company / startup name"
+                value={values.company}
+                onChangeText={(value) => setValue("company", value)}
+              />
+            ) : null}
             <RoleProfileSection role={values.role} roleProfile={values.roleProfile} onChange={setRoleProfile} />
-            <AppTextInput label="Company / startup" value={values.company} onChangeText={(value) => setValue("company", value)} />
-            <AppTextInput
-              label="Website"
-              value={values.website}
-              autoCapitalize="none"
-              keyboardType="url"
-              onChangeText={(value) => setValue("website", value)}
-            />
+            {memberRole !== "advisor" && memberRole !== "professional" ? (
+              <AppTextInput
+                label="Website"
+                value={values.website}
+                autoCapitalize="none"
+                keyboardType="url"
+                onChangeText={(value) => setValue("website", value)}
+              />
+            ) : null}
             {memberRole === "professional" ? (
               <AppTextInput label="Skills" value={values.skills} onChangeText={(value) => setValue("skills", value)} />
             ) : null}

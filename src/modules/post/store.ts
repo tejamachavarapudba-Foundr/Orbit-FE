@@ -5,17 +5,23 @@ import { CreatePostPayload, Post, UpdatePostPayload } from "@/modules/post/types
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 
+const PAGE_SIZE = 10;
+
 type PostState = {
   posts: Post[];
+  page: number;
+  hasMore: boolean;
   selectedPost: Post | null;
   isLoading: boolean;
   isRefreshing: boolean;
+  isLoadingMore: boolean;
   isSubmitting: boolean;
   isDetailLoading: boolean;
   deletingPostId: string | null;
   errorMessage: string | null;
   detailErrorMessage: string | null;
   loadPosts: () => Promise<void>;
+  loadMorePosts: () => Promise<void>;
   refreshPosts: () => Promise<void>;
   getPostById: (id: string) => Promise<void>;
   clearSelectedPost: () => void;
@@ -27,11 +33,14 @@ type PostState = {
 const sortPosts = (posts: Post[]) =>
   [...posts].sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime());
 
-export const usePostStore = create<PostState>((set) => ({
+export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
+  page: 1,
+  hasMore: true,
   selectedPost: null,
   isLoading: false,
   isRefreshing: false,
+  isLoadingMore: false,
   isSubmitting: false,
   isDetailLoading: false,
   deletingPostId: null,
@@ -41,19 +50,38 @@ export const usePostStore = create<PostState>((set) => ({
     set({ isLoading: true, errorMessage: null });
 
     try {
-      const posts = await postApi.getPosts();
-      set({ posts: sortPosts(posts), isLoading: false });
+      const posts = await postApi.getPosts(1, PAGE_SIZE);
+      set({ posts: sortPosts(posts), page: 1, hasMore: posts.length === PAGE_SIZE, isLoading: false });
     } catch (error) {
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isLoading: false });
+    }
+  },
+  loadMorePosts: async () => {
+    if (get().isLoadingMore || !get().hasMore) return;
+
+    set({ isLoadingMore: true, errorMessage: null });
+
+    try {
+      const nextPage = get().page + 1;
+      const posts = await postApi.getPosts(nextPage, PAGE_SIZE);
+      set((state) => ({
+        posts: sortPosts([...state.posts, ...posts]),
+        page: nextPage,
+        hasMore: posts.length === PAGE_SIZE,
+        isLoadingMore: false
+      }));
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isLoadingMore: false });
     }
   },
   refreshPosts: async () => {
     set({ isRefreshing: true, errorMessage: null });
 
     try {
-      const posts = await postApi.getPosts();
-      set({ posts: sortPosts(posts), isRefreshing: false });
+      const posts = await postApi.getPosts(1, PAGE_SIZE);
+      set({ posts: sortPosts(posts), page: 1, hasMore: posts.length === PAGE_SIZE, isRefreshing: false });
     } catch (error) {
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isRefreshing: false });

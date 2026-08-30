@@ -31,8 +31,6 @@ export const mediaTypeOptions: { label: string; value: PostMediaType }[] = [
   { label: "Link", value: "link" }
 ];
 
-const pageSize = 10;
-
 const initialForm: PostFormValues = {
   content: "",
   category: "Update",
@@ -50,15 +48,17 @@ const toPayload = (values: PostFormValues): CreatePostPayload => ({
 
 export const useFeed = () => {
   const posts = usePostStore((state) => state.posts);
+  const hasMorePosts = usePostStore((state) => state.hasMore);
   const isLoading = usePostStore((state) => state.isLoading);
   const isRefreshing = usePostStore((state) => state.isRefreshing);
+  const isLoadingMore = usePostStore((state) => state.isLoadingMore);
   const errorMessage = usePostStore((state) => state.errorMessage);
   const loadPosts = usePostStore((state) => state.loadPosts);
+  const loadMorePosts = usePostStore((state) => state.loadMorePosts);
   const refreshPosts = usePostStore((state) => state.refreshPosts);
   const user = useAuthStore((state) => state.user);
   const isSavedPostsLoading = useSavedPostsStore((state) => state.isLoading);
   const loadSavedPosts = useSavedPostsStore((state) => state.loadSavedPosts);
-  const [visibleCount, setVisibleCount] = useState(pageSize);
   const [activeCategory, setActiveCategory] = useState<PostCategory | "all">("all");
   const hasRequestedPostsRef = useRef(false);
   const requestedSavedPostsForUserRef = useRef<string | null>(null);
@@ -89,37 +89,24 @@ export const useFeed = () => {
     () => (activeCategory === "all" ? posts : posts.filter((post) => post.category === activeCategory)),
     [activeCategory, posts]
   );
-  const visiblePosts = useMemo(() => filteredPosts.slice(0, visibleCount), [filteredPosts, visibleCount]);
-  const loadMore = useCallback(() => {
-    setVisibleCount((current) => Math.min(current + pageSize, filteredPosts.length));
-  }, [filteredPosts.length]);
 
-  const updateCategory = useCallback(
-    (category: PostCategory | "all") => {
-      setActiveCategory((current) => {
-        if (current === category) {
-          return current;
-        }
-  
-        setVisibleCount(pageSize);
-        return category;
-      });
-    },
-    []
-  );
+  const loadMore = useCallback(() => {
+    void loadMorePosts();
+  }, [loadMorePosts]);
 
   return {
-    posts: visiblePosts,
+    posts: filteredPosts,
     totalCount: filteredPosts.length,
-    hasMore: visiblePosts.length < filteredPosts.length,
+    hasMore: hasMorePosts,
     activeCategory,
     isLoading,
     isRefreshing,
+    isLoadingMore,
     errorMessage,
     loadPosts,
     refreshPosts,
     loadMore,
-    setActiveCategory: updateCategory
+    setActiveCategory
   };
 };
 
