@@ -65,8 +65,7 @@ const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
         hasList((r as RoleProfileMap["professional"])?.experiencePeriods) ||
         hasText((r as RoleProfileMap["professional"])?.experienceLevel)
     },
-    { key: "portfolio", weight: 6, isFilled: (_, r) => hasText((r as RoleProfileMap["professional"])?.portfolio) },
-    { key: "resume", weight: 8, isFilled: (p, r) => hasText(p.resumeKey) || hasText((r as RoleProfileMap["professional"])?.resume) }
+    { key: "resume", weight: 8, isFilled: (p) => hasText(p.resumeKey) }
   ],
   service_provider: [
     { key: "company", weight: 10, isFilled: (p, r) => hasText(p.company) || hasText((r as RoleProfileMap["service_provider"])?.company) },

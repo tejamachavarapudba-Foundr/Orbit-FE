@@ -345,8 +345,6 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
           </AppText>
           <ExperiencePeriodsEditor periods={data.experiencePeriods} onChange={setExperiencePeriods} />
         </View>
-        <AppTextInput label="Portfolio" value={data.portfolio} onChangeText={(v) => setField("portfolio", v)} />
-        <AppTextInput label="Resume link" value={data.resume} onChangeText={(v) => setField("resume", v)} />
       </View>
     );
   }

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,6 +22,7 @@ type CommentRowProps = {
 };
 
 const CommentRow = ({ comment, isReply, isOwnComment, isDeleting, onReply, onDelete }: CommentRowProps) => {
+  const colors = useThemeTokens();
   const authorName = comment.author?.fullName || `Member ${comment.authorId.slice(0, 8)}`;
 
   return (
@@ -34,10 +35,12 @@ const CommentRow = ({ comment, isReply, isOwnComment, isDeleting, onReply, onDel
               {authorName}
             </AppText>
             {isOwnComment ? (
-              <Pressable accessibilityRole="button" disabled={isDeleting} onPress={onDelete}>
-                <AppText tone="danger" size="xs">
-                  {isDeleting ? "Deleting" : "Delete"}
-                </AppText>
+              <Pressable accessibilityRole="button" accessibilityLabel="Delete comment" disabled={isDeleting} onPress={onDelete} hitSlop={8}>
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={colors.danger} />
+                ) : (
+                  <Feather name="trash-2" size={14} color={colors.danger} />
+                )}
               </Pressable>
             ) : null}
           </View>
@@ -187,10 +190,14 @@ export const CommentsSheet = () => {
                 className="max-h-28 min-h-10 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm leading-5 text-text"
               />
               <AppButton
-                label={replyingTo ? "Reply" : "Send"}
+                label="Send"
                 size="default"
                 loading={isSubmitting}
-                onPress={() => void submitComment()}
+                onPress={() => {
+                  void submitComment().then((didSucceed) => {
+                    if (didSucceed) Keyboard.dismiss();
+                  });
+                }}
               />
             </View>
           </Animated.View>

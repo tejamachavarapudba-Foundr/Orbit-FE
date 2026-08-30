@@ -328,7 +328,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
           maxLength={4000}
           className="max-h-28 min-h-10 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm leading-5 text-text"
         />
-        <AppButton label="Send" size="default" onPress={() => void handleSend()} />
+        <AppButton label="Send" size="default" onPress={() => void handleSend()} className="h-10" />
       </View>
 
       <Modal visible={viewerUrl !== null} transparent animationType="fade" onRequestClose={() => setViewerUrl(null)}>
