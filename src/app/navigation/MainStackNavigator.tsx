@@ -33,7 +33,6 @@ import { FinancialScreen } from "@/modules/investorSnapshot/screens/FinancialScr
 import { OwnershipScreen } from "@/modules/investorSnapshot/screens/OwnershipScreen";
 import { ReviewScreen } from "@/modules/investorSnapshot/screens/ReviewScreen";
 import { MeetingsScreen } from "@/modules/meeting/screens/MeetingsScreen";
-import { VerifyEmailScreen } from "@/modules/auth/screens/VerifyEmailScreen";
 import { ProposalResponseScreen } from "@/modules/meeting/screens/ProposalResponseScreen";
 import { AvailabilityScreen } from "@/modules/meeting/screens/AvailabilityScreen";
 import { VerifyProfileScreen } from "@/modules/verification/screens/VerifyProfileScreen";
@@ -219,11 +218,6 @@ export const MainStackNavigator = () => (
       <Stack.Screen
         name="MeetingAvailability"
         component={AvailabilityScreen}
-    />
-
-      <Stack.Screen
-        name="VerifyEmail"
-        component={VerifyEmailScreen}
     />
 
       <Stack.Screen

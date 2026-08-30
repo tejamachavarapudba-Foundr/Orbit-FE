@@ -32,7 +32,6 @@ export const linking: LinkingOptions<RootStackParamList> = {
             }
           },
           UserProfile: "user/:userId",
-          VerifyEmail: "verify-email",
           VerifyIdentity: "verify-identity"
         }
       }

@@ -6,6 +6,7 @@ import { AuthNavigator } from "@/app/navigation/AuthNavigator";
 import { MainStackNavigator } from "@/app/navigation/MainStackNavigator";
 import { OnboardingNavigator } from "@/app/navigation/OnboardingNavigator";
 import { needsOnboarding } from "@/modules/profile/needsOnboarding";
+import { VerifyEmailOtpScreen } from "@/modules/auth/screens/VerifyEmailOtpScreen";
 import { Toast } from "@/components/feedback/Toast";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -21,7 +22,13 @@ export const RootNavigator = () => {
   const isThemeHydrated = useThemeStore((state) => state.isHydrated);
   const isAuthenticated = useAuthStore((state) => state.status === "authenticated");
   const profile = useAuthStore((state) => state.user?.profile);
-  const showOnboarding = isAuthenticated && needsOnboarding(profile);
+  const justRegistered = useAuthStore((state) => state.justRegistered);
+  const emailVerified = useAuthStore((state) => state.user?.emailVerified);
+  // Only gates the account that just signed up this session — existing
+  // accounts that predate this feature (or that skipped) are never
+  // interrupted by it later.
+  const needsEmailOtp = isAuthenticated && justRegistered && !emailVerified;
+  const showOnboarding = isAuthenticated && !needsEmailOtp && needsOnboarding(profile);
 
   const resolvedScheme = useThemeStore(
     (state) => state.resolvedScheme,
@@ -61,6 +68,8 @@ export const RootNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
+        ) : needsEmailOtp ? (
+          <Stack.Screen name="VerifyEmailOtp" component={VerifyEmailOtpScreen} />
         ) : showOnboarding ? (
           <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (

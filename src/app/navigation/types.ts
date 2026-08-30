@@ -84,7 +84,6 @@ export type MainStackParamList = {
     MyMeetings: undefined;
     MeetingResponse: { proposalId: string };
     MeetingAvailability: undefined;
-    VerifyEmail: { token: string };
 
     VerifyProfile: undefined;
     FounderVerification: undefined;
@@ -101,6 +100,7 @@ export type OnboardingStackParamList = {
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
+  VerifyEmailOtp: undefined;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Main: NavigatorScreenParams<MainStackParamList>;
 };

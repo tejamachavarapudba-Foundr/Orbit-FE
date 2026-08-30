@@ -5,7 +5,6 @@ import { stopPushNotifications } from "@/modules/notifications/pushNotifications
 import { withTrace } from "@/utils/perfTrace";
 import { AuthProfile, AuthUser, LoginPayload, RegisterPayload } from "@/modules/auth/types";
 import { tokenService } from "@/services/api/tokenService";
-import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 import { logger } from "@/utils/logger";
 
@@ -17,17 +16,24 @@ type AuthState = {
   user: AuthUser | null;
   errorMessage: string | null;
   isSubmitting: boolean;
+  // Only true for the account that just signed up this session — gates the
+  // email OTP screen without retroactively bothering existing accounts that
+  // were never asked to verify (see RootNavigator).
+  justRegistered: boolean;
   bootstrap: () => Promise<void>;
   login: (payload: LoginPayload) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (profile: AuthProfile) => void;
+  markEmailVerified: () => void;
+  clearJustRegistered: () => void;
   clearError: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({  
+export const useAuthStore = create<AuthState>((set, get) => ({
   isHydrated: false,
   status: "idle",
+  justRegistered: false,
   user: null,
   errorMessage: null,
   isSubmitting: false,
@@ -93,12 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         refreshToken: response.refreshToken
       });
       const user = await authApi.me();
-      set({ isSubmitting: false, status: "authenticated", user });
-      useToastStore.getState().show({
-        type: "success",
-        title: "Check your email",
-        message: "We sent a link to confirm your email address."
-      });
+      set({ isSubmitting: false, status: "authenticated", user, justRegistered: true });
       return true;
     } catch (error) {
       const appError = toAppError(error);
@@ -144,5 +145,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         : state.user
     })),
+  markEmailVerified: () =>
+    set((state) => ({
+      user: state.user ? { ...state.user, emailVerified: true } : state.user
+    })),
+  clearJustRegistered: () => set({ justRegistered: false }),
   clearError: () => set({ errorMessage: null }),
 }));
