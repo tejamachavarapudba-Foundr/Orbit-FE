@@ -188,7 +188,7 @@ export const CommentsSheet = () => {
               />
               <AppButton
                 label={replyingTo ? "Reply" : "Send"}
-                size="sm"
+                size="default"
                 loading={isSubmitting}
                 onPress={() => void submitComment()}
               />

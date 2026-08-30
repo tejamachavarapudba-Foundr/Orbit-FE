@@ -144,6 +144,7 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                   <ExperiencePeriodsEditor
                     periods={periods}
                     onChange={(next) => setQuickField(field.key, JSON.stringify(next))}
+                    title={field.label}
                   />
                 </View>
               );
