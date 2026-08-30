@@ -18,6 +18,7 @@ type ProjectCardProps = {
   onPress: (id: string) => void;
   onBookMeeting: (project: Project) => void;
   onEdit?: (id: string) => void;
+  onViewFounder?: (ownerId: string) => void;
   compact?: boolean;
   badge?: ProjectBadge;
 };
@@ -33,7 +34,7 @@ const badgeColors: Record<ProjectBadge, { bg: string; text: string }> = {
 
 const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, compact = false, badge }: ProjectCardProps) => {
+export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onViewFounder, compact = false, badge }: ProjectCardProps) => {
   const colors = useThemeTokens();
   const savedStartupIds = useProjectStore((state) => state.savedStartupIds);
   const toggleSaveStartup = useProjectStore((state) => state.toggleSaveStartup);
@@ -138,6 +139,26 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, comp
           <AppText tone="muted" size="sm" className="mt-1" numberOfLines={compact ? 1 : 2}>
             {project.tagline || formatValue(project.stage)}
           </AppText>
+
+          {onViewFounder ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View founder profile"
+              onPress={(event) => {
+                event.stopPropagation?.();
+                onViewFounder(project.ownerId);
+              }}
+              className="mt-2 flex-row items-center gap-1.5 self-start"
+            >
+              <Feather name="user" size={12} color={colors.muted} />
+              <AppText tone="muted" size="xs">
+                Founder ·
+              </AppText>
+              <AppText tone="primary" size="xs" weight="semibold">
+                View profile
+              </AppText>
+            </Pressable>
+          ) : null}
 
           {!compact ? (
             <View className="mt-2">

@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 
 import { AppLogo } from "@/components/brand/AppLogo";
+import { AppText } from "@/components/ui/AppText";
 import { ProfileMenuButton } from "@/components/layout/ProfileMenuButton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useNotifications } from "@/modules/notifications/hooks";
@@ -21,38 +22,45 @@ export const AppHeader = () => {
     (item: Notification) => !item.isRead && !BELL_EXCLUDED_TYPES.has(item.type)
   ).length;
 
-  const showBackButton = [
-    "Events",
-    "ArchivedChats",
-    "Network",
-    "Profile",
-    "UserProfile",
-    "Settings",
-    "Search",
-    "Admin",
-    "SavedPosts",
-    "Subscription",
-    "DataPrivacy",
-    "FAQ",
-    "Support",
-    "MyMeetings",
-    "MeetingResponse",
-    "MeetingAvailability",
-  ].includes(route.name as string);
+  const ROUTE_TITLES: Record<string, string> = {
+    Events: "Events",
+    ArchivedChats: "Archived Chats",
+    Network: "My Network",
+    Profile: "My Profile",
+    UserProfile: "Profile",
+    Settings: "Settings",
+    Search: "Search",
+    Admin: "Admin",
+    SavedPosts: "Saved Posts",
+    Subscription: "Subscription",
+    DataPrivacy: "Data & Privacy",
+    FAQ: "FAQ",
+    Support: "Support",
+    MyMeetings: "Meetings",
+    MeetingResponse: "Meeting",
+    MeetingAvailability: "Availability"
+  };
+
+  const showBackButton = route.name in ROUTE_TITLES;
 
   return (
     <View className="relative z-50 border-b border-border bg-surface px-5 py-4">
       <View className="flex-row items-center justify-between">
         {showBackButton ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            hitSlop={8}
-            onPress={() => navigation.goBack()}
-            className="h-9 w-9 items-center justify-center rounded-full bg-muted-bg"
-          >
-            <Feather name="arrow-left" size={iconSize.md} color={colors.text} />
-          </Pressable>
+          <View className="flex-1 flex-row items-center gap-2 pr-3">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              hitSlop={8}
+              onPress={() => navigation.goBack()}
+              className="h-9 w-9 items-center justify-center rounded-full bg-muted-bg"
+            >
+              <Feather name="arrow-left" size={iconSize.md} color={colors.text} />
+            </Pressable>
+            <AppText weight="bold" size="lg" numberOfLines={1}>
+              {ROUTE_TITLES[route.name as string]}
+            </AppText>
+          </View>
         ) : (
           <AppLogo />
         )}

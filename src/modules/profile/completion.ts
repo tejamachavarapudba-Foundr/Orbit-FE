@@ -18,6 +18,7 @@ const SHARED_FIELDS: CompletionField[] = [
   { key: "linkedinUrl", weight: 8, isFilled: (p) => hasText(p.linkedinUrl) },
   { key: "avatarUrl", weight: 6, isFilled: (p) => hasText(p.avatarUrl) },
   { key: "bio", weight: 6, isFilled: (p) => hasText(p.bio) },
+  { key: "language", weight: 6, isFilled: (p) => hasList(p.language) },
   { key: "onboardingGoals", weight: 10, isFilled: (p) => hasList(p.onboardingGoals) }
 ];
 
@@ -43,6 +44,7 @@ const ROLE_FIELDS: Record<OnboardingMemberRole, CompletionField[]> = {
     { key: "investorType", weight: 6, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.investorType) },
     { key: "investmentRange", weight: 10, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.investmentRange) },
     { key: "investmentStage", weight: 6, isFilled: (_, r) => hasList((r as RoleProfileMap["investor"])?.investmentStage) },
+    { key: "geography", weight: 4, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.geography) },
     { key: "industries", weight: 10, isFilled: (_, r) => hasList((r as RoleProfileMap["investor"])?.industries) },
     { key: "yearsInvestingExperience", weight: 6, isFilled: (_, r) => hasText((r as RoleProfileMap["investor"])?.yearsInvestingExperience) },
     { key: "portfolio", weight: 6, isFilled: (_, r) => hasList((r as RoleProfileMap["investor"])?.portfolio) }

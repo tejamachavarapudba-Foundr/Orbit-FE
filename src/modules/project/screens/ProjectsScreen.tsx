@@ -41,6 +41,10 @@ export const ProjectsScreen = () => {
     (id: string) => navigation.navigate("ProjectDetail", { id, edit: true }),
     [navigation],
   );
+  const viewFounder = useCallback(
+    (ownerId: string) => navigation.navigate("UserProfile", { userId: ownerId }),
+    [navigation],
+  );
 
   const [
     meetingVisible,
@@ -72,10 +76,11 @@ export const ProjectsScreen = () => {
           onPress={(id) => void selectProject(id)}
           onEdit={editProject}
           onBookMeeting={handleBookMeeting}
+          onViewFounder={viewFounder}
         />
       </View>
     ),
-    [selectProject, editProject, handleBookMeeting, badgesByProjectId]
+    [selectProject, editProject, handleBookMeeting, viewFounder, badgesByProjectId]
   );
 
   return (

@@ -209,7 +209,7 @@ export const ProfileScreen = () => {
           <ProfileCompletionBar percent={profileCompletion} role={memberRole} />
         </View>
 
-        <View className="mt-6 gap-4 rounded-md border border-border bg-surface p-4">
+        <View className="mt-6 gap-4 rounded-md border border-border bg-surface-elevated p-4">
           <AuthErrorBanner message={errorMessage} />
           <AppText weight="bold">{roleLabel} · Shared details</AppText>
           <AppTextInput label="Full name" value={values.fullName} onChangeText={(value) => setValue("fullName", value)} />
@@ -265,7 +265,7 @@ export const ProfileScreen = () => {
         </View>
 
         {memberRole ? (
-          <View className="mt-4 gap-4 rounded-md border border-border bg-surface p-4">
+          <View className="mt-4 gap-4 rounded-md border border-border bg-surface-elevated p-4">
             <AppText weight="bold">{roleLabel} · Role details</AppText>
             {memberRole === "founder" ? (
               <AppTextInput
