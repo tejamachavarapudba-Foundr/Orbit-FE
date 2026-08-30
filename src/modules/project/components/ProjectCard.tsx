@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { Image, Linking, Pressable, View } from "react-native";
+import { memo, useState } from "react";
+import { Image, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { useProjectStore } from "@/modules/project/store";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { VideoPlayerModal } from "@/components/ui/VideoPlayerModal";
 import { ProjectBannerGradient } from "@/modules/project/components/ProjectBannerGradient";
 import { Project } from "@/modules/project/types";
 import { ProjectBadge } from "@/modules/project/utils";
@@ -46,8 +47,11 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
   const isInvestor = user?.profile?.role === "investor";
   const isOwner = user?.profile?.id === project.ownerId;
   const initial = (project.name || "S").charAt(0).toUpperCase();
+  const [showPitchVideo, setShowPitchVideo] = useState(false);
+  const hasFounderOffer = Boolean(project.askAmount.trim() || project.equityPercent.trim());
 
   return (
+    <>
     <Pressable accessibilityRole="button" onPress={() => onPress(project.id)} className="mb-6">
       <Card className="overflow-hidden">
         {project.coverUrl ? (
@@ -180,7 +184,7 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
               accessibilityLabel="Watch founder pitch"
               onPress={(event) => {
                 event.stopPropagation?.();
-                void Linking.openURL(project.pitchVideoUrl);
+                setShowPitchVideo(true);
               }}
               className="mt-3 flex-row items-center gap-2 self-start rounded-md bg-primary/10 px-3 py-2"
             >
@@ -189,6 +193,30 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
                 Watch Founder Pitch
               </AppText>
             </Pressable>
+          ) : null}
+
+          {hasFounderOffer ? (
+            <View className="mt-3 rounded-md border border-border bg-muted-bg px-3 py-2">
+              <AppText tone="muted" size="xs" weight="bold" className="text-center">
+                FOUNDER&apos;S OFFER
+              </AppText>
+              <View className="mt-1.5 flex-row items-center justify-between">
+                <AppText tone="muted" size="xs">
+                  ASK
+                </AppText>
+                <AppText size="xs" weight="semibold">
+                  {project.askAmount || "—"}
+                </AppText>
+              </View>
+              <View className="mt-1 flex-row items-center justify-between">
+                <AppText tone="muted" size="xs">
+                  EQUITY %
+                </AppText>
+                <AppText size="xs" weight="semibold">
+                  {project.equityPercent ? `${project.equityPercent}%` : "—"}
+                </AppText>
+              </View>
+            </View>
           ) : null}
 
           <View className="mt-3 flex-row flex-wrap gap-2">
@@ -268,6 +296,10 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
         </View>
       </Card>
     </Pressable>
+    {project.pitchVideoUrl ? (
+      <VideoPlayerModal visible={showPitchVideo} uri={project.pitchVideoUrl} onClose={() => setShowPitchVideo(false)} />
+    ) : null}
+    </>
   );
 });
 

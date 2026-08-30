@@ -19,6 +19,8 @@ export type Project = {
   demoUrl: string;
   pitchDeckUrl: string;
   pitchVideoUrl: string;
+  askAmount: string;
+  equityPercent: string;
   githubUrl: string;
   twitterUrl: string;
   linkedinUrl: string;
@@ -115,6 +117,8 @@ export type ProjectPayload = {
   demoUrl: string;
   pitchDeckUrl: string;
   pitchVideoUrl: string;
+  askAmount: string;
+  equityPercent: string;
   githubUrl: string;
   twitterUrl: string;
   linkedinUrl: string;

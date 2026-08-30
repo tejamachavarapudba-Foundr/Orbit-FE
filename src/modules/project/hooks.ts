@@ -114,6 +114,8 @@ const emptyPayload: ProjectPayload = {
   demoUrl: "",
   pitchDeckUrl: "",
   pitchVideoUrl: "",
+  askAmount: "",
+  equityPercent: "",
   githubUrl: "",
   twitterUrl: "",
   linkedinUrl: "",
@@ -286,6 +288,8 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
       websiteUrl: values.websiteUrl.trim(),
       cinNumber: values.cinNumber.trim(),
       dpiitNumber: values.dpiitNumber.trim(),
+      askAmount: values.askAmount.trim(),
+      equityPercent: values.equityPercent.trim(),
       industryTags: csvToArray(values.industryTagsText),
       techStack: csvToArray(values.techStackText),
       lookingFor: csvToArray(values.lookingForText)

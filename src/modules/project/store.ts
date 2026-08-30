@@ -47,6 +47,7 @@ type ProjectState = {
   updateProject: (id: string, payload: ProjectPayload) => Promise<boolean>;
   updateLogo: (id: string, file: { uri: string; name: string; type: string }) => Promise<boolean>;
   updateCover: (id: string, file: { uri: string; name: string; type: string }) => Promise<boolean>;
+  updatePitchVideo: (id: string, file: { uri: string; name: string; type: string }) => Promise<boolean>;
   loadMembers: (id: string) => Promise<void>;
   applyToProject: (id: string, payload: ProjectApplicationPayload) => Promise<boolean>;
   createReview: (id: string, payload: ProjectReviewPayload) => Promise<boolean>;
@@ -324,6 +325,25 @@ export const useProjectStore = create<ProjectState>((set) => ({
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isSubmitting: false });
       useToastStore.getState().show({ type: "error", title: "Cover update failed", message: appError.message });
+      return false;
+    }
+  },
+  updatePitchVideo: async (id, file) => {
+    set({ isSubmitting: true, errorMessage: null });
+
+    try {
+      const project = await projectApi.updatePitchVideo(id, file);
+      set((state) => ({
+        projects: sortProjects(state.projects.map((item) => (item.id === id ? { ...item, ...project } : item))),
+        selectedProject: state.selectedProject?.id === id ? { ...state.selectedProject, ...project } : state.selectedProject,
+        isSubmitting: false
+      }));
+      useToastStore.getState().show({ type: "success", title: "Pitch video uploaded" });
+      return true;
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isSubmitting: false });
+      useToastStore.getState().show({ type: "error", title: "Pitch video upload failed", message: appError.message });
       return false;
     }
   },

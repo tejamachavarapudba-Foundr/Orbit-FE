@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Modal, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
@@ -8,13 +9,17 @@ import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { FounderOfferBottomSheet } from "@/modules/project/components/FounderOfferBottomSheet";
 import {
   FUNDING_STAGE_OPTIONS,
   projectStageOptions,
   projectTypeOptions,
   useProjectForm
 } from "@/modules/project/hooks";
+import { useProjectStore } from "@/modules/project/store";
 import { Project } from "@/modules/project/types";
+import { isValidUrl } from "@/utils/validation";
+import { useToastStore } from "@/store/toastStore";
 
 const stageOptions = projectStageOptions.filter((option) => option.value !== "all");
 const typeOptions = projectTypeOptions.filter((option) => option.value !== "all");
@@ -27,9 +32,46 @@ type ProjectComposerProps = {
 
 export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }: ProjectComposerProps) => {
   const colors = useThemeTokens();
+  const showToast = useToastStore((state) => state.show);
+  const updatePitchVideo = useProjectStore((state) => state.updatePitchVideo);
   const [isExpanded, setIsExpanded] = useState(autoExpanded || Boolean(project));
   const [showPitchTip, setShowPitchTip] = useState(true);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const { values, setField, submit, isSubmitting, isEditing, canSubmit } = useProjectForm(project);
+
+  const pickPitchVideo = async () => {
+    if (!project) return;
+
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        showToast({
+          type: "error",
+          title: "Permission needed",
+          message: "Allow video library access in your device settings to upload a pitch video."
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["videos"], quality: 0.8 });
+      const asset = result.canceled ? undefined : result.assets[0];
+      if (!asset) return;
+
+      setIsUploadingVideo(true);
+      const didSucceed = await updatePitchVideo(project.id, {
+        uri: asset.uri,
+        name: asset.fileName ?? "pitch-video.mp4",
+        type: asset.mimeType ?? "video/mp4"
+      });
+
+      if (didSucceed) {
+        const updated = useProjectStore.getState().projects.find((item) => item.id === project.id);
+        if (updated) setField("pitchVideoUrl", updated.pitchVideoUrl);
+      }
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
 
   const handleSubmit = async () => {
     const didSucceed = await submit();
@@ -190,14 +232,46 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           onChangeText={(value) => setField("websiteUrl", value)}
           autoCapitalize="none"
           keyboardType="url"
+          error={values.websiteUrl.trim() && !isValidUrl(values.websiteUrl) ? "Enter a valid website URL" : undefined}
         />
-        <AppTextInput
-          label="Founder Pitch Video URL"
-          value={values.pitchVideoUrl}
-          onChangeText={(value) => setField("pitchVideoUrl", value)}
-          autoCapitalize="none"
-          placeholder="https://youtube.com/..."
-        />
+        <View className="gap-2">
+          <AppTextInput
+            label="Founder Pitch Video URL"
+            value={values.pitchVideoUrl}
+            onChangeText={(value) => setField("pitchVideoUrl", value)}
+            autoCapitalize="none"
+            placeholder="https://youtube.com/..."
+            error={values.pitchVideoUrl.trim() && !isValidUrl(values.pitchVideoUrl) ? "Enter a valid URL" : undefined}
+          />
+          {isEditing && project ? (
+            <AppButton
+              label={isUploadingVideo ? "Uploading…" : "Upload video file instead"}
+              variant="outline"
+              size="sm"
+              loading={isUploadingVideo}
+              onPress={() => void pickPitchVideo()}
+              className="self-start"
+            />
+          ) : (
+            <AppText tone="muted" size="xs">
+              You can upload a video file directly once the project is created.
+            </AppText>
+          )}
+        </View>
+
+        <View className="gap-2">
+          <AppText size="sm" weight="medium">
+            Founder&apos;s Offer
+          </AppText>
+          <FounderOfferBottomSheet
+            askAmount={values.askAmount}
+            equityPercent={values.equityPercent}
+            onChange={({ askAmount, equityPercent }) => {
+              setField("askAmount", askAmount);
+              setField("equityPercent", equityPercent);
+            }}
+          />
+        </View>
         <AppTextInput
           label="Tech stack"
           value={values.techStackText}

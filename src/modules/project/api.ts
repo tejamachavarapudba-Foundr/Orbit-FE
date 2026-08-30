@@ -57,6 +57,12 @@ export const projectApi = {
     const response = await apiClient.patch<Project>(`/projects/${id}/cover`, formData);
     return response.data;
   },
+  updatePitchVideo: async (id: string, file: { uri: string; name: string; type: string }) => {
+    const formData = new FormData();
+    formData.append("file", { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
+    const response = await apiClient.patch<Project>(`/projects/${id}/pitch-video`, formData);
+    return response.data;
+  },
   getMembers: async (id: string) => {
     const response = await apiClient.get<ProjectMember[]>(`/projects/${id}/members`);
     return response.data;

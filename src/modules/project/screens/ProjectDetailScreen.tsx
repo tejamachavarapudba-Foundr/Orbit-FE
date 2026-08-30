@@ -264,6 +264,30 @@ export const ProjectDetailScreen = ({ route }: Props) => {
               onPress={() => setShowPitchVideo(true)}
             />
           ) : null}
+
+          {selectedProject.askAmount.trim() || selectedProject.equityPercent.trim() ? (
+            <View className="rounded-md border border-border bg-muted-bg px-3 py-2">
+              <AppText tone="muted" size="xs" weight="bold" className="text-center">
+                FOUNDER&apos;S OFFER
+              </AppText>
+              <View className="mt-1.5 flex-row items-center justify-between">
+                <AppText tone="muted" size="xs">
+                  ASK
+                </AppText>
+                <AppText size="xs" weight="semibold">
+                  {selectedProject.askAmount || "—"}
+                </AppText>
+              </View>
+              <View className="mt-1 flex-row items-center justify-between">
+                <AppText tone="muted" size="xs">
+                  EQUITY %
+                </AppText>
+                <AppText size="xs" weight="semibold">
+                  {selectedProject.equityPercent ? `${selectedProject.equityPercent}%` : "—"}
+                </AppText>
+              </View>
+            </View>
+          ) : null}
         </View>
 
         <View className="mt-5 flex-row gap-3">
