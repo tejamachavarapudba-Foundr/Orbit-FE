@@ -10,6 +10,7 @@ import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { ExperiencePeriodsEditor } from "@/components/ui/ExperiencePeriodsEditor";
+import { LocationSuggestInput } from "@/components/ui/LocationSuggestInput";
 import { MultiSelectChecklist } from "@/components/ui/MultiSelectChecklist";
 import { PortfolioNamesBottomSheet } from "@/components/ui/PortfolioNamesBottomSheet";
 import { ROLE_LABEL } from "@/constants/memberRoles";
@@ -193,6 +194,18 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                     onOtherTextChange={otherFieldKey ? (text) => setQuickField(otherFieldKey, text) : undefined}
                   />
                 </View>
+              );
+            }
+
+            if ((field.mapsToShared ?? field.key) === "location") {
+              return (
+                <LocationSuggestInput
+                  key={field.key}
+                  label={field.label}
+                  value={getQuickProfileValue(quickFields, draft.quickProfile, field.key)}
+                  placeholder={field.placeholder}
+                  onChange={(value) => setQuickField(field.mapsToShared ?? field.key, value)}
+                />
               );
             }
 

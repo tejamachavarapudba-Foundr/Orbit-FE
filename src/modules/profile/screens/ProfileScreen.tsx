@@ -25,6 +25,7 @@ import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { iconSize } from "@/theme/designTokens";
 import * as DocumentPicker from 'expo-document-picker';
 import { isValidLinkedInUrl, isValidUrl } from "@/utils/validation";
+import { LocationSuggestInput } from "@/components/ui/LocationSuggestInput";
 
 export const ProfileScreen = () => {
   const colors = useThemeTokens();
@@ -223,7 +224,7 @@ export const ProfileScreen = () => {
             onChangeText={(value) => setValue("bio", value)}
             className="h-24 py-3"
           />
-          <AppTextInput label="Location" value={values.location} onChangeText={(value) => setValue("location", value)} />
+          <LocationSuggestInput label="Location" value={values.location} onChange={(value) => setValue("location", value)} />
           <View className="gap-2">
             <AppText size="sm" weight="medium">
               Language
