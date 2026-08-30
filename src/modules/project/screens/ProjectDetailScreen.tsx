@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Alert, Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -23,6 +23,7 @@ import { useProjectStore } from "@/modules/project/store";
 import { InvestorGateModal } from "@/modules/verification/components/InvestorGateModal";
 import { useVerificationStatus } from "@/modules/verification/hooks";
 import { iconSize } from "@/theme/designTokens";
+import { isValidVideoFileUrl } from "@/utils/validation";
 
 const roleOptions = ["co_founder", "software_engineer", "designer", "business_operations", "other"];
 
@@ -261,13 +262,17 @@ export const ProjectDetailScreen = ({ route }: Props) => {
               variant="outline"
               label="▶ Watch Founder Pitch"
               className="self-start"
-              onPress={() => setShowPitchVideo(true)}
+              onPress={() =>
+                isValidVideoFileUrl(selectedProject.pitchVideoUrl)
+                  ? setShowPitchVideo(true)
+                  : void Linking.openURL(selectedProject.pitchVideoUrl)
+              }
             />
           ) : null}
 
           {selectedProject.askAmount.trim() || selectedProject.equityPercent.trim() ? (
-            <View className="rounded-md border border-border bg-muted-bg px-3 py-2">
-              <AppText tone="muted" size="xs" weight="bold" className="text-center">
+            <View className="rounded-md border border-primary/25 bg-primary/5 px-3 py-2">
+              <AppText tone="primary" size="xs" weight="bold" className="text-center">
                 FOUNDER&apos;S OFFER
               </AppText>
               <View className="mt-1.5 flex-row items-center justify-between">

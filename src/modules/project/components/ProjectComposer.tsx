@@ -6,6 +6,7 @@ import * as ImagePicker from "expo-image-picker";
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
@@ -18,7 +19,7 @@ import {
 } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
 import { Project } from "@/modules/project/types";
-import { isValidUrl } from "@/utils/validation";
+import { isValidUrl, isValidVideoFileUrl } from "@/utils/validation";
 import { useToastStore } from "@/store/toastStore";
 
 const stageOptions = projectStageOptions.filter((option) => option.value !== "all");
@@ -193,11 +194,12 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           <AppText size="sm" weight="medium">
             Funding Stage
           </AppText>
-          <Dropdown
+          <BottomSheetPicker
             value={values.fundingStage}
             options={FUNDING_STAGE_OPTIONS}
             onChange={(value) => setField("fundingStage", value)}
-            placeholder="Funding stage"
+            placeholder="Select funding stage"
+            title="Funding Stage"
           />
         </View>
 
@@ -240,9 +242,19 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
             value={values.pitchVideoUrl}
             onChangeText={(value) => setField("pitchVideoUrl", value)}
             autoCapitalize="none"
-            placeholder="https://youtube.com/..."
-            error={values.pitchVideoUrl.trim() && !isValidUrl(values.pitchVideoUrl) ? "Enter a valid URL" : undefined}
+            placeholder="https://example.com/pitch.mp4"
+            error={
+              values.pitchVideoUrl.trim() && !isValidUrl(values.pitchVideoUrl)
+                ? "Enter a valid URL"
+                : undefined
+            }
           />
+          {values.pitchVideoUrl.trim() && isValidUrl(values.pitchVideoUrl) && !isValidVideoFileUrl(values.pitchVideoUrl) ? (
+            <AppText tone="danger" size="xs">
+              This needs to be a direct video file link (ending in .mp4/.mov/.webm) — a YouTube or webpage link won&apos;t
+              play in-app. Use &quot;Upload video file&quot; instead for reliable playback.
+            </AppText>
+          ) : null}
           {isEditing && project ? (
             <AppButton
               label={isUploadingVideo ? "Uploading…" : "Upload video file instead"}

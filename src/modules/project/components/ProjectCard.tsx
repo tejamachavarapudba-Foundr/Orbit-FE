@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Linking, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { useProjectStore } from "@/modules/project/store";
@@ -13,6 +13,7 @@ import { VideoPlayerModal } from "@/components/ui/VideoPlayerModal";
 import { ProjectBannerGradient } from "@/modules/project/components/ProjectBannerGradient";
 import { Project } from "@/modules/project/types";
 import { ProjectBadge } from "@/modules/project/utils";
+import { isValidVideoFileUrl } from "@/utils/validation";
 
 type ProjectCardProps = {
   project: Project;
@@ -184,7 +185,14 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
               accessibilityLabel="Watch founder pitch"
               onPress={(event) => {
                 event.stopPropagation?.();
-                setShowPitchVideo(true);
+                // The in-app player only plays a direct video file — a
+                // YouTube/Vimeo watch link just shows a blank black player,
+                // so those open in an external app/browser instead.
+                if (isValidVideoFileUrl(project.pitchVideoUrl)) {
+                  setShowPitchVideo(true);
+                } else {
+                  void Linking.openURL(project.pitchVideoUrl);
+                }
               }}
               className="mt-3 flex-row items-center gap-2 self-start rounded-md bg-primary/10 px-3 py-2"
             >
@@ -196,8 +204,8 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
           ) : null}
 
           {hasFounderOffer ? (
-            <View className="mt-3 rounded-md border border-border bg-muted-bg px-3 py-2">
-              <AppText tone="muted" size="xs" weight="bold" className="text-center">
+            <View className="mt-3 rounded-md border border-primary/25 bg-primary/5 px-3 py-2">
+              <AppText tone="primary" size="xs" weight="bold" className="text-center">
                 FOUNDER&apos;S OFFER
               </AppText>
               <View className="mt-1.5 flex-row items-center justify-between">
