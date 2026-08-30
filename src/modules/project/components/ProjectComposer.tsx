@@ -19,7 +19,7 @@ import {
 } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
 import { Project } from "@/modules/project/types";
-import { isValidUrl, isValidVideoFileUrl } from "@/utils/validation";
+import { isValidUrl } from "@/utils/validation";
 import { useToastStore } from "@/store/toastStore";
 
 const stageOptions = projectStageOptions.filter((option) => option.value !== "all");
@@ -38,11 +38,15 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
   const [isExpanded, setIsExpanded] = useState(autoExpanded || Boolean(project));
   const [showPitchTip, setShowPitchTip] = useState(true);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  // Held locally until the project actually exists — a brand-new project has
+  // no id yet, so the video can't be PATCHed up until right after creation.
+  const [pendingVideo, setPendingVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const { values, setField, submit, isSubmitting, isEditing, canSubmit } = useProjectForm(project);
 
-  const pickPitchVideo = async () => {
-    if (!project) return;
+  const hasPitchVideo = Boolean(values.pitchVideoUrl.trim()) || Boolean(pendingVideo);
+  const canSubmitForm = canSubmit && hasPitchVideo;
 
+  const pickPitchVideo = async () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
@@ -58,28 +62,58 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
       const asset = result.canceled ? undefined : result.assets[0];
       if (!asset) return;
 
-      setIsUploadingVideo(true);
-      const didSucceed = await updatePitchVideo(project.id, {
-        uri: asset.uri,
-        name: asset.fileName ?? "pitch-video.mp4",
-        type: asset.mimeType ?? "video/mp4"
-      });
+      if (project) {
+        setIsUploadingVideo(true);
+        try {
+          const didSucceed = await updatePitchVideo(project.id, {
+            uri: asset.uri,
+            name: asset.fileName ?? "pitch-video.mp4",
+            type: asset.mimeType ?? "video/mp4"
+          });
 
-      if (didSucceed) {
-        const updated = useProjectStore.getState().projects.find((item) => item.id === project.id);
-        if (updated) setField("pitchVideoUrl", updated.pitchVideoUrl);
+          if (didSucceed) {
+            const updated = useProjectStore.getState().projects.find((item) => item.id === project.id);
+            if (updated) setField("pitchVideoUrl", updated.pitchVideoUrl);
+          }
+        } finally {
+          setIsUploadingVideo(false);
+        }
+      } else {
+        // New project — nothing to attach to yet, upload happens right after creation succeeds.
+        setPendingVideo(asset);
       }
-    } finally {
-      setIsUploadingVideo(false);
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "Couldn't open video library",
+        message: error instanceof Error ? error.message : "Please try again."
+      });
     }
   };
 
   const handleSubmit = async () => {
     const didSucceed = await submit();
-    if (didSucceed) {
-      setIsExpanded(Boolean(project) && autoExpanded);
-      onDone?.();
+    if (!didSucceed) return;
+
+    if (!project && pendingVideo) {
+      const created = useProjectStore.getState().projects[0];
+      if (created) {
+        setIsUploadingVideo(true);
+        try {
+          await updatePitchVideo(created.id, {
+            uri: pendingVideo.uri,
+            name: pendingVideo.fileName ?? "pitch-video.mp4",
+            type: pendingVideo.mimeType ?? "video/mp4"
+          });
+        } finally {
+          setIsUploadingVideo(false);
+        }
+      }
+      setPendingVideo(null);
     }
+
+    setIsExpanded(Boolean(project) && autoExpanded);
+    onDone?.();
   };
 
   if (!isExpanded) {
@@ -237,38 +271,37 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           error={values.websiteUrl.trim() && !isValidUrl(values.websiteUrl) ? "Enter a valid website URL" : undefined}
         />
         <View className="gap-2">
-          <AppTextInput
-            label="Founder Pitch Video URL"
-            value={values.pitchVideoUrl}
-            onChangeText={(value) => setField("pitchVideoUrl", value)}
-            autoCapitalize="none"
-            placeholder="https://example.com/pitch.mp4"
-            error={
-              values.pitchVideoUrl.trim() && !isValidUrl(values.pitchVideoUrl)
-                ? "Enter a valid URL"
-                : undefined
+          <AppText size="sm" weight="medium">
+            Founder Pitch Video
+            <AppText tone="danger"> *</AppText>
+          </AppText>
+          <AppText tone="muted" size="xs">
+            Upload a video file — links (YouTube, webpages, etc.) can&apos;t be played in-app, so only a direct upload is
+            accepted.
+          </AppText>
+          <AppButton
+            label={
+              isUploadingVideo
+                ? "Uploading…"
+                : hasPitchVideo
+                  ? "Replace video file"
+                  : "Upload video file"
             }
+            variant={hasPitchVideo ? "outline" : "primary"}
+            size="sm"
+            loading={isUploadingVideo}
+            onPress={() => void pickPitchVideo()}
+            className="self-start"
           />
-          {values.pitchVideoUrl.trim() && isValidUrl(values.pitchVideoUrl) && !isValidVideoFileUrl(values.pitchVideoUrl) ? (
-            <AppText tone="danger" size="xs">
-              This needs to be a direct video file link (ending in .mp4/.mov/.webm) — a YouTube or webpage link won&apos;t
-              play in-app. Use &quot;Upload video file&quot; instead for reliable playback.
+          {pendingVideo ? (
+            <AppText tone="success" size="xs">
+              Selected: {pendingVideo.fileName ?? "video"} — will upload once the project is created.
+            </AppText>
+          ) : values.pitchVideoUrl.trim() ? (
+            <AppText tone="success" size="xs">
+              Video uploaded ✓
             </AppText>
           ) : null}
-          {isEditing && project ? (
-            <AppButton
-              label={isUploadingVideo ? "Uploading…" : "Upload video file instead"}
-              variant="outline"
-              size="sm"
-              loading={isUploadingVideo}
-              onPress={() => void pickPitchVideo()}
-              className="self-start"
-            />
-          ) : (
-            <AppText tone="muted" size="xs">
-              You can upload a video file directly once the project is created.
-            </AppText>
-          )}
         </View>
 
         <View className="gap-2">
@@ -300,7 +333,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         <AppButton
           label={isEditing ? "Save changes" : "Create project"}
           loading={isSubmitting}
-          disabled={!canSubmit}
+          disabled={!canSubmitForm}
           onPress={() => void handleSubmit()}
           className="mt-1"
         />
