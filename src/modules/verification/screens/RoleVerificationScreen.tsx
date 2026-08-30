@@ -35,6 +35,7 @@ import { UpdateProfilePayload } from "@/modules/profile/types";
 import { useToastStore } from "@/store/toastStore";
 import { useVerificationStatus } from "@/modules/verification/hooks";
 import { verificationApi } from "@/modules/verification/api";
+import { isValidLinkedInUrl, isValidUrl } from "@/utils/validation";
 
 type RoleVerificationRoute = RouteProp<MainStackParamList, "RoleVerification">;
 
@@ -439,6 +440,7 @@ export const RoleVerificationScreen = () => {
                 onChangeText={setWebsite}
                 autoCapitalize="none"
                 placeholder="https://..."
+                error={website.trim() && !isValidUrl(website) ? "Enter a valid website URL" : undefined}
               />
             </View>
           ) : null}
@@ -460,6 +462,7 @@ export const RoleVerificationScreen = () => {
                 onChangeText={setSpWebsite}
                 autoCapitalize="none"
                 placeholder="https://..."
+                error={spWebsite.trim() && !isValidUrl(spWebsite) ? "Enter a valid website URL" : undefined}
               />
               <AppTextInput
                 label="Company LinkedIn"
@@ -467,6 +470,7 @@ export const RoleVerificationScreen = () => {
                 onChangeText={setSpLinkedin}
                 autoCapitalize="none"
                 placeholder="https://linkedin.com/company/..."
+                error={spLinkedin.trim() && !isValidLinkedInUrl(spLinkedin) ? "Enter a valid LinkedIn URL" : undefined}
               />
             </View>
           ) : null}

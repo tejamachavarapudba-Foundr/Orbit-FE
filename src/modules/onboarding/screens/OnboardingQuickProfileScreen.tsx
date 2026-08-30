@@ -16,6 +16,7 @@ import { ROLE_LABEL } from "@/constants/memberRoles";
 import { getQuickProfileValue } from "@/modules/onboarding/quickProfileConfig";
 import { useOnboarding } from "@/modules/onboarding/hooks";
 import { ExperiencePeriod } from "@/modules/profile/schemas/experience";
+import { isValidLinkedInUrl, isValidUrl } from "@/utils/validation";
 
 const OTHER_TEXT_FIELD_MAP: Record<string, string> = {
   specialization: "specializationOther",
@@ -195,6 +196,25 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
               );
             }
 
+            if (field.keyboardType === "url") {
+              const currentValue = getQuickProfileValue(quickFields, draft.quickProfile, field.key);
+              const isLinkedIn = (field.mapsToShared ?? field.key) === "linkedinUrl";
+              const isValid = isLinkedIn ? isValidLinkedInUrl(currentValue) : isValidUrl(currentValue);
+
+              return (
+                <AppTextInput
+                  key={field.key}
+                  label={field.label}
+                  value={currentValue}
+                  placeholder={field.placeholder}
+                  keyboardType="url"
+                  autoCapitalize="none"
+                  error={currentValue.trim() && !isValid ? `Enter a valid ${isLinkedIn ? "LinkedIn" : ""} URL` : undefined}
+                  onChangeText={(value) => setQuickField(field.mapsToShared ?? field.key, value)}
+                />
+              );
+            }
+
             return (
               <AppTextInput
                 key={field.key}
@@ -202,8 +222,8 @@ export const OnboardingQuickProfileScreen = ({ navigation }: Props) => {
                 value={getQuickProfileValue(quickFields, draft.quickProfile, field.key)}
                 placeholder={field.placeholder}
                 multiline={field.multiline}
-                keyboardType={field.keyboardType === "url" ? "url" : "default"}
-                autoCapitalize={field.keyboardType === "url" ? "none" : "sentences"}
+                keyboardType="default"
+                autoCapitalize="sentences"
                 onChangeText={(value) => setQuickField(field.mapsToShared ?? field.key, value)}
               />
             );

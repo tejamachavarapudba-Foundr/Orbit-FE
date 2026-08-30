@@ -24,6 +24,7 @@ import { ResumeCard } from "@/components/profile/ResumeCard";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { iconSize } from "@/theme/designTokens";
 import * as DocumentPicker from 'expo-document-picker';
+import { isValidLinkedInUrl, isValidUrl } from "@/utils/validation";
 
 export const ProfileScreen = () => {
   const colors = useThemeTokens();
@@ -240,6 +241,7 @@ export const ProfileScreen = () => {
             value={values.linkedinUrl}
             autoCapitalize="none"
             keyboardType="url"
+            error={values.linkedinUrl.trim() && !isValidLinkedInUrl(values.linkedinUrl) ? "Enter a valid LinkedIn URL" : undefined}
             onChangeText={(value) => setValue("linkedinUrl", value)}
           />
           <AppTextInput
@@ -281,6 +283,7 @@ export const ProfileScreen = () => {
                 value={values.website}
                 autoCapitalize="none"
                 keyboardType="url"
+                error={values.website.trim() && !isValidUrl(values.website) ? "Enter a valid website URL" : undefined}
                 onChangeText={(value) => setValue("website", value)}
               />
             ) : null}
