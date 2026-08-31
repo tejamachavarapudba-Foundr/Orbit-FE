@@ -199,7 +199,6 @@ export const PitchReelsScreen = () => {
           initialNumToRender={2}
           windowSize={3}
           maxToRenderPerBatch={2}
-          removeClippedSubviews
           viewabilityConfig={viewabilityConfig}
           onViewableItemsChanged={onViewableItemsChanged}
           onEndReached={loadMore}
