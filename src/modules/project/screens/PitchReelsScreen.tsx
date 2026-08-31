@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Pressable, Share, StatusBar, View, ViewToken, useWindowDimensions } from "react-native";
+import { ActivityIndicator, FlatList, Image, Pressable, Share, StatusBar, View, ViewToken } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
@@ -15,7 +15,13 @@ import { toAppError } from "@/utils/errors";
 
 export const PitchReelsScreen = () => {
   const navigation = useNavigation<any>();
-  const { height: screenHeight } = useWindowDimensions();
+  // Measured from the actual rendered container rather than
+  // useWindowDimensions() — this screen has no header/safe-area wrapper,
+  // so the window's full height (which includes the status bar) doesn't
+  // match what's actually visible below it. Using the wrong height here
+  // made getItemLayout's per-page math drift, so two reels' overlays ended
+  // up partially visible on screen at once.
+  const [pageHeight, setPageHeight] = useState(0);
   const toggleLikeStartup = useProjectStore((state) => state.toggleLikeStartup);
   const toggleSaveStartup = useProjectStore((state) => state.toggleSaveStartup);
   const setActiveReelId = useReelVisibilityStore((state) => state.setActiveReelId);
@@ -109,7 +115,7 @@ export const PitchReelsScreen = () => {
   };
 
   const renderItem = ({ item }: { item: PitchReel }) => (
-    <View style={{ width: "100%", height: screenHeight }}>
+    <View style={{ width: "100%", height: pageHeight }}>
       <ReelVideo reelId={item.id} uri={item.pitchVideoUrl} />
 
       <View pointerEvents="box-none" style={{ position: "absolute", left: 14, right: 14, bottom: 24 }}>
@@ -174,7 +180,10 @@ export const PitchReelsScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View
+      style={{ flex: 1, backgroundColor: "#000" }}
+      onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}
+    >
       <StatusBar barStyle="light-content" />
 
       {isLoading ? (
@@ -189,7 +198,7 @@ export const PitchReelsScreen = () => {
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
           <AppText style={{ color: "#fff", textAlign: "center" }}>No pitch videos yet.</AppText>
         </View>
-      ) : (
+      ) : pageHeight > 0 ? (
         <FlatList
           data={reels}
           keyExtractor={(item) => item.id}
@@ -203,9 +212,9 @@ export const PitchReelsScreen = () => {
           onViewableItemsChanged={onViewableItemsChanged}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
-          getItemLayout={(_, index) => ({ length: screenHeight, offset: screenHeight * index, index })}
+          getItemLayout={(_, index) => ({ length: pageHeight, offset: pageHeight * index, index })}
         />
-      )}
+      ) : null}
 
       <Pressable
         accessibilityRole="button"
