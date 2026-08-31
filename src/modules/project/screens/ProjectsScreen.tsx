@@ -208,7 +208,7 @@ export const ProjectsScreen = () => {
           accessibilityRole="button"
           accessibilityLabel={fabMenuOpen ? "Close menu" : "Open menu"}
           onPress={() => setFabMenuOpen((current) => !current)}
-          className="h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+          className="h-14 w-14 items-center justify-center rounded-full bg-primary/70 shadow-lg"
         >
           <Feather name={fabMenuOpen ? "x" : "more-vertical"} size={iconSize.lg} color={colors.onPrimary} />
         </Pressable>

@@ -5,11 +5,9 @@ import { ForgotPasswordPayload, LoginPayload, RegisterPayload, ResetPasswordPayl
 import { useAuthStore } from "@/modules/auth/store";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
-import { PASSWORD_REQUIREMENTS_MESSAGE, isStrongPassword } from "@/utils/validation";
+import { PASSWORD_REQUIREMENTS_MESSAGE, isStrongPassword, isValidEmail } from "@/utils/validation";
 
 type FieldErrors<T extends Record<string, string>> = Partial<Record<keyof T, string>>;
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const useLoginForm = () => {
   const login = useAuthStore((state) => state.login);
@@ -25,7 +23,7 @@ export const useLoginForm = () => {
   const validate = useCallback(() => {
     const nextErrors: FieldErrors<LoginPayload> = {};
 
-    if (!emailPattern.test(values.email.trim())) {
+    if (!isValidEmail(values.email.trim())) {
       nextErrors.email = "Enter a valid email.";
     }
 
@@ -69,7 +67,7 @@ export const useRegisterForm = () => {
       nextErrors.fullName = "Enter your full name.";
     }
 
-    if (!emailPattern.test(values.email.trim())) {
+    if (!isValidEmail(values.email.trim())) {
       nextErrors.email = "Enter a valid email.";
     }
 
@@ -113,7 +111,7 @@ export const useForgotPasswordForm = () => {
   const validate = useCallback(() => {
     const nextErrors: FieldErrors<ForgotPasswordPayload> = {};
 
-    if (!emailPattern.test(values.email.trim())) {
+    if (!isValidEmail(values.email.trim())) {
       nextErrors.email = "Enter a valid email.";
     }
 

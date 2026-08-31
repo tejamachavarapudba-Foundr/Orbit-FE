@@ -5,10 +5,9 @@ import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
-import { Dropdown } from "@/components/ui/Dropdown";
+import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { useProjects } from "@/modules/project/hooks";
 import { meetingApi } from "@/modules/meeting/api";
 import { useMeetingsStore } from "@/modules/meeting/store";
@@ -136,7 +135,13 @@ export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
         <AppText weight="semibold" className="mb-2">
           Purpose
         </AppText>
-        <CategoryDropdown value={purpose} options={meetingPurposeOptions} onChange={setPurpose} />
+        <BottomSheetPicker
+          value={purpose}
+          options={meetingPurposeOptions}
+          onChange={setPurpose}
+          placeholder="Select purpose"
+          title="Purpose"
+        />
       </View>
 
       <View>
@@ -175,13 +180,15 @@ export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
         </View>
 
         {inviteMode === "startup" ? (
-          <Dropdown
-            value={startupId}
-            options={projects.map((project) => ({ label: project.name, value: project.id }))}
-            onChange={setStartupId}
-            placeholder="Select a startup"
-            className="mt-3 w-full"
-          />
+          <View className="mt-3">
+            <BottomSheetPicker
+              value={startupId}
+              options={projects.map((project) => ({ label: project.name, value: project.id }))}
+              onChange={setStartupId}
+              placeholder="Select a startup"
+              title="Select a startup"
+            />
+          </View>
         ) : (
           <Pressable
             accessibilityRole="button"

@@ -1,4 +1,9 @@
-export const isValidEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+// Deliberately not full RFC 5322 (that's a well-known rabbit hole) — this
+// rejects the common mistakes (no TLD, spaces, stray symbols) that the old
+// "anything with an @ and a dot" pattern let through, while real deliverability
+// is ultimately confirmed by the OTP email actually arriving, not by regex.
+export const isValidEmail = (value: string): boolean =>
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value.trim());
 
 const PASSWORD_COMPLEXITY = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
 
