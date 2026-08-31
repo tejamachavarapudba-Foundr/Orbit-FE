@@ -45,6 +45,7 @@ export type MainStackParamList = {
     edit?: boolean;
   };
   CreateProject: undefined;
+  PitchReels: undefined;
 
   JobDetail: {
     id: string;

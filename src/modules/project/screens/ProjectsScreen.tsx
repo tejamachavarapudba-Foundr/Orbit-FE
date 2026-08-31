@@ -131,6 +131,18 @@ export const ProjectsScreen = () => {
                   ) : null}
                 </Pressable>
               </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Pitch videos"
+                onPress={() => navigation.navigate("PitchReels")}
+                className="mt-3 flex-row items-center self-end gap-1.5 rounded-full border border-primary/25 bg-primary/5 px-3 py-2"
+              >
+                <Feather name="film" size={iconSize.sm} color={colors.primary} />
+                <AppText tone="primary" size="xs" weight="semibold">
+                  Pitch videos
+                </AppText>
+              </Pressable>
             </View>
 
             {totalCount > 0 ? (

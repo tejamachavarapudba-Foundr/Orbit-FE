@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Modal, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { Video as VideoCompressor } from "react-native-compressor";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
@@ -38,9 +39,10 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
   const [isExpanded, setIsExpanded] = useState(autoExpanded || Boolean(project));
   const [showPitchTip, setShowPitchTip] = useState(true);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isCompressingVideo, setIsCompressingVideo] = useState(false);
   // Held locally until the project actually exists — a brand-new project has
   // no id yet, so the video can't be PATCHed up until right after creation.
-  const [pendingVideo, setPendingVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [pendingVideo, setPendingVideo] = useState<{ uri: string; name: string; type: string } | null>(null);
   const { values, setField, submit, isSubmitting, isEditing, canSubmit } = useProjectForm(project);
 
   const hasPitchVideo = Boolean(values.pitchVideoUrl.trim()) || Boolean(pendingVideo);
@@ -62,14 +64,31 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
       const asset = result.canceled ? undefined : result.assets[0];
       if (!asset) return;
 
+      // Compress once here, before either upload path — a smaller file
+      // uploads faster and, more importantly, streams faster for every
+      // future viewer of the pitch-reels feed.
+      setIsCompressingVideo(true);
+      let compressedUri = asset.uri;
+      try {
+        compressedUri = await VideoCompressor.compress(asset.uri, { compressionMethod: "auto" });
+      } catch (error) {
+        // Compression failing (unsupported codec, etc.) shouldn't block the
+        // upload — fall back to the original file.
+        compressedUri = asset.uri;
+      } finally {
+        setIsCompressingVideo(false);
+      }
+
+      const preparedVideo = {
+        uri: compressedUri,
+        name: asset.fileName ?? "pitch-video.mp4",
+        type: asset.mimeType ?? "video/mp4"
+      };
+
       if (project) {
         setIsUploadingVideo(true);
         try {
-          const didSucceed = await updatePitchVideo(project.id, {
-            uri: asset.uri,
-            name: asset.fileName ?? "pitch-video.mp4",
-            type: asset.mimeType ?? "video/mp4"
-          });
+          const didSucceed = await updatePitchVideo(project.id, preparedVideo);
 
           if (didSucceed) {
             const updated = useProjectStore.getState().projects.find((item) => item.id === project.id);
@@ -80,7 +99,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         }
       } else {
         // New project — nothing to attach to yet, upload happens right after creation succeeds.
-        setPendingVideo(asset);
+        setPendingVideo(preparedVideo);
       }
     } catch (error) {
       showToast({
@@ -100,11 +119,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
       if (created) {
         setIsUploadingVideo(true);
         try {
-          await updatePitchVideo(created.id, {
-            uri: pendingVideo.uri,
-            name: pendingVideo.fileName ?? "pitch-video.mp4",
-            type: pendingVideo.mimeType ?? "video/mp4"
-          });
+          await updatePitchVideo(created.id, pendingVideo);
         } finally {
           setIsUploadingVideo(false);
         }
@@ -281,21 +296,23 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           </AppText>
           <AppButton
             label={
-              isUploadingVideo
-                ? "Uploading…"
-                : hasPitchVideo
-                  ? "Replace video file"
-                  : "Upload video file"
+              isCompressingVideo
+                ? "Compressing…"
+                : isUploadingVideo
+                  ? "Uploading…"
+                  : hasPitchVideo
+                    ? "Replace video file"
+                    : "Upload video file"
             }
             variant={hasPitchVideo ? "outline" : "primary"}
             size="sm"
-            loading={isUploadingVideo}
+            loading={isCompressingVideo || isUploadingVideo}
             onPress={() => void pickPitchVideo()}
             className="self-start"
           />
           {pendingVideo ? (
             <AppText tone="success" size="xs">
-              Selected: {pendingVideo.fileName ?? "video"} — will upload once the project is created.
+              Selected: {pendingVideo.name} — will upload once the project is created.
             </AppText>
           ) : values.pitchVideoUrl.trim() ? (
             <AppText tone="success" size="xs">

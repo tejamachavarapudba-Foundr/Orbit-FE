@@ -7,6 +7,7 @@ import { InvestorSnapshotViewScreen } from "@/modules/investor/screens/InvestorS
 import { UserPublicProfileScreen } from "@/modules/user/screens/UserPublicProfileScreen";
 import { ProjectDetailScreen } from "@/modules/project/screens/ProjectDetailScreen";
 import { CreateProjectScreen } from "@/modules/project/screens/CreateProjectScreen";
+import { PitchReelsScreen } from "@/modules/project/screens/PitchReelsScreen";
 import { JobDetailScreen } from "@/modules/jobs/screens/JobDetailScreen";
 import { PostJobScreen } from "@/modules/jobs/screens/PostJobScreen";
 import { NotificationsScreen } from "@/modules/notifications/screens/NotificationsScreen";
@@ -139,6 +140,11 @@ export const MainStackNavigator = () => (
     <Stack.Screen
       name="CreateProject"
       component={CreateProjectScreen}
+    />
+
+    <Stack.Screen
+      name="PitchReels"
+      component={PitchReelsScreen}
     />
 
     <Stack.Screen

@@ -1,7 +1,9 @@
 import { apiClient } from "@/services/api/client";
 import {
+  PitchReelsPage,
   Project,
   ProjectApplicationPayload,
+  ProjectComment,
   ProjectMember,
   ProjectPayload,
   ProjectReview,
@@ -113,6 +115,24 @@ export const projectApi = {
   },
   markViewed: async (id: string) => {
     const response = await apiClient.post<{ viewed: boolean }>(`/projects/${id}/view`);
+    return response.data;
+  },
+  getReels: async (cursor?: string, limit = 10) => {
+    const response = await apiClient.get<PitchReelsPage>("/projects/reels", {
+      params: { cursor, limit }
+    });
+    return response.data;
+  },
+  getProjectComments: async (projectId: string) => {
+    const response = await apiClient.get<ProjectComment[]>(`/projects/${projectId}/comments`);
+    return response.data;
+  },
+  postProjectComment: async (projectId: string, content: string) => {
+    const response = await apiClient.post<ProjectComment>(`/projects/${projectId}/comments`, { content });
+    return response.data;
+  },
+  deleteProjectComment: async (commentId: string) => {
+    const response = await apiClient.delete(`/project-comments/${commentId}`);
     return response.data;
   }
 };

@@ -153,3 +153,32 @@ export type ProjectFilters = {
   stage: string;
   projectType: string;
 };
+
+export type PitchReel = {
+  id: string;
+  name: string;
+  tagline: string;
+  logoUrl: string;
+  pitchVideoUrl: string;
+  ownerId: string;
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  isLikedByMe: boolean;
+  isSavedByMe: boolean;
+};
+
+export type PitchReelsPage = {
+  items: PitchReel[];
+  nextCursor: string | null;
+};
+
+export type ProjectComment = {
+  id: string;
+  projectId: string;
+  authorId: string;
+  content: string;
+  parentId: string | null;
+  createdAt: string;
+  author: AuthProfile;
+};
