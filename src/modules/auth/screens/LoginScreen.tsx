@@ -42,7 +42,7 @@ export const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 error={fieldErrors.password}
                 secureTextEntry
                 autoComplete="password"
-                placeholder="At least 6 characters"
+                placeholder="Your password"
                 className="h-11 text-base"
                 onChangeText={(value) => setValue("password", value)}
               />

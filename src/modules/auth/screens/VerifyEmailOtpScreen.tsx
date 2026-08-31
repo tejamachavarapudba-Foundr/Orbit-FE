@@ -18,7 +18,7 @@ export const VerifyEmailOtpScreen = () => {
   const colors = useThemeTokens();
   const email = useAuthStore((state) => state.user?.email ?? "");
   const markEmailVerified = useAuthStore((state) => state.markEmailVerified);
-  const clearJustRegistered = useAuthStore((state) => state.clearJustRegistered);
+  const logout = useAuthStore((state) => state.logout);
 
   const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -55,7 +55,6 @@ export const VerifyEmailOtpScreen = () => {
     try {
       await authApi.verifyEmailOtp({ email, code: code.trim() });
       markEmailVerified();
-      clearJustRegistered();
     } catch (error) {
       setErrorMessage(toAppError(error).message);
     } finally {
@@ -120,10 +119,10 @@ export const VerifyEmailOtpScreen = () => {
               </AuthCard>
 
               <AppButton
-                label="Skip for now"
+                label="Log out"
                 variant="ghost"
                 size="default"
-                onPress={() => clearJustRegistered()}
+                onPress={() => void logout()}
                 className="mt-4"
               />
             </View>

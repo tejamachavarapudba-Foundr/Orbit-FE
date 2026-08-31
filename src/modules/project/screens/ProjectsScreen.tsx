@@ -65,6 +65,7 @@ export const ProjectsScreen = () => {
     }, []);
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const hasActiveFilters = filters.stage !== "all" || filters.projectType !== "all";
 
   const renderProject = useCallback<ListRenderItem<Project>>(
@@ -131,18 +132,6 @@ export const ProjectsScreen = () => {
                   ) : null}
                 </Pressable>
               </View>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Pitch videos"
-                onPress={() => navigation.navigate("PitchReels")}
-                className="mt-3 flex-row items-center self-end gap-1.5 rounded-full border border-primary/25 bg-primary/5 px-3 py-2"
-              >
-                <Feather name="film" size={iconSize.sm} color={colors.primary} />
-                <AppText tone="primary" size="xs" weight="semibold">
-                  Pitch videos
-                </AppText>
-              </Pressable>
             </View>
 
             {totalCount > 0 ? (
@@ -169,16 +158,61 @@ export const ProjectsScreen = () => {
         }
       />
 
-      {isFounder ? (
+      {fabMenuOpen ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="New project"
-          onPress={() => navigation.navigate("CreateProject")}
-          className="absolute bottom-6 right-5 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
-        >
-          <Feather name="plus" size={iconSize.lg} color={colors.onPrimary} />
-        </Pressable>
+          accessibilityLabel="Close menu"
+          onPress={() => setFabMenuOpen(false)}
+          className="absolute bottom-0 left-0 right-0 top-0"
+        />
       ) : null}
+
+      <View className="absolute bottom-6 right-5 items-end gap-3">
+        {fabMenuOpen ? (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Pitch videos"
+              onPress={() => {
+                setFabMenuOpen(false);
+                navigation.navigate("PitchReels");
+              }}
+              className="flex-row items-center gap-2 rounded-full border border-border bg-card px-4 py-3 shadow-lg"
+            >
+              <Feather name="film" size={iconSize.md} color={colors.text} />
+              <AppText size="sm" weight="medium">
+                Pitch videos
+              </AppText>
+            </Pressable>
+
+            {isFounder ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="New project"
+                onPress={() => {
+                  setFabMenuOpen(false);
+                  navigation.navigate("CreateProject");
+                }}
+                className="flex-row items-center gap-2 rounded-full border border-border bg-card px-4 py-3 shadow-lg"
+              >
+                <Feather name="plus" size={iconSize.md} color={colors.text} />
+                <AppText size="sm" weight="medium">
+                  New project
+                </AppText>
+              </Pressable>
+            ) : null}
+          </>
+        ) : null}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={fabMenuOpen ? "Close menu" : "Open menu"}
+          onPress={() => setFabMenuOpen((current) => !current)}
+          className="h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+        >
+          <Feather name={fabMenuOpen ? "x" : "more-vertical"} size={iconSize.lg} color={colors.onPrimary} />
+        </Pressable>
+      </View>
     </AppScreen>
     <CreateMeetingModal
       visible={meetingVisible}

@@ -22,12 +22,10 @@ export const RootNavigator = () => {
   const isThemeHydrated = useThemeStore((state) => state.isHydrated);
   const isAuthenticated = useAuthStore((state) => state.status === "authenticated");
   const profile = useAuthStore((state) => state.user?.profile);
-  const justRegistered = useAuthStore((state) => state.justRegistered);
   const emailVerified = useAuthStore((state) => state.user?.emailVerified);
-  // Only gates the account that just signed up this session — existing
-  // accounts that predate this feature (or that skipped) are never
-  // interrupted by it later.
-  const needsEmailOtp = isAuthenticated && justRegistered && !emailVerified;
+  // Hard gate — any authenticated account without a verified email is sent
+  // here, every session, until they verify. There is no skip.
+  const needsEmailOtp = isAuthenticated && !emailVerified;
   const showOnboarding = isAuthenticated && !needsEmailOtp && needsOnboarding(profile);
 
   const resolvedScheme = useThemeStore(

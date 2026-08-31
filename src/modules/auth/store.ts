@@ -16,24 +16,18 @@ type AuthState = {
   user: AuthUser | null;
   errorMessage: string | null;
   isSubmitting: boolean;
-  // Only true for the account that just signed up this session — gates the
-  // email OTP screen without retroactively bothering existing accounts that
-  // were never asked to verify (see RootNavigator).
-  justRegistered: boolean;
   bootstrap: () => Promise<void>;
   login: (payload: LoginPayload) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (profile: AuthProfile) => void;
   markEmailVerified: () => void;
-  clearJustRegistered: () => void;
   clearError: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isHydrated: false,
   status: "idle",
-  justRegistered: false,
   user: null,
   errorMessage: null,
   isSubmitting: false,
@@ -99,7 +93,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         refreshToken: response.refreshToken
       });
       const user = await authApi.me();
-      set({ isSubmitting: false, status: "authenticated", user, justRegistered: true });
+      set({ isSubmitting: false, status: "authenticated", user });
       return true;
     } catch (error) {
       const appError = toAppError(error);
@@ -149,6 +143,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set((state) => ({
       user: state.user ? { ...state.user, emailVerified: true } : state.user
     })),
-  clearJustRegistered: () => set({ justRegistered: false }),
   clearError: () => set({ errorMessage: null }),
 }));

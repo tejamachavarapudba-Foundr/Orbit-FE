@@ -52,7 +52,7 @@ export const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
                 error={fieldErrors.password}
                 secureTextEntry
                 autoComplete="new-password"
-                placeholder="At least 6 characters"
+                placeholder="8+ chars, upper, lower, number & symbol"
                 className="h-11 text-base"
                 onChangeText={(value) => setValue("password", value)}
               />

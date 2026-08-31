@@ -1,5 +1,12 @@
 export const isValidEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
+const PASSWORD_COMPLEXITY = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
+
+export const PASSWORD_REQUIREMENTS_MESSAGE =
+  "Use 8+ characters with an uppercase letter, a lowercase letter, a number, and a symbol.";
+
+export const isStrongPassword = (value: string): boolean => value.length >= 8 && PASSWORD_COMPLEXITY.test(value);
+
 /** Accepts a bare domain ("startup.com") as well as a full URL — most
  * people type it without the scheme, and that's still a valid link once
  * we prefix it before opening. */

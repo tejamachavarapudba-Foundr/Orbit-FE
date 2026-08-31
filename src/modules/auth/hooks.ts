@@ -5,6 +5,7 @@ import { ForgotPasswordPayload, LoginPayload, RegisterPayload, ResetPasswordPayl
 import { useAuthStore } from "@/modules/auth/store";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
+import { PASSWORD_REQUIREMENTS_MESSAGE, isStrongPassword } from "@/utils/validation";
 
 type FieldErrors<T extends Record<string, string>> = Partial<Record<keyof T, string>>;
 
@@ -72,8 +73,8 @@ export const useRegisterForm = () => {
       nextErrors.email = "Enter a valid email.";
     }
 
-    if (values.password.length < 8) {
-      nextErrors.password = "Use at least 8 characters.";
+    if (!isStrongPassword(values.password)) {
+      nextErrors.password = PASSWORD_REQUIREMENTS_MESSAGE;
     }
 
     setFieldErrors(nextErrors);
@@ -158,8 +159,8 @@ export const useResetPasswordForm = (token: string) => {
   const validate = useCallback(() => {
     const nextErrors: FieldErrors<{ newPassword: string; confirmPassword: string }> = {};
 
-    if (newPassword.length < 8) {
-      nextErrors.newPassword = "Use at least 8 characters.";
+    if (!isStrongPassword(newPassword)) {
+      nextErrors.newPassword = PASSWORD_REQUIREMENTS_MESSAGE;
     }
 
     if (confirmPassword !== newPassword) {
