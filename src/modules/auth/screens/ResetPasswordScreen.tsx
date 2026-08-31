@@ -37,7 +37,7 @@ export const ResetPasswordScreen = ({ navigation, route }: ResetPasswordScreenPr
                   error={fieldErrors.newPassword}
                   secureTextEntry
                   autoComplete="password-new"
-                  placeholder="At least 8 characters"
+                  placeholder="8+ chars, upper, lower, number & symbol"
                   className="h-11 text-base"
                   onChangeText={setNewPassword}
                 />

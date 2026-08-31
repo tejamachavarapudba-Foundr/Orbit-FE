@@ -8,7 +8,7 @@ import {
   LogoutResponse,
   RegisterPayload,
   ResetPasswordPayload,
-  VerifyEmailPayload
+  VerifyEmailOtpPayload
 } from "@/modules/auth/types";
 import { normalizeAuthProfile } from "@/modules/profile/normalizeProfile";
 
@@ -19,6 +19,7 @@ const toAuthUser = (response: AuthMeResponse): AuthUser => {
     id: response.id,
     email: response.email,
     fullName: profile.fullName,
+    emailVerified: response.emailVerified ?? false,
     profile
   };
 };
@@ -40,8 +41,8 @@ export const authApi = {
     const response = await apiClient.post<{ message: string }>("/auth/reset-password", payload);
     return response.data;
   },
-  verifyEmail: async (payload: VerifyEmailPayload) => {
-    const response = await apiClient.post<{ message: string }>("/auth/verify-email", payload);
+  verifyEmailOtp: async (payload: VerifyEmailOtpPayload) => {
+    const response = await apiClient.post<{ success: boolean; message: string }>("/auth/verify-email-otp", payload);
     return response.data;
   },
   resendVerification: async (payload: ForgotPasswordPayload) => {

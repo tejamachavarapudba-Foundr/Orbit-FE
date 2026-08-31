@@ -24,6 +24,8 @@ import { ResumeCard } from "@/components/profile/ResumeCard";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { iconSize } from "@/theme/designTokens";
 import * as DocumentPicker from 'expo-document-picker';
+import { isValidLinkedInUrl, isValidUrl } from "@/utils/validation";
+import { LocationSuggestInput } from "@/components/ui/LocationSuggestInput";
 
 export const ProfileScreen = () => {
   const colors = useThemeTokens();
@@ -209,7 +211,7 @@ export const ProfileScreen = () => {
           <ProfileCompletionBar percent={profileCompletion} role={memberRole} />
         </View>
 
-        <View className="mt-6 gap-4 rounded-md border border-border bg-surface p-4">
+        <View className="mt-6 gap-4 rounded-md border border-border bg-surface-elevated p-4">
           <AuthErrorBanner message={errorMessage} />
           <AppText weight="bold">{roleLabel} · Shared details</AppText>
           <AppTextInput label="Full name" value={values.fullName} onChangeText={(value) => setValue("fullName", value)} />
@@ -222,7 +224,7 @@ export const ProfileScreen = () => {
             onChangeText={(value) => setValue("bio", value)}
             className="h-24 py-3"
           />
-          <AppTextInput label="Location" value={values.location} onChangeText={(value) => setValue("location", value)} />
+          <LocationSuggestInput label="Location" value={values.location} onChange={(value) => setValue("location", value)} />
           <View className="gap-2">
             <AppText size="sm" weight="medium">
               Language
@@ -240,6 +242,7 @@ export const ProfileScreen = () => {
             value={values.linkedinUrl}
             autoCapitalize="none"
             keyboardType="url"
+            error={values.linkedinUrl.trim() && !isValidLinkedInUrl(values.linkedinUrl) ? "Enter a valid LinkedIn URL" : undefined}
             onChangeText={(value) => setValue("linkedinUrl", value)}
           />
           <AppTextInput
@@ -265,7 +268,7 @@ export const ProfileScreen = () => {
         </View>
 
         {memberRole ? (
-          <View className="mt-4 gap-4 rounded-md border border-border bg-surface p-4">
+          <View className="mt-4 gap-4 rounded-md border border-border bg-surface-elevated p-4">
             <AppText weight="bold">{roleLabel} · Role details</AppText>
             {memberRole === "founder" ? (
               <AppTextInput
@@ -281,6 +284,7 @@ export const ProfileScreen = () => {
                 value={values.website}
                 autoCapitalize="none"
                 keyboardType="url"
+                error={values.website.trim() && !isValidUrl(values.website) ? "Enter a valid website URL" : undefined}
                 onChangeText={(value) => setValue("website", value)}
               />
             ) : null}

@@ -5,7 +5,6 @@ import { stopPushNotifications } from "@/modules/notifications/pushNotifications
 import { withTrace } from "@/utils/perfTrace";
 import { AuthProfile, AuthUser, LoginPayload, RegisterPayload } from "@/modules/auth/types";
 import { tokenService } from "@/services/api/tokenService";
-import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 import { logger } from "@/utils/logger";
 
@@ -22,10 +21,11 @@ type AuthState = {
   register: (payload: RegisterPayload) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (profile: AuthProfile) => void;
+  markEmailVerified: () => void;
   clearError: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({  
+export const useAuthStore = create<AuthState>((set, get) => ({
   isHydrated: false,
   status: "idle",
   user: null,
@@ -94,11 +94,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       const user = await authApi.me();
       set({ isSubmitting: false, status: "authenticated", user });
-      useToastStore.getState().show({
-        type: "success",
-        title: "Check your email",
-        message: "We sent a link to confirm your email address."
-      });
       return true;
     } catch (error) {
       const appError = toAppError(error);
@@ -143,6 +138,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             profile
           }
         : state.user
+    })),
+  markEmailVerified: () =>
+    set((state) => ({
+      user: state.user ? { ...state.user, emailVerified: true } : state.user
     })),
   clearError: () => set({ errorMessage: null }),
 }));

@@ -15,7 +15,7 @@ export const ProfileCompletionBar = ({ percent, role = null, showBenefits = true
   const unlockedBenefits = showBenefits ? getCompletionBenefit(percent, role) : [];
 
   return (
-    <View className="rounded-xl border border-border bg-surface p-4">
+    <View className="rounded-xl border border-border bg-surface-elevated p-4">
       <View className="flex-row items-center justify-between">
         <AppText weight="bold">Profile completion</AppText>
         <AppText tone="primary" weight="bold">

@@ -50,10 +50,6 @@ export const SettingsScreen = () => {
         className="flex-1 px-5 pt-6"
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <AppText family="display" size="2xl" weight="bold" className="mb-6">
-          Settings
-        </AppText>
-
         <Card className="mb-4">
           <CardContent className="py-4">
             <View className="flex-row items-center justify-between gap-4">

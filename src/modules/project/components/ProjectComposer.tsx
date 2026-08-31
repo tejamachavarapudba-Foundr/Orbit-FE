@@ -1,20 +1,27 @@
 import { useState } from "react";
 import { Modal, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { Video as VideoCompressor } from "react-native-compressor";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
+import { FounderOfferBottomSheet } from "@/modules/project/components/FounderOfferBottomSheet";
 import {
   FUNDING_STAGE_OPTIONS,
   projectStageOptions,
   projectTypeOptions,
   useProjectForm
 } from "@/modules/project/hooks";
+import { useProjectStore } from "@/modules/project/store";
 import { Project } from "@/modules/project/types";
+import { isValidUrl } from "@/utils/validation";
+import { useToastStore } from "@/store/toastStore";
 
 const stageOptions = projectStageOptions.filter((option) => option.value !== "all");
 const typeOptions = projectTypeOptions.filter((option) => option.value !== "all");
@@ -27,16 +34,101 @@ type ProjectComposerProps = {
 
 export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }: ProjectComposerProps) => {
   const colors = useThemeTokens();
+  const showToast = useToastStore((state) => state.show);
+  const updatePitchVideo = useProjectStore((state) => state.updatePitchVideo);
   const [isExpanded, setIsExpanded] = useState(autoExpanded || Boolean(project));
   const [showPitchTip, setShowPitchTip] = useState(true);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isCompressingVideo, setIsCompressingVideo] = useState(false);
+  // Held locally until the project actually exists — a brand-new project has
+  // no id yet, so the video can't be PATCHed up until right after creation.
+  const [pendingVideo, setPendingVideo] = useState<{ uri: string; name: string; type: string } | null>(null);
   const { values, setField, submit, isSubmitting, isEditing, canSubmit } = useProjectForm(project);
+
+  const hasPitchVideo = Boolean(values.pitchVideoUrl.trim()) || Boolean(pendingVideo);
+  const canSubmitForm = canSubmit && hasPitchVideo;
+
+  const pickPitchVideo = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        showToast({
+          type: "error",
+          title: "Permission needed",
+          message: "Allow video library access in your device settings to upload a pitch video."
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["videos"], quality: 0.8 });
+      const asset = result.canceled ? undefined : result.assets[0];
+      if (!asset) return;
+
+      // Compress once here, before either upload path — a smaller file
+      // uploads faster and, more importantly, streams faster for every
+      // future viewer of the pitch-reels feed.
+      setIsCompressingVideo(true);
+      let compressedUri = asset.uri;
+      try {
+        compressedUri = await VideoCompressor.compress(asset.uri, { compressionMethod: "auto" });
+      } catch (error) {
+        // Compression failing (unsupported codec, etc.) shouldn't block the
+        // upload — fall back to the original file.
+        compressedUri = asset.uri;
+      } finally {
+        setIsCompressingVideo(false);
+      }
+
+      const preparedVideo = {
+        uri: compressedUri,
+        name: asset.fileName ?? "pitch-video.mp4",
+        type: asset.mimeType ?? "video/mp4"
+      };
+
+      if (project) {
+        setIsUploadingVideo(true);
+        try {
+          const didSucceed = await updatePitchVideo(project.id, preparedVideo);
+
+          if (didSucceed) {
+            const updated = useProjectStore.getState().projects.find((item) => item.id === project.id);
+            if (updated) setField("pitchVideoUrl", updated.pitchVideoUrl);
+          }
+        } finally {
+          setIsUploadingVideo(false);
+        }
+      } else {
+        // New project — nothing to attach to yet, upload happens right after creation succeeds.
+        setPendingVideo(preparedVideo);
+      }
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "Couldn't open video library",
+        message: error instanceof Error ? error.message : "Please try again."
+      });
+    }
+  };
 
   const handleSubmit = async () => {
     const didSucceed = await submit();
-    if (didSucceed) {
-      setIsExpanded(Boolean(project) && autoExpanded);
-      onDone?.();
+    if (!didSucceed) return;
+
+    if (!project && pendingVideo) {
+      const created = useProjectStore.getState().projects[0];
+      if (created) {
+        setIsUploadingVideo(true);
+        try {
+          await updatePitchVideo(created.id, pendingVideo);
+        } finally {
+          setIsUploadingVideo(false);
+        }
+      }
+      setPendingVideo(null);
     }
+
+    setIsExpanded(Boolean(project) && autoExpanded);
+    onDone?.();
   };
 
   if (!isExpanded) {
@@ -151,11 +243,12 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           <AppText size="sm" weight="medium">
             Funding Stage
           </AppText>
-          <Dropdown
+          <BottomSheetPicker
             value={values.fundingStage}
             options={FUNDING_STAGE_OPTIONS}
             onChange={(value) => setField("fundingStage", value)}
-            placeholder="Funding stage"
+            placeholder="Select funding stage"
+            title="Funding Stage"
           />
         </View>
 
@@ -167,22 +260,24 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         />
         <AppTextInput label="Location" value={values.location} onChangeText={(value) => setField("location", value)} />
         <View className="flex-row gap-3">
-          <AppTextInput
-            label="CIN number"
-            value={values.cinNumber}
-            onChangeText={(value) => setField("cinNumber", value)}
-            autoCapitalize="characters"
-            placeholder="U72900KA2020PTC..."
-            className="flex-1"
-          />
-          <AppTextInput
-            label="DPIIT number"
-            value={values.dpiitNumber}
-            onChangeText={(value) => setField("dpiitNumber", value)}
-            autoCapitalize="characters"
-            placeholder="DIPP..."
-            className="flex-1"
-          />
+          <View className="flex-1">
+            <AppTextInput
+              label="CIN number"
+              value={values.cinNumber}
+              onChangeText={(value) => setField("cinNumber", value)}
+              autoCapitalize="characters"
+              placeholder="U72900KA2020PTC..."
+            />
+          </View>
+          <View className="flex-1">
+            <AppTextInput
+              label="DPIIT number"
+              value={values.dpiitNumber}
+              onChangeText={(value) => setField("dpiitNumber", value)}
+              autoCapitalize="characters"
+              placeholder="DIPP..."
+            />
+          </View>
         </View>
         <AppTextInput
           label="Website"
@@ -190,14 +285,57 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           onChangeText={(value) => setField("websiteUrl", value)}
           autoCapitalize="none"
           keyboardType="url"
+          error={values.websiteUrl.trim() && !isValidUrl(values.websiteUrl) ? "Enter a valid website URL" : undefined}
         />
-        <AppTextInput
-          label="Founder Pitch Video URL"
-          value={values.pitchVideoUrl}
-          onChangeText={(value) => setField("pitchVideoUrl", value)}
-          autoCapitalize="none"
-          placeholder="https://youtube.com/..."
-        />
+        <View className="gap-2">
+          <AppText size="sm" weight="medium">
+            Founder Pitch Video
+            <AppText tone="danger"> *</AppText>
+          </AppText>
+          <AppText tone="muted" size="xs">
+            Upload a video file — links (YouTube, webpages, etc.) can&apos;t be played in-app, so only a direct upload is
+            accepted.
+          </AppText>
+          <AppButton
+            label={
+              isCompressingVideo
+                ? "Compressing…"
+                : isUploadingVideo
+                  ? "Uploading…"
+                  : hasPitchVideo
+                    ? "Replace video file"
+                    : "Upload video file"
+            }
+            variant={hasPitchVideo ? "outline" : "primary"}
+            size="sm"
+            loading={isCompressingVideo || isUploadingVideo}
+            onPress={() => void pickPitchVideo()}
+            className="self-start"
+          />
+          {pendingVideo ? (
+            <AppText tone="success" size="xs">
+              Selected: {pendingVideo.name} — will upload once the project is created.
+            </AppText>
+          ) : values.pitchVideoUrl.trim() ? (
+            <AppText tone="success" size="xs">
+              Video uploaded ✓
+            </AppText>
+          ) : null}
+        </View>
+
+        <View className="gap-2">
+          <AppText size="sm" weight="medium">
+            Founder&apos;s Offer
+          </AppText>
+          <FounderOfferBottomSheet
+            askAmount={values.askAmount}
+            equityPercent={values.equityPercent}
+            onChange={({ askAmount, equityPercent }) => {
+              setField("askAmount", askAmount);
+              setField("equityPercent", equityPercent);
+            }}
+          />
+        </View>
         <AppTextInput
           label="Tech stack"
           value={values.techStackText}
@@ -214,7 +352,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         <AppButton
           label={isEditing ? "Save changes" : "Create project"}
           loading={isSubmitting}
-          disabled={!canSubmit}
+          disabled={!canSubmitForm}
           onPress={() => void handleSubmit()}
           className="mt-1"
         />

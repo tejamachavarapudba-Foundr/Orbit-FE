@@ -5,10 +5,9 @@ import { Feather } from "@expo/vector-icons";
 
 import { AppButton } from "@/components/ui/AppButton";
 import { AppText } from "@/components/ui/AppText";
-import { Dropdown } from "@/components/ui/Dropdown";
+import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { FilterChip } from "@/components/ui/FilterChip";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { CategoryDropdown } from "@/modules/post/components/CategoryDropdown";
 import { useProjects } from "@/modules/project/hooks";
 import { meetingApi } from "@/modules/meeting/api";
 import { useMeetingsStore } from "@/modules/meeting/store";
@@ -48,7 +47,14 @@ export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
   const [dateSlots, setDateSlots] = useState<ProposedSlot[]>([]);
   const [pickerFor, setPickerFor] = useState<{ index: number; mode: "date" | "time" } | null>(null);
 
-  const singleInviteeId = inviteMode === "startup" ? null : selectedPeople.length === 1 ? (selectedPeople[0]?.id ?? null) : null;
+  const selectedProject = useMemo(() => projects.find((p) => p.id === startupId) ?? null, [projects, startupId]);
+
+  // For a startup invite there's no individual invitee to pick from a
+  // people-search — the meeting is with the startup's founder, so their
+  // published availability (via the project's ownerId) is what "Pick their
+  // availability" should show, exactly like a single-person invite does.
+  const singleInviteeId =
+    inviteMode === "startup" ? (selectedProject?.ownerId ?? null) : selectedPeople.length === 1 ? (selectedPeople[0]?.id ?? null) : null;
 
   const canPickAvailability = Boolean(singleInviteeId) && Boolean(openSlots?.length);
 
@@ -68,11 +74,10 @@ export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
 
   const inviteeSummary = useMemo(() => {
     if (inviteMode === "startup") {
-      const project = projects.find((p) => p.id === startupId);
-      return project ? project.name : "";
+      return selectedProject ? selectedProject.name : "";
     }
     return selectedPeople.map((p) => p.fullName).join(", ");
-  }, [inviteMode, startupId, projects, selectedPeople]);
+  }, [inviteMode, selectedProject, selectedPeople]);
 
   const addDateSlot = () => {
     if (dateSlots.length >= MAX_DATE_SLOTS) return;
@@ -130,7 +135,13 @@ export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
         <AppText weight="semibold" className="mb-2">
           Purpose
         </AppText>
-        <CategoryDropdown value={purpose} options={meetingPurposeOptions} onChange={setPurpose} />
+        <BottomSheetPicker
+          value={purpose}
+          options={meetingPurposeOptions}
+          onChange={setPurpose}
+          placeholder="Select purpose"
+          title="Purpose"
+        />
       </View>
 
       <View>
@@ -169,13 +180,15 @@ export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
         </View>
 
         {inviteMode === "startup" ? (
-          <Dropdown
-            value={startupId}
-            options={projects.map((project) => ({ label: project.name, value: project.id }))}
-            onChange={setStartupId}
-            placeholder="Select a startup"
-            className="mt-3 w-full"
-          />
+          <View className="mt-3">
+            <BottomSheetPicker
+              value={startupId}
+              options={projects.map((project) => ({ label: project.name, value: project.id }))}
+              onChange={setStartupId}
+              placeholder="Select a startup"
+              title="Select a startup"
+            />
+          </View>
         ) : (
           <Pressable
             accessibilityRole="button"

@@ -19,6 +19,8 @@ export type Project = {
   demoUrl: string;
   pitchDeckUrl: string;
   pitchVideoUrl: string;
+  askAmount: string;
+  equityPercent: string;
   githubUrl: string;
   twitterUrl: string;
   linkedinUrl: string;
@@ -115,6 +117,8 @@ export type ProjectPayload = {
   demoUrl: string;
   pitchDeckUrl: string;
   pitchVideoUrl: string;
+  askAmount: string;
+  equityPercent: string;
   githubUrl: string;
   twitterUrl: string;
   linkedinUrl: string;
@@ -148,4 +152,33 @@ export type ProjectFilters = {
   query: string;
   stage: string;
   projectType: string;
+};
+
+export type PitchReel = {
+  id: string;
+  name: string;
+  tagline: string;
+  logoUrl: string;
+  pitchVideoUrl: string;
+  ownerId: string;
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  isLikedByMe: boolean;
+  isSavedByMe: boolean;
+};
+
+export type PitchReelsPage = {
+  items: PitchReel[];
+  nextCursor: string | null;
+};
+
+export type ProjectComment = {
+  id: string;
+  projectId: string;
+  authorId: string;
+  content: string;
+  parentId: string | null;
+  createdAt: string;
+  author: AuthProfile;
 };

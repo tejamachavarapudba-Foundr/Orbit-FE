@@ -5,7 +5,7 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 
 type AppTextInputProps = TextInputProps & {
-  label?: string;
+  label?: string | undefined;
   required?: boolean | undefined;
   error?: string | undefined;
   className?: string;

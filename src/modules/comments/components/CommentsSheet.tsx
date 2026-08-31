@@ -193,6 +193,7 @@ export const CommentsSheet = () => {
                 label="Send"
                 size="default"
                 loading={isSubmitting}
+                className="min-w-[76px]"
                 onPress={() => {
                   void submitComment().then((didSucceed) => {
                     if (didSucceed) Keyboard.dismiss();

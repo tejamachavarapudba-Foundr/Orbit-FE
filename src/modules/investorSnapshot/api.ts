@@ -33,4 +33,24 @@ export const investorSnapshotApi = {
 
     return response.data;
   },
+
+  extractFromPdf: async (
+    projectId: string,
+    file: { uri: string; name: string; mimeType?: string | null | undefined },
+  ) => {
+    const formData = new FormData();
+    formData.append(
+      "file",
+      { uri: file.uri, name: file.name, type: file.mimeType || "application/pdf" } as any,
+    );
+
+    // Do not set Content-Type manually — axios/React Native need to generate
+    // the multipart boundary themselves, which a fixed header value prevents.
+    const response = await apiClient.post<{ extracted: Partial<InvestorSnapshot> }>(
+      `/investor-snapshot/project/${projectId}/extract-pdf`,
+      formData,
+    );
+
+    return response.data.extracted;
+  },
 };

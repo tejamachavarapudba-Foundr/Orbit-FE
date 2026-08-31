@@ -45,6 +45,7 @@ export const InvestmentWatchlistScreen = () => {
               project={item}
               onPress={(id) => navigation.navigate("ProjectDetail", { id })}
               onBookMeeting={() => setMeetingProject(item)}
+              onViewFounder={(ownerId) => navigation.navigate("UserProfile", { userId: ownerId })}
             />
           )}
           ListEmptyComponent={<EmptyState title="No saved startups" message="Startups you save will show up here." />}

@@ -16,6 +16,11 @@ export const useInvestorSnapshot = () => {
       (state) => state.isSaving
     );
 
+  const isExtracting =
+    useInvestorSnapshotStore(
+      (state) => state.isExtracting
+    );
+
   const loadSnapshot =
     useInvestorSnapshotStore(
       (state) => state.loadSnapshot
@@ -26,11 +31,18 @@ export const useInvestorSnapshot = () => {
       (state) => state.updateSnapshot
     );
 
+  const extractFromPdf =
+    useInvestorSnapshotStore(
+      (state) => state.extractFromPdf
+    );
+
   return {
     snapshot,
     isLoading,
     isSaving,
+    isExtracting,
     loadSnapshot,
     updateSnapshot,
+    extractFromPdf,
   };
 };

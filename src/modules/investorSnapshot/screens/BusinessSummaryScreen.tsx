@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useInvestorSnapshot } from "../hooks";
@@ -9,6 +10,7 @@ import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/layout/ScreenHeader";
+import { useToastStore } from "@/store/toastStore";
 
 export const BusinessSummaryScreen = () => {
   const [targetCustomers, setTargetCustomers] = useState("");
@@ -28,14 +30,42 @@ export const BusinessSummaryScreen = () => {
     snapshot,
     loadSnapshot,
     updateSnapshot,
+    extractFromPdf,
     isSaving,
+    isExtracting,
   } = useInvestorSnapshot();
-  
+  const showToast = useToastStore((state) => state.show);
+
   useEffect(() => {
     if (projectId) {
       loadSnapshot(projectId);
     }
   }, [projectId]);
+
+  const pickPitchDeck = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+      copyToCacheDirectory: true,
+      multiple: false,
+    });
+
+    const asset = result.assets?.[0];
+    if (result.canceled || !asset) return;
+
+    const filledCount = await extractFromPdf(projectId, {
+      uri: asset.uri,
+      name: asset.name,
+      mimeType: asset.mimeType,
+    });
+
+    if (filledCount > 0) {
+      showToast({
+        type: "success",
+        title: `Auto-filled ${filledCount} field${filledCount === 1 ? "" : "s"} from your PDF`,
+        message: "Review each step below and edit anything that's off before saving."
+      });
+    }
+  };
 
   useEffect(() => {
     if (!snapshot) return;
@@ -105,6 +135,24 @@ export const BusinessSummaryScreen = () => {
             <AppText weight="semibold">
               {snapshot?.completionPercentage ?? 0}% Complete
             </AppText>
+          </View>
+
+          <View className="mt-4 rounded-md border border-primary/25 bg-primary/5 p-3">
+            <AppText size="sm" weight="semibold">
+              Already have a pitch deck?
+            </AppText>
+            <AppText tone="muted" size="xs" className="mt-1">
+              Upload it as a PDF and we'll pre-fill as much of this form as we can — you'll still review and edit
+              everything before saving.
+            </AppText>
+            <AppButton
+              label={isExtracting ? "Reading your pitch deck…" : "Upload pitch deck (PDF)"}
+              variant="outline"
+              size="sm"
+              loading={isExtracting}
+              onPress={() => void pickPitchDeck()}
+              className="mt-3 self-start"
+            />
           </View>
 
           <AppText

@@ -3,6 +3,7 @@ export type AuthUser = {
   email: string;
   fullName: string;
   role?: string;
+  emailVerified?: boolean;
   profile: AuthProfile;
 };
 
@@ -57,8 +58,9 @@ export type ResetPasswordPayload = {
   newPassword: string;
 };
 
-export type VerifyEmailPayload = {
-  token: string;
+export type VerifyEmailOtpPayload = {
+  email: string;
+  code: string;
 };
 
 export type AuthTokenResponse = {
@@ -70,6 +72,7 @@ export type AuthMeResponse = {
   id: string;
   email: string;
   role?: string;
+  emailVerified?: boolean;
   profile: AuthProfile;
 };
 

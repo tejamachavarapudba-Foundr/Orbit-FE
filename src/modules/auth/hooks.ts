@@ -5,10 +5,9 @@ import { ForgotPasswordPayload, LoginPayload, RegisterPayload, ResetPasswordPayl
 import { useAuthStore } from "@/modules/auth/store";
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
+import { PASSWORD_REQUIREMENTS_MESSAGE, isStrongPassword, isValidEmail } from "@/utils/validation";
 
 type FieldErrors<T extends Record<string, string>> = Partial<Record<keyof T, string>>;
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const useLoginForm = () => {
   const login = useAuthStore((state) => state.login);
@@ -24,7 +23,7 @@ export const useLoginForm = () => {
   const validate = useCallback(() => {
     const nextErrors: FieldErrors<LoginPayload> = {};
 
-    if (!emailPattern.test(values.email.trim())) {
+    if (!isValidEmail(values.email.trim())) {
       nextErrors.email = "Enter a valid email.";
     }
 
@@ -68,12 +67,12 @@ export const useRegisterForm = () => {
       nextErrors.fullName = "Enter your full name.";
     }
 
-    if (!emailPattern.test(values.email.trim())) {
+    if (!isValidEmail(values.email.trim())) {
       nextErrors.email = "Enter a valid email.";
     }
 
-    if (values.password.length < 8) {
-      nextErrors.password = "Use at least 8 characters.";
+    if (!isStrongPassword(values.password)) {
+      nextErrors.password = PASSWORD_REQUIREMENTS_MESSAGE;
     }
 
     setFieldErrors(nextErrors);
@@ -112,7 +111,7 @@ export const useForgotPasswordForm = () => {
   const validate = useCallback(() => {
     const nextErrors: FieldErrors<ForgotPasswordPayload> = {};
 
-    if (!emailPattern.test(values.email.trim())) {
+    if (!isValidEmail(values.email.trim())) {
       nextErrors.email = "Enter a valid email.";
     }
 
@@ -158,8 +157,8 @@ export const useResetPasswordForm = (token: string) => {
   const validate = useCallback(() => {
     const nextErrors: FieldErrors<{ newPassword: string; confirmPassword: string }> = {};
 
-    if (newPassword.length < 8) {
-      nextErrors.newPassword = "Use at least 8 characters.";
+    if (!isStrongPassword(newPassword)) {
+      nextErrors.newPassword = PASSWORD_REQUIREMENTS_MESSAGE;
     }
 
     if (confirmPassword !== newPassword) {
