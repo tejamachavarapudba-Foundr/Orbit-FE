@@ -112,45 +112,7 @@ export const PitchReelsScreen = () => {
     <View style={{ width: "100%", height: screenHeight }}>
       <ReelVideo reelId={item.id} uri={item.pitchVideoUrl} />
 
-      <View pointerEvents="box-none" style={{ position: "absolute", right: 10, bottom: 96, alignItems: "center", gap: 20 }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={item.isLikedByMe ? "Unlike" : "Like"}
-          onPress={() => handleLike(item)}
-          style={{ alignItems: "center", gap: 3 }}
-        >
-          <Feather name="thumbs-up" size={24} color={item.isLikedByMe ? "#378ADD" : "#fff"} />
-          <AppText size="xs" style={{ color: "#fff" }}>
-            {item.likeCount}
-          </AppText>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Comments"
-          onPress={() => setCommentsProjectId(item.id)}
-          style={{ alignItems: "center", gap: 3 }}
-        >
-          <Feather name="message-circle" size={24} color="#fff" />
-          <AppText size="xs" style={{ color: "#fff" }}>
-            {item.commentCount}
-          </AppText>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={item.isSavedByMe ? "Unsave" : "Save"}
-          onPress={() => handleSave(item)}
-        >
-          <Feather name="bookmark" size={24} color={item.isSavedByMe ? "#378ADD" : "#fff"} />
-        </Pressable>
-
-        <Pressable accessibilityRole="button" accessibilityLabel="Share" onPress={() => handleShare(item)}>
-          <Feather name="share" size={24} color="#fff" />
-        </Pressable>
-      </View>
-
-      <View pointerEvents="box-none" style={{ position: "absolute", left: 14, right: 70, bottom: 24 }}>
+      <View pointerEvents="box-none" style={{ position: "absolute", left: 14, right: 14, bottom: 24 }}>
         <Pressable
           accessibilityRole="button"
           onPress={() => navigation.navigate("ProjectDetail", { id: item.id })}
@@ -169,6 +131,44 @@ export const PitchReelsScreen = () => {
             {item.tagline}
           </AppText>
         ) : null}
+
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 28, marginTop: 14 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={item.isLikedByMe ? "Unlike" : "Like"}
+            onPress={() => handleLike(item)}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <Feather name="thumbs-up" size={22} color={item.isLikedByMe ? "#378ADD" : "#fff"} />
+            <AppText size="xs" style={{ color: "#fff" }}>
+              {item.likeCount}
+            </AppText>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Comments"
+            onPress={() => setCommentsProjectId(item.id)}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <Feather name="message-circle" size={22} color="#fff" />
+            <AppText size="xs" style={{ color: "#fff" }}>
+              {item.commentCount}
+            </AppText>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={item.isSavedByMe ? "Unsave" : "Save"}
+            onPress={() => handleSave(item)}
+          >
+            <Feather name="bookmark" size={22} color={item.isSavedByMe ? "#378ADD" : "#fff"} />
+          </Pressable>
+
+          <Pressable accessibilityRole="button" accessibilityLabel="Share" onPress={() => handleShare(item)}>
+            <Feather name="share" size={22} color="#fff" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
