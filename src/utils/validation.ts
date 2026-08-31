@@ -15,7 +15,10 @@ export const isValidUrl = (value: string): boolean => {
   }
 };
 
-export const isValidLinkedInUrl = (value: string): boolean => isValidUrl(value) && /linkedin\.com/i.test(value);
+// Accepts both a full linkedin.com profile URL and LinkedIn's own "Share
+// profile" short link (lnkd.in) — some users paste the shortened one.
+export const isValidLinkedInUrl = (value: string): boolean =>
+  isValidUrl(value) && /(linkedin\.com|lnkd\.in)/i.test(value);
 
 const VIDEO_FILE_EXTENSIONS = /\.(mp4|mov|m4v|webm)(\?.*)?$/i;
 

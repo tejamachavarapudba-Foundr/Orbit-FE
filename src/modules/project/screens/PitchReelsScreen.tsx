@@ -105,7 +105,12 @@ export const PitchReelsScreen = () => {
   };
 
   const handleShare = (reel: PitchReel) => {
-    void Share.share({ message: `Check out ${reel.name} on Startuphouze — ${reel.tagline}` });
+    // startuphouze:// only opens for someone who already has the app
+    // installed — there's no public web page for a project yet, so this
+    // isn't a link that works for everyone a reel might be shared with.
+    void Share.share({
+      message: `Check out ${reel.name} on Startuphouze — ${reel.tagline}\nstartuphouze://project/${reel.id}`
+    });
   };
 
   const handleCommentPosted = (projectId: string) => {
