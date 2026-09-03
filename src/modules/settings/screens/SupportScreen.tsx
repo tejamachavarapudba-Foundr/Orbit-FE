@@ -9,7 +9,7 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 
 // TODO: replace with the real support inbox once one exists.
-const SUPPORT_EMAIL = "support@orbit.app";
+const SUPPORT_EMAIL = "support@startuphouze.com";
 
 export const SupportScreen = () => {
   const colors = useThemeTokens();
