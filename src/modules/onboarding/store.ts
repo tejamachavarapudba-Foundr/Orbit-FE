@@ -109,7 +109,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     // to "professional" via LEGACY_ROLE_ALIASES, making it the only role pre-selected on
     // the Welcome screen — falling back to null here left draft.roleProfile null even
     // though a role was already chosen. completeOnboarding() then silently no-ops on
-    // that null check, so "Enter Startuphouze" did nothing for anyone who never had to
+    // that null check, so "Enter Orbit" did nothing for anyone who never had to
     // tap a RoleCard (i.e. everyone landing on the pre-selected "professional" role).
     const roleProfile = profile.roleProfile ?? (memberRole ? toRoleProfileData(memberRole, emptyRoleProfile(memberRole)) : null);
 
@@ -214,7 +214,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         onboardingCompleted: true
       });
 
-      useToastStore.getState().show({ type: "success", title: "Welcome to Startuphouze!", message: "Your profile is ready." });
+      useToastStore.getState().show({ type: "success", title: "Welcome to Orbit!", message: "Your profile is ready." });
       set({ isSubmitting: false });
       return true;
     } catch (error) {

@@ -26,7 +26,7 @@ export const SearchScreen = () => {
             Search
           </AppText>
           <AppText tone="muted" className="mt-2 leading-6">
-            Find people, projects, jobs, events and posts across Startuphouze.
+            Find people, projects, jobs, events and posts across Orbit.
           </AppText>
 
           <View className="mt-6 rounded-md border border-border bg-surface px-4 shadow-sm">
@@ -72,7 +72,7 @@ export const SearchScreen = () => {
             </View>
           ) : showHint ? (
             <View className="mt-10">
-              <EmptyState title="Search Startuphouze" message="Type at least two letters, then choose a result type or search across everything." />
+              <EmptyState title="Search Orbit" message="Type at least two letters, then choose a result type or search across everything." />
             </View>
           ) : totalCount === 0 ? (
             <View className="mt-10">

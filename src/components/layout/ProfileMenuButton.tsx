@@ -135,7 +135,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
                     <View className="flex-1">
                       <View className="flex-row items-center gap-2">
                         <AppText weight="bold" numberOfLines={1}>
-                          {user?.profile.fullName || "Startuphouze member"}
+                          {user?.profile.fullName || "Orbit member"}
                         </AppText>
                         {user?.profile.openToConnect ? <View className="h-2 w-2 rounded-full bg-success" /> : null}
                       </View>

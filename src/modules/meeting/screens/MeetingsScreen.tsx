@@ -93,7 +93,7 @@ export const MeetingsScreen = () => {
                     My Meetings
                   </AppText>
                   <AppText tone="muted" size="sm" className="mt-2 leading-5">
-                    Propose a time, negotiate, and get a meeting link — all set up right here on Startuphouze.
+                    Propose a time, negotiate, and get a meeting link — all set up right here on Orbit.
                   </AppText>
                 </View>
                 {isConnected ? (

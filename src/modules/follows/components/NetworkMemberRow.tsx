@@ -15,7 +15,7 @@ type NetworkMemberRowProps = {
 
 export const NetworkMemberRow = memo(
   ({ profile, onPress, subtitle, showFollowButton = true }: NetworkMemberRowProps) => {
-    const headline = profile.headline.trim() || profile.role || "Startuphouze member";
+    const headline = profile.headline.trim() || profile.role || "Orbit member";
     const skill = profile.skills[0];
 
     return (
@@ -26,7 +26,7 @@ export const NetworkMemberRow = memo(
               <UserAvatar name={profile.fullName} imageUrl={profile.avatarUrl} size={44} />
               <View className="flex-1">
                 <AppText weight="bold" size="base" numberOfLines={1}>
-                  {profile.fullName || "Startuphouze member"}
+                  {profile.fullName || "Orbit member"}
                 </AppText>
                 <AppText tone="primary" size="sm" weight="medium" numberOfLines={1} className="mt-0.5">
                   {headline}

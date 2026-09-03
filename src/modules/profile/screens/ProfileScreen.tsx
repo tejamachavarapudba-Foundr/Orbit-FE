@@ -60,13 +60,13 @@ export const ProfileScreen = () => {
   const handleDeleteAccount = async () => {
     const didDelete = await deleteAccount();
     if (didDelete) {
-      showToast({ type: "success", title: "Account deleted", message: "Your Startuphouze account was removed." });
+      showToast({ type: "success", title: "Account deleted", message: "Your Orbit account was removed." });
       await logout();
     }
   };
 
   const confirmDeleteAccount = () => {
-    Alert.alert("Delete account?", "This will remove your Startuphouze account and sign you out.", [
+    Alert.alert("Delete account?", "This will remove your Orbit account and sign you out.", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => void handleDeleteAccount() }
     ]);
@@ -191,7 +191,7 @@ export const ProfileScreen = () => {
           {user?.profile?.identityVerified ? <VerifiedBadge size="md" /> : null}
         </View>
         <AppText tone="muted" className="mt-2">
-          {user?.email ?? "Complete your Startuphouze profile."}
+          {user?.email ?? "Complete your Orbit profile."}
         </AppText>
 
         <View className="mt-5 items-center">

@@ -36,7 +36,7 @@ export const SubscriptionScreen = () => {
             </View>
           </View>
           <AppText tone="muted" size="sm" className="leading-5">
-            Startuphouze is currently free for everyone. Paid plans aren't available yet.
+            Orbit is currently free for everyone. Paid plans aren't available yet.
           </AppText>
         </View>
 

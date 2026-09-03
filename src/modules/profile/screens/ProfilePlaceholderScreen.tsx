@@ -15,7 +15,7 @@ export const ProfilePlaceholderScreen = () => {
   const showToast = useToastStore((state) => state.show);
 
   const confirmDeleteAccount = () => {
-    Alert.alert("Delete account?", "This will remove your Startuphouze account and sign you out.", [
+    Alert.alert("Delete account?", "This will remove your Orbit account and sign you out.", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => void handleDeleteAccount() }
     ]);
@@ -25,7 +25,7 @@ export const ProfilePlaceholderScreen = () => {
     const didDelete = await deleteAccount();
 
     if (didDelete) {
-      showToast({ type: "success", title: "Account deleted", message: "Your Startuphouze account was removed." });
+      showToast({ type: "success", title: "Account deleted", message: "Your Orbit account was removed." });
       await logout();
     }
   };

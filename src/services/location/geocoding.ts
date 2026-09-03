@@ -11,7 +11,7 @@ type NominatimResult = {
 };
 
 const NOMINATIM_HEADERS = {
-  "User-Agent": "StartuphouzeApp/1.0 (events-location)"
+  "User-Agent": "OrbitApp/1.0 (events-location)"
 };
 
 export const searchPlaces = async (query: string): Promise<NominatimResult[]> => {

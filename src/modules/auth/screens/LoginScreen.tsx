@@ -57,7 +57,7 @@ export const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
             <View className="mt-6 flex-row flex-wrap justify-center">
               <AppText tone="muted" size="sm">
-                New to Startuphouze?{" "}
+                New to Orbit?{" "}
               </AppText>
               <Pressable accessibilityRole="button" onPress={() => navigation.navigate("Register")}>
                 <AppText tone="primary" size="sm" weight="medium" className="underline">

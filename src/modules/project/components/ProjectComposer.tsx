@@ -187,7 +187,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         </View>
 
         <AppText tone="muted" size="sm">
-          Share your startup with the Startuphouze community.
+          Share your startup with the Orbit community.
         </AppText>
 
         <AppTextInput label="Project name" value={values.name} onChangeText={(value) => setField("name", value)} />

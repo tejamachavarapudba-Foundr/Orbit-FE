@@ -8,7 +8,7 @@ const write = (level: LogLevel, message: string, meta?: unknown) => {
   }
 
   const payload = meta === undefined ? "" : meta;
-  console[level](`[Startuphouze] ${message}`, payload);
+  console[level](`[Orbit] ${message}`, payload);
 };
 
 export const logger = {

@@ -109,7 +109,7 @@ export const PitchReelsScreen = () => {
     // installed — there's no public web page for a project yet, so this
     // isn't a link that works for everyone a reel might be shared with.
     void Share.share({
-      message: `Check out ${reel.name} on Startuphouze — ${reel.tagline}\nstartuphouze://project/${reel.id}`
+      message: `Check out ${reel.name} on Orbit — ${reel.tagline}\nstartuphouze://project/${reel.id}`
     });
   };
 

@@ -15,7 +15,7 @@ const sections = [
   },
   {
     title: "Who can see it",
-    body: "Your public profile fields (name, headline, role, skills, bio) are visible to other Startuphouze members. Direct messages are only visible to you and the recipient. We don't sell your data to third parties."
+    body: "Your public profile fields (name, headline, role, skills, bio) are visible to other Orbit members. Direct messages are only visible to you and the recipient. We don't sell your data to third parties."
   },
   {
     title: "Your controls",
@@ -35,7 +35,7 @@ export const DataPrivacyScreen = () => (
         Data &amp; Privacy
       </AppText>
       <AppText tone="muted" size="sm" className="mt-2 leading-5">
-        A plain-language summary of how Startuphouze handles your data.
+        A plain-language summary of how Orbit handles your data.
       </AppText>
 
       <View className="mt-6 gap-4">

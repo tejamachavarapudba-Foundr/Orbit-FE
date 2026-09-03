@@ -46,7 +46,7 @@ export const UserDetailPanel = ({ user, isLoading, errorMessage, onClose }: User
                 {user.profile.fullName}
               </AppText>
               <AppText tone="primary" weight="medium" className="mt-1">
-                {user.profile.headline || user.profile.role || "Startuphouze member"}
+                {user.profile.headline || user.profile.role || "Orbit member"}
               </AppText>
               <AppText tone="muted" size="sm" className="mt-1">
                 {user.profile.openToConnect ? "Open to connect" : "Profile preview"}

@@ -80,7 +80,7 @@ export const EventsScreen = () => {
                   </AppText>
                 </View>
                 <AppText tone="muted" className="mt-2 leading-6">
-                  Meet founders, co-founders and investors through focused Startuphouze gatherings.
+                  Meet founders, co-founders and investors through focused Orbit gatherings.
                 </AppText>
               </View>
               <View className="max-w-[140px] rounded-md bg-background px-3 py-2">
@@ -142,7 +142,7 @@ export const EventsScreen = () => {
             <View className="w-full max-w-2xl self-center">
               <EmptyState
                 title="No events found"
-                message="Try another filter or check upcoming Startuphouze events soon."
+                message="Try another filter or check upcoming Orbit events soon."
               />
             </View>
           )

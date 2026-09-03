@@ -120,8 +120,8 @@ export const PostCard = memo(({ post }: PostCardProps) => {
   const sharePost = useCallback(async () => {
     const message = [post.content, post.linkUrl].filter(Boolean).join("\n\n");
     await Share.share({
-      title: "Startuphouze post",
-      message: message || "Startuphouze post",
+      title: "Orbit post",
+      message: message || "Orbit post",
       url: post.linkUrl || undefined
     });
   }, [post.content, post.linkUrl]);

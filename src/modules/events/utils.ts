@@ -20,7 +20,7 @@ export const getCountdownLabel = (event: StartupEvent): string | null => {
   return `${diffDays} days to go`;
 };
 
-export const getHostName = (event: StartupEvent) => event.host?.fullName?.trim() || "Startuphouze member";
+export const getHostName = (event: StartupEvent) => event.host?.fullName?.trim() || "Orbit member";
 
 // A local RSVP toggle (once the user has acted this session) always wins
 // over the server snapshot — otherwise fall back to isAttending, which

@@ -51,7 +51,7 @@ export const ChatDetailPanel = ({
     return null;
   }
 
-  const participantName = participant?.fullName || "Startuphouze member";
+  const participantName = participant?.fullName || "Orbit member";
 
   return (
     <View className="flex-1 bg-background">

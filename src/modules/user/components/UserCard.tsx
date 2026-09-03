@@ -37,7 +37,7 @@ export const UserCard = memo(({ user, onPress, showFollowButton = false }: UserC
           <UserAvatar name={profile.fullName} imageUrl={profile.avatarUrl} />
           <View className="flex-1">
             <AppText weight="bold" size="lg">
-              {profile.fullName || "Startuphouze member"}
+              {profile.fullName || "Orbit member"}
             </AppText>
             <AppText tone="primary" size="sm" weight="medium">
               {profile.headline.trim() || formatRole(profile.role)}

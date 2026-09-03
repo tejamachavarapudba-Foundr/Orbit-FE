@@ -90,7 +90,7 @@ export const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
             </AppText>
 
             <AppText tone="muted" size="base" className="mt-6 max-w-md text-center leading-6">
-              Startuphouze is a focused network for the startup ecosystem — find your co-founder, meet mentors, talk to
+              Orbit is a focused network for the startup ecosystem — find your co-founder, meet mentors, talk to
               investors, and build with engineers who care about the mission.
             </AppText>
 
@@ -127,7 +127,7 @@ export const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
               One network. Every role that builds startups.
             </AppText>
             <AppText tone="muted" className="mt-3 text-center leading-6">
-              Skip the noise of generic professional networks. Startuphouze is purpose-built for early-stage collaboration.
+              Skip the noise of generic professional networks. Orbit is purpose-built for early-stage collaboration.
             </AppText>
           </View>
 
