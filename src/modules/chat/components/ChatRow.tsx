@@ -39,7 +39,7 @@ const getLatestMessage = (chat: Chat) => {
 
 export const ChatRow = memo(({ chat, participant, onPress, onLongPress }: ChatRowProps) => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
-  const name = participant?.fullName || "Startuphouze member";
+  const name = participant?.fullName || "Orbit member";
   const latest = useMemo(() => getLatestMessage(chat), [chat]);
   const preview = latest?.content?.trim() || "Start the conversation...";
   const isUnread = Boolean(latest && latest.senderId !== currentUserId && !latest.readAt);

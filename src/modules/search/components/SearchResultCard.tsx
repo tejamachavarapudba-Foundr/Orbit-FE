@@ -35,7 +35,7 @@ export const SearchResultCard = ({ kind, item }: SearchResultCardProps) => {
           <UserAvatar name={item.profile.fullName} imageUrl={item.profile.avatarUrl} />
           <View className="flex-1">
             <AppText weight="bold" size="lg">
-              {item.profile.fullName || "Startuphouze member"}
+              {item.profile.fullName || "Orbit member"}
             </AppText>
             <AppText tone="primary" weight="medium" className="mt-1">
               {item.profile.headline || item.profile.role || "Member"}

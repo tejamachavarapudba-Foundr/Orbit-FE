@@ -34,7 +34,7 @@ const faqs = [
       "Go to Profile → Delete account. This permanently removes your profile and content and can't be undone."
   },
   {
-    question: "Is Startuphouze free?",
+    question: "Is Orbit free?",
     answer:
       "Yes, everything is currently free — see Settings → Subscription for details."
   }

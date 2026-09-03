@@ -102,7 +102,7 @@ export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
 
             <View className="mt-4 flex-row flex-wrap items-center gap-2">
               <AppText size="2xl" weight="bold">
-                {profile.fullName || "Startuphouze member"}
+                {profile.fullName || "Orbit member"}
               </AppText>
               {profile.identityVerified ? <VerifiedBadge size="md" /> : null}
               {profile.openToConnect ? (

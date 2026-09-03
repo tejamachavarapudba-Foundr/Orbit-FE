@@ -155,7 +155,7 @@ export const FeedScreen = () => {
             )}
 
             <AppText family="display" size="xl" weight="bold" className="tracking-tight">
-              Startuphouze
+              Orbit
             </AppText>
 
             {user ? <ProfileMenuButton /> : <View className="h-9 w-9" />}

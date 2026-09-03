@@ -339,7 +339,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
           Founder
         </AppText>
         <AppText tone="muted" size="sm" className="mt-2">
-          {founder?.fullName || "Startuphouze member"} {founder?.headline ? `| ${founder.headline}` : ""}
+          {founder?.fullName || "Orbit member"} {founder?.headline ? `| ${founder.headline}` : ""}
         </AppText>
 
         {isFounder || isInvestor ? (

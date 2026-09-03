@@ -1,5 +1,5 @@
 export const appConfig = {
-  appName: "Startuphouze",
+  appName: "Orbit",
   apiBaseUrl: "https://orbit-be-production-e16c.up.railway.app/api",
   authRefreshPath: "/auth/refresh",
   authTokenKey: "startuphouze.auth.tokens",

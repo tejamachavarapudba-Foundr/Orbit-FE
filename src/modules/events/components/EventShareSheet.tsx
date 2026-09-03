@@ -21,7 +21,7 @@ const formatShareText = (event: StartupEvent) => {
     minute: "2-digit"
   }).format(new Date(event.startsAt));
 
-  return `${event.title}\n${when}\n${event.location}\n\nShared via Startuphouze`;
+  return `${event.title}\n${when}\n${event.location}\n\nShared via Orbit`;
 };
 
 type EventShareSheetProps = {
@@ -93,7 +93,7 @@ export const EventShareSheet = ({ visible, event, onClose }: EventShareSheetProp
                 <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
                   <Feather name="users" size={iconSize.md} color={colors.primary} />
                 </View>
-                <AppText size="base">{isSending ? "Sharing…" : "Share with people on Startuphouze"}</AppText>
+                <AppText size="base">{isSending ? "Sharing…" : "Share with people on Orbit"}</AppText>
               </Pressable>
 
               <Pressable

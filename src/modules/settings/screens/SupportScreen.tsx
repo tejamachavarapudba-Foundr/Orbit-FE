@@ -16,7 +16,7 @@ export const SupportScreen = () => {
   const navigation = useNavigation<any>();
 
   const emailSupport = () => {
-    void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Startuphouze support")}`);
+    void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Orbit support")}`);
   };
 
   return (
