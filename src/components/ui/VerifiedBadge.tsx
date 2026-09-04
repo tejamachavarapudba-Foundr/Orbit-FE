@@ -13,7 +13,7 @@ const dimensions: Record<NonNullable<VerifiedBadgeProps["size"]>, { box: number;
   md: { box: 18, icon: 13 }
 };
 
-/** A small filled thumbs-up badge, meant to sit inline right after a verified user's name. */
+/** A small filled checkmark badge, meant to sit inline right after a verified user's name. */
 export const VerifiedBadge = ({ size = "sm", className = "" }: VerifiedBadgeProps) => {
   const colors = useThemeTokens();
   const { box, icon } = dimensions[size];
@@ -24,7 +24,7 @@ export const VerifiedBadge = ({ size = "sm", className = "" }: VerifiedBadgeProp
       className={`items-center justify-center rounded-full bg-primary ${className}`}
       style={{ width: box, height: box }}
     >
-      <Feather name="thumbs-up" size={icon} color={colors.onPrimary} />
+      <Feather name="check" size={icon} color={colors.onPrimary} />
     </View>
   );
 };
