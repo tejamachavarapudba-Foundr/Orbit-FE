@@ -63,13 +63,13 @@ const NetworkTabBar = ({
             accessibilityRole="button"
             onPress={() => onChange(tab.value)}
             className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-full px-2 py-2.5 ${
-              isActive ? "bg-surface" : "bg-transparent"
+              isActive ? "bg-primary" : "bg-transparent"
             }`}
             style={isActive ? getShadowStyle("card") : undefined}
           >
-            {iconName ? <Feather name={iconName} size={14} color={isActive ? colors.text : colors.muted} /> : null}
+            {iconName ? <Feather name={iconName} size={14} color={isActive ? colors.onPrimary : colors.muted} /> : null}
             <AppText
-              tone={isActive ? "default" : "muted"}
+              tone={isActive ? "onPrimary" : "muted"}
               weight="semibold"
               size="xs"
               numberOfLines={1}
