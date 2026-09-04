@@ -28,6 +28,7 @@ import {
 } from "@/modules/profile/schemas/experience";
 import { CertificationEditor, ExperienceEditor } from "@/modules/profile/components/ExperienceCertificationEditors";
 import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
+import { isValidLinkedInUrl } from "@/utils/validation";
 import {
   CLIENT_INDUSTRIES_OPTIONS,
   SERVICES_OFFERED_OPTIONS
@@ -396,6 +397,15 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     return (
       <View className="gap-4">
         <AppTextInput label="Company" value={data.company} onChangeText={(v) => setField("company", v)} />
+        <AppTextInput
+          label="Company LinkedIn"
+          value={data.companyLinkedinUrl}
+          autoCapitalize="none"
+          keyboardType="url"
+          placeholder="https://linkedin.com/company/..."
+          error={data.companyLinkedinUrl.trim() && !isValidLinkedInUrl(data.companyLinkedinUrl) ? "Enter a valid LinkedIn URL" : undefined}
+          onChangeText={(v) => setField("companyLinkedinUrl", v)}
+        />
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
             Services offered (select up to 5)
