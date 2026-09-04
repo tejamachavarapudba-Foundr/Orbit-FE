@@ -53,8 +53,8 @@ export const ReelVideo = ({ reelId, uri }: ReelVideoProps) => {
       <Video
         ref={videoRef}
         source={{ uri }}
-        resizeMode={ResizeMode.COVER}
-        style={{ width: "100%", height: "100%" }}
+        resizeMode={ResizeMode.CONTAIN}
+        style={{ width: "100%", height: "100%", backgroundColor: "#000" }}
         shouldPlay={false}
         isLooping
         isMuted={isMuted}
