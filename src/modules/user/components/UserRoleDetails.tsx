@@ -10,6 +10,7 @@ import {
   Certification,
   formatExperienceTimeline,
   isValidWorkExperience,
+  toAbsoluteMonth,
   WorkExperience
 } from "@/modules/profile/schemas/experience";
 import {
@@ -74,8 +75,15 @@ const mapToLabels = (
 const ExperienceList = ({ experiences }: { experiences: WorkExperience[] | undefined }) => {
   // Only well-formed entries (company, designation, and a resolvable date
   // range) show up publicly — an incomplete draft entry shouldn't appear
-  // on the profile just because it exists in the underlying data.
-  const items = (experiences ?? []).filter(isValidWorkExperience);
+  // on the profile just because it exists in the underlying data. Sorted
+  // most-recent-first regardless of the order they were entered in —
+  // current role(s) first, then by start date descending.
+  const items = (experiences ?? [])
+    .filter(isValidWorkExperience)
+    .sort((a, b) => {
+      if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
+      return (toAbsoluteMonth(b.startDate) ?? 0) - (toAbsoluteMonth(a.startDate) ?? 0);
+    });
   if (!items.length) {
     return null;
   }
@@ -104,8 +112,11 @@ const ExperienceList = ({ experiences }: { experiences: WorkExperience[] | undef
 // profile at a glance, not just another plain list row.
 const CertificationList = ({ certifications, isVerified }: { certifications: Certification[] | undefined; isVerified: boolean }) => {
   const colors = useThemeTokens();
-  const items = (certifications ?? []).filter((entry) => entry.name.trim());
-  if (!items.length && !isVerified) {
+  // A named-but-fileless entry has nothing to actually verify — it never
+  // counts toward what's shown here, so an empty/all-fileless list never
+  // renders a "Verified — Certifications" card with nothing underneath it.
+  const items = (certifications ?? []).filter((entry) => entry.name.trim() && entry.fileUrl);
+  if (!items.length) {
     return null;
   }
 
