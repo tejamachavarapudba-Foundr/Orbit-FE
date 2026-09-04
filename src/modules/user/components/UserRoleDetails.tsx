@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
@@ -125,7 +125,7 @@ const CertificationList = ({ certifications, isVerified }: { certifications: Cer
       className={`gap-2 rounded-md p-3 ${isVerified ? "border border-primary/40 bg-primary/5" : "py-3"}`}
     >
       <View className="flex-row items-center gap-1.5">
-        {isVerified ? <Feather name="shield" size={iconSize.sm} color={colors.primary} /> : null}
+        {isVerified ? <MaterialCommunityIcons name="shield-check-outline" size={iconSize.sm} color={colors.primary} /> : null}
         <AppText tone={isVerified ? "primary" : "muted"} weight={isVerified ? "semibold" : "medium"} size="sm">
           {isVerified ? "Verified — Certifications" : "Certifications"}
         </AppText>

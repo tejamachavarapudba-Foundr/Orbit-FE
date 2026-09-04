@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { Image, Linking, Pressable, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { useProjectStore } from "@/modules/project/store";
 import { useAuthStore } from "@/modules/auth/store";
@@ -141,7 +141,7 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
                 ) : null}
                 {project.incorporationVerificationStatus === "approved" ? (
                   <View accessible accessibilityLabel="Certificate of Incorporation verified">
-                    <Feather name="shield" size={22} color={colors.primary} />
+                    <MaterialCommunityIcons name="shield-check-outline" size={22} color={colors.primary} />
                   </View>
                 ) : null}
               </View>
