@@ -96,7 +96,11 @@ export const VerifyProfileScreen = () => {
             </Card>
           </Pressable>
 
-          {role ? (
+          {/* Professional's experience + certifications are now edited
+              directly in My Profile > Role details, with admin review
+              happening automatically on save — there's nothing left to do
+              from a separate verification screen for that role. */}
+          {role && role !== "professional" ? (
             <Pressable
               accessibilityRole="button"
               onPress={() =>

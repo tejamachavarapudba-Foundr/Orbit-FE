@@ -4,7 +4,6 @@ import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { BottomSheetMultiSelect } from "@/components/ui/BottomSheetMultiSelect";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
-import { ExperiencePeriodsEditor } from "@/components/ui/ExperiencePeriodsEditor";
 import { PortfolioNamesBottomSheet } from "@/components/ui/PortfolioNamesBottomSheet";
 import { normalizeMemberRole } from "@/constants/memberRoles";
 import { RoleProfileData } from "@/modules/profile/schemas";
@@ -21,7 +20,8 @@ import {
   FOUNDER_STATUS_OPTIONS,
   STARTUP_STAGE_OPTIONS
 } from "@/modules/profile/schemas/founder";
-import { calculateTotalExperienceLabel, ExperiencePeriod } from "@/modules/profile/schemas/experience";
+import { calculateTotalExperienceLabel, Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+import { CertificationEditor, ExperienceEditor } from "@/modules/profile/components/ExperienceCertificationEditors";
 import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
 import {
   CLIENT_INDUSTRIES_OPTIONS,
@@ -312,10 +312,31 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
 
   if (memberRole === "professional" && roleProfile.role === "professional") {
     const data = roleProfile.data;
-    const setExperiencePeriods = (periods: ExperiencePeriod[]) =>
+
+    // experienceLevel ("3 yrs 4 mos") is no longer a manually-entered field —
+    // it's derived from the work-experience entries' own date ranges below,
+    // using the same overlap-safe total-experience math the old date-range-
+    // only picker used, just fed from these entries' dates instead.
+    const setExperiences = (experiences: WorkExperience[]) =>
       onChange({
         role: roleProfile.role,
-        data: { ...data, experiencePeriods: periods, experienceLevel: calculateTotalExperienceLabel(periods) }
+        data: {
+          ...data,
+          experiences,
+          experienceLevel: calculateTotalExperienceLabel(
+            experiences.map((entry) => ({
+              startDate: entry.startDate,
+              endDate: entry.endDate,
+              isCurrent: entry.isCurrent
+            }))
+          )
+        }
+      });
+
+    const setCertifications = (certifications: Certification[]) =>
+      onChange({
+        role: roleProfile.role,
+        data: { ...data, certifications }
       });
 
     return (
@@ -343,7 +364,8 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
           <AppText size="sm" weight="medium" tone="muted">
             Experience
           </AppText>
-          <ExperiencePeriodsEditor periods={data.experiencePeriods} onChange={setExperiencePeriods} />
+          <ExperienceEditor experiences={data.experiences} onChange={setExperiences} />
+          <CertificationEditor certifications={data.certifications} onChange={setCertifications} />
         </View>
       </View>
     );
