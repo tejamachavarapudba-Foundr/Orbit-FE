@@ -14,6 +14,7 @@ import {
   Sora_700Bold,
   useFonts as useSoraFonts
 } from "@expo-google-fonts/sora";
+import { Orbitron_500Medium, useFonts as useOrbitronFonts } from "@expo-google-fonts/orbitron";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { getCrashlytics, recordError, setCrashlyticsCollectionEnabled } from "@react-native-firebase/crashlytics";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -65,8 +66,12 @@ export default function App() {
     ...Ionicons.font
   });
 
-  const fontLoadError = manropeError ?? soraError ?? iconFontsError;
-  const fontsLoaded = manropeLoaded && soraLoaded && iconFontsLoaded;
+  // Used only for the "ORBIT" wordmark in AppLogo (screen headers) — not
+  // part of the body/display type scale, so it isn't in fontFamilyClass.
+  const [orbitronLoaded, orbitronError] = useOrbitronFonts({ Orbitron_500Medium });
+
+  const fontLoadError = manropeError ?? soraError ?? iconFontsError ?? orbitronError;
+  const fontsLoaded = manropeLoaded && soraLoaded && iconFontsLoaded && orbitronLoaded;
 
   useEffect(() => {
     if (__DEV__ && fontLoadError) {
