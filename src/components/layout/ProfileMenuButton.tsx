@@ -10,6 +10,7 @@ import { useAuthStore } from "@/modules/auth/store";
 import { useConnectionsStore } from "@/modules/connections/store";
 import { EVENT_NOTIFICATION_TYPES, countUnreadByType } from "@/modules/notifications/categories";
 import { useNotifications } from "@/modules/notifications/hooks";
+import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 
 const tabRoutes = new Set(["Home", "Messages", "Projects", "Jobs", "Meetings", "Discover"]);
 
@@ -35,6 +36,7 @@ type ProfileMenuButtonProps = {
 export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) => {
   const colors = useThemeTokens();
   const navigation = useNavigation<any>();
+  const openUserProfile = useOpenUserProfile();
   const user = useAuthStore((state) => state.user);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const initial = user?.profile.fullName?.charAt(0).toUpperCase() || "S";
@@ -108,6 +110,12 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
     setIsProfileMenuOpen((isOpen) => !isOpen);
   };
 
+  const handleViewOwnProfile = () => {
+    if (!user?.profile.id) return;
+    closeMenu();
+    openUserProfile(user.profile.id);
+  };
+
   return (
     <View className={`relative ${className}`}>
       <Pressable
@@ -129,7 +137,12 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
             />
             <View className="absolute right-4 top-16 w-72 rounded-md border border-border bg-surface py-3 shadow-sm">
               <ScrollView keyboardShouldPersistTaps="handled" bounces={false}>
-                <View className="border-b border-border px-5 pb-3">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="View my profile"
+                  onPress={handleViewOwnProfile}
+                  className="border-b border-border px-5 pb-3"
+                >
                   <View className="flex-row items-center gap-3">
                     <Avatar name={user?.profile.fullName ?? initial} imageUrl={user?.profile.avatarUrl ?? ""} size="md" fallback="mesh" />
                     <View className="flex-1">
@@ -144,7 +157,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
                       </AppText>
                     </View>
                   </View>
-                </View>
+                </Pressable>
 
                 <View className="py-2">
                   {menuItems.map((item) => {

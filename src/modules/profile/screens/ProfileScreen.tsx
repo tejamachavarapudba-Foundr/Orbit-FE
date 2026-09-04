@@ -71,28 +71,8 @@ export const ProfileScreen = () => {
       { text: "Delete", style: "destructive", onPress: () => void handleDeleteAccount() }
     ]);
   };
-  const handleAvatarUpload = async () => {
+  const uploadAvatarAsset = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        showToast({
-          type: "error",
-          title: "Permission needed",
-          message: "Allow photo library access in your device settings to update your photo."
-        });
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 0.8,
-        allowsEditing: true,
-        aspect: [1, 1]
-      });
-
-      const asset = result.canceled ? undefined : result.assets[0];
-      if (!asset) return;
-
       const formData = new FormData();
       formData.append(
         "file",
@@ -111,6 +91,60 @@ export const ProfileScreen = () => {
       console.error(error);
       showToast({ type: "error", title: "Photo upload failed" });
     }
+  };
+
+  const handleTakePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      showToast({
+        type: "error",
+        title: "Permission needed",
+        message: "Allow camera access in your device settings to take a photo."
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [1, 1]
+    });
+
+    const asset = result.canceled ? undefined : result.assets[0];
+    if (!asset) return;
+    void uploadAvatarAsset(asset);
+  };
+
+  const handleChooseFromLibrary = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showToast({
+        type: "error",
+        title: "Permission needed",
+        message: "Allow photo library access in your device settings to update your photo."
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [1, 1]
+    });
+
+    const asset = result.canceled ? undefined : result.assets[0];
+    if (!asset) return;
+    void uploadAvatarAsset(asset);
+  };
+
+  const handleAvatarUpload = () => {
+    Alert.alert("Update profile photo", undefined, [
+      { text: "Take Photo", onPress: () => void handleTakePhoto() },
+      { text: "Choose from Library", onPress: () => void handleChooseFromLibrary() },
+      { text: "Cancel", style: "cancel" }
+    ]);
   };
 
   const handleResumeUpload = async () => {

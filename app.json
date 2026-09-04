@@ -69,7 +69,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Orbit to access your photos to attach them to posts.",
-          "videosPermission": "Allow Orbit to access your videos to attach them to posts."
+          "videosPermission": "Allow Orbit to access your videos to attach them to posts.",
+          "cameraPermission": "Allow Orbit to access your camera to take a profile photo."
         }
       ]
     ],

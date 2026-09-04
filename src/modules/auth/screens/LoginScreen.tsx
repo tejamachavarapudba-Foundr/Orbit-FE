@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 
@@ -6,6 +7,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { PasswordVisibilityToggle } from "@/components/ui/PasswordVisibilityToggle";
 import { AuthCard } from "@/modules/auth/components/AuthCard";
 import { AuthErrorBanner } from "@/modules/auth/components/AuthErrorBanner";
 import { AuthHeader } from "@/modules/auth/components/AuthHeader";
@@ -15,6 +17,7 @@ type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, "Login">;
 
 export const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const { values, fieldErrors, isSubmitting, errorMessage, setValue, submit } = useLoginForm();
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <AppScreen withHorizontalPadding={false}>
@@ -40,11 +43,12 @@ export const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 label="Password"
                 value={values.password}
                 error={fieldErrors.password}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoComplete="password"
                 placeholder="Your password"
                 className="h-11 text-base"
                 onChangeText={(value) => setValue("password", value)}
+                rightElement={<PasswordVisibilityToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
               />
               <AppButton label="Sign in" loading={isSubmitting} onPress={() => void submit()} className="mt-1" />
               <AppButton

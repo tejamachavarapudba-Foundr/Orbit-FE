@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 
@@ -6,6 +7,7 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
+import { PasswordVisibilityToggle } from "@/components/ui/PasswordVisibilityToggle";
 import { AuthCard } from "@/modules/auth/components/AuthCard";
 import { AuthErrorBanner } from "@/modules/auth/components/AuthErrorBanner";
 import { AuthHeader } from "@/modules/auth/components/AuthHeader";
@@ -15,6 +17,7 @@ type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, "Register"
 
 export const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
   const { values, fieldErrors, isSubmitting, errorMessage, setValue, submit } = useRegisterForm();
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <AppScreen withHorizontalPadding={false}>
@@ -50,11 +53,12 @@ export const RegisterScreen = ({ navigation }: RegisterScreenProps) => {
                 label="Password"
                 value={values.password}
                 error={fieldErrors.password}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoComplete="new-password"
                 placeholder="8+ chars, upper, lower, number & symbol"
                 className="h-11 text-base"
                 onChangeText={(value) => setValue("password", value)}
+                rightElement={<PasswordVisibilityToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
               />
               <AppButton label="Create account" loading={isSubmitting} onPress={() => void submit()} className="mt-1" />
             </AuthCard>
