@@ -299,15 +299,12 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
       lookingFor: csvToArray(values.lookingForText)
     };
 
-    const didSucceed = existingProject
-      ? await updateProject(existingProject.id, payload)
-      : await createProject(payload);
-
-    if (didSucceed && !existingProject) {
-      setValues({ ...emptyPayload, industryTagsText: "", techStackText: "", lookingForText: "" });
-    }
-
-    return didSucceed;
+    // No reset-to-empty here on success — every current caller closes or
+    // navigates away immediately after a successful submit, so resetting
+    // the still-mounted form only produced a visible flash of empty fields
+    // in the instant before that happens. The next genuinely new project
+    // gets a fresh mount (and fresh empty state) naturally.
+    return existingProject ? await updateProject(existingProject.id, payload) : await createProject(payload);
   }, [createProject, updateProject, existingProject, values]);
 
   return {
@@ -316,9 +313,24 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
     submit,
     isSubmitting,
     isEditing,
+    // Every field is required except dpiitNumber (and the pitch video,
+    // which ProjectComposer ANDs in separately as hasPitchVideo since it
+    // isn't part of this hook's plain string/number fields).
     canSubmit: Boolean(
       values.name.trim() &&
+        values.tagline.trim() &&
         values.description.trim() &&
+        values.projectType.trim() &&
+        values.stage.trim() &&
+        values.fundingStage.trim() &&
+        values.foundedYear &&
+        values.location.trim() &&
+        values.cinNumber.trim() &&
+        values.websiteUrl.trim() &&
+        values.askAmount.trim() &&
+        values.equityPercent.trim() &&
+        values.techStackText.trim() &&
+        values.lookingForText.trim() &&
         (values.incorporationDocUrl.trim() || values.incorporationReason.trim())
     )
   };

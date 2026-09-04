@@ -26,10 +26,11 @@ export const getSortPriority = (project: Project, isTrending: boolean, isBestLik
 // Top-liked startups, out of whatever's currently loaded — no dedicated
 // backend ranking for this exists (unlike Trending, which reuses the real
 // /startups/trending algorithm), so this is a simple client-side heuristic:
-// top 3 by like count, excluding anything with zero likes.
+// anything past the "best liked" threshold (more than 10 likes), ranked
+// by like count, capped to `limit`.
 export const getBestLikedIds = (projects: Project[], limit = 3): Set<string> => {
   const liked = projects
-    .filter((project) => (project.likeCount ?? 0) > 0)
+    .filter((project) => (project.likeCount ?? 0) > 10)
     .sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0))
     .slice(0, limit);
   return new Set(liked.map((project) => project.id));

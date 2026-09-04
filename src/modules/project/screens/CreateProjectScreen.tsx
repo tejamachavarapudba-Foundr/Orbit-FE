@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -30,9 +30,15 @@ export const CreateProjectScreen = () => {
         </AppText>
       </View>
 
-      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 32 }}>
-        <ProjectComposer autoExpanded onDone={() => navigation.goBack()} />
-      </ScrollView>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
+        <ScrollView
+          className="flex-1 px-4"
+          contentContainerStyle={{ paddingBottom: 160 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ProjectComposer autoExpanded onDone={() => navigation.goBack()} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </AppScreen>
   );
 };

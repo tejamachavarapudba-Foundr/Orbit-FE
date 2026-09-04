@@ -10,7 +10,6 @@ import { AppText } from "@/components/ui/AppText";
 import { AppTextInput } from "@/components/ui/AppTextInput";
 import { BottomSheetPicker } from "@/components/ui/BottomSheetPicker";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Dropdown } from "@/components/ui/Dropdown";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { FounderOfferBottomSheet } from "@/modules/project/components/FounderOfferBottomSheet";
 import {
@@ -226,12 +225,23 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           Share your startup with the Orbit community.
         </AppText>
 
-        <AppTextInput label="Project name" value={values.name} onChangeText={(value) => setField("name", value)} />
-        <AppTextInput label="Tagline" value={values.tagline} onChangeText={(value) => setField("tagline", value)} />
+        <AppTextInput
+          label="Project name"
+          required
+          value={values.name}
+          onChangeText={(value) => setField("name", value)}
+        />
+        <AppTextInput
+          label="Tagline"
+          required
+          value={values.tagline}
+          onChangeText={(value) => setField("tagline", value)}
+        />
 
         <View className="gap-2">
           <AppText size="sm" weight="medium">
             Description
+            <AppText tone="danger"> *</AppText>
           </AppText>
           <TextInput
             value={values.description}
@@ -249,8 +259,9 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
           <View className="flex-1 gap-2">
             <AppText size="sm" weight="medium">
               Platform
+              <AppText tone="danger"> *</AppText>
             </AppText>
-            <Dropdown
+            <BottomSheetPicker
               value={values.projectType}
               options={typeOptions}
               onChange={(value) => {
@@ -260,17 +271,20 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
                 setField("category", value);
               }}
               placeholder="Platform"
+              title="Platform"
             />
           </View>
           <View className="flex-1 gap-2">
             <AppText size="sm" weight="medium">
               Stage
+              <AppText tone="danger"> *</AppText>
             </AppText>
-            <Dropdown
+            <BottomSheetPicker
               value={values.stage}
               options={stageOptions}
               onChange={(value) => setField("stage", value)}
               placeholder="Stage"
+              title="Stage"
             />
           </View>
         </View>
@@ -278,6 +292,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         <View className="gap-2">
           <AppText size="sm" weight="medium">
             Funding Stage
+            <AppText tone="danger"> *</AppText>
           </AppText>
           <BottomSheetPicker
             value={values.fundingStage}
@@ -290,15 +305,22 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
 
         <AppTextInput
           label="Founded Year"
+          required
           value={values.foundedYear?.toString() ?? ""}
           onChangeText={(value) => setField("foundedYear", value ? Number(value) : null)}
           keyboardType="numeric"
         />
-        <AppTextInput label="Location" value={values.location} onChangeText={(value) => setField("location", value)} />
+        <AppTextInput
+          label="Location"
+          required
+          value={values.location}
+          onChangeText={(value) => setField("location", value)}
+        />
         <View className="flex-row gap-3">
           <View className="flex-1">
             <AppTextInput
               label="CIN number"
+              required
               value={values.cinNumber}
               onChangeText={(value) => setField("cinNumber", value)}
               autoCapitalize="characters"
@@ -357,6 +379,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
 
         <AppTextInput
           label="Website"
+          required
           value={values.websiteUrl}
           onChangeText={(value) => setField("websiteUrl", value)}
           autoCapitalize="none"
@@ -402,6 +425,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         <View className="gap-2">
           <AppText size="sm" weight="medium">
             Founder&apos;s Offer
+            <AppText tone="danger"> *</AppText>
           </AppText>
           <FounderOfferBottomSheet
             askAmount={values.askAmount}
@@ -414,12 +438,14 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         </View>
         <AppTextInput
           label="Tech stack"
+          required
           value={values.techStackText}
           onChangeText={(value) => setField("techStackText", value)}
           placeholder="react, node"
         />
         <AppTextInput
           label="Looking for"
+          required
           value={values.lookingForText}
           onChangeText={(value) => setField("lookingForText", value)}
           placeholder="engineer, designer"
