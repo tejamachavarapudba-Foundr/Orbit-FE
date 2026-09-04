@@ -55,7 +55,8 @@ export const JobsScreen = () => {
     profile?.role === "founder" ||
     profile?.role === "co_founder" ||
     profile?.role === "investor" ||
-    profile?.role === "hr";
+    profile?.role === "hr" ||
+    profile?.role === "service_provider";
 
   const [activeTab, setActiveTab] = useState<JobsTab>("browse");
   const [filterModalVisible, setFilterModalVisible] = useState(false);
