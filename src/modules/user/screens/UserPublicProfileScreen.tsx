@@ -18,6 +18,7 @@ import { UserConnectActions } from "@/modules/user/components/UserConnectActions
 import { UserRoleDetails } from "@/modules/user/components/UserRoleDetails";
 import { userApi } from "@/modules/user/api";
 import { UserSummary } from "@/modules/user/types";
+import { useAuthStore } from "@/modules/auth/store";
 
 type Props = NativeStackScreenProps<MainStackParamList, "UserProfile">;
 
@@ -44,6 +45,7 @@ const InfoRow = ({ icon, label }: { icon: keyof typeof Feather.glyphMap; label: 
 
 export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
   const colors = useThemeTokens();
+  const currentUserId = useAuthStore((state) => state.user?.profile.id);
   const [user, setUser] = useState<UserSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -94,7 +96,18 @@ export const UserPublicProfileScreen = ({ navigation, route }: Props) => {
         </View>
       ) : profile ? (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <View className="h-28 bg-primary/15" />
+          <View className="h-28 bg-primary/15">
+            {profile.id === currentUserId ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit profile"
+                onPress={() => navigation.navigate("Profile" as never)}
+                className="absolute right-4 top-4 h-9 w-9 items-center justify-center rounded-full bg-surface"
+              >
+                <Feather name="edit-2" size={16} color={colors.text} />
+              </Pressable>
+            ) : null}
+          </View>
           <View className="px-5">
             <View className="-mt-12">
               <UserAvatar name={profile.fullName} imageUrl={profile.avatarUrl} size={96} />

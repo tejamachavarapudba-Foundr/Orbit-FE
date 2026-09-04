@@ -29,14 +29,10 @@ export const UserConnectActions = ({ profile }: UserConnectActionsProps) => {
   const canMessage = useCanMessageUser(profile.id);
   const { status, incomingNote } = useConnectionAction(profile);
 
+  // Own profile: the edit control is a pencil icon on the banner instead
+  // (see UserPublicProfileScreen) — nothing to render in this position.
   if (profile.id === currentUserId) {
-    return (
-      <AppButton
-        label="Edit profile"
-        onPress={() => navigation.navigate("Tabs", { screen: "Profile" } as never)}
-        className="flex-1"
-      />
-    );
+    return null;
   }
 
   const handleMessage = async () => {
