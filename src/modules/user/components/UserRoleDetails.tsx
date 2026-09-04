@@ -6,7 +6,12 @@ import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ROLE_LABEL, normalizeMemberRole } from "@/constants/memberRoles";
 import { AuthProfile } from "@/modules/auth/types";
-import { Certification, formatExperienceTimeline, WorkExperience } from "@/modules/profile/schemas/experience";
+import {
+  Certification,
+  formatExperienceTimeline,
+  isValidWorkExperience,
+  WorkExperience
+} from "@/modules/profile/schemas/experience";
 import { CURRENT_ROLE_OPTIONS, FOUNDER_STATUS_OPTIONS } from "@/modules/profile/schemas/founder";
 import { verificationApi } from "@/modules/verification/api";
 import { iconSize } from "@/theme/designTokens";
@@ -35,7 +40,10 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => {
 const toCsv = (values: string[] | undefined) => (values?.length ? values.join(", ") : "");
 
 const ExperienceList = ({ experiences }: { experiences: WorkExperience[] | undefined }) => {
-  const items = (experiences ?? []).filter((entry) => entry.company.trim() || entry.designation.trim());
+  // Only well-formed entries (company, designation, and a resolvable date
+  // range) show up publicly — an incomplete draft entry shouldn't appear
+  // on the profile just because it exists in the underlying data.
+  const items = (experiences ?? []).filter(isValidWorkExperience);
   if (!items.length) {
     return null;
   }

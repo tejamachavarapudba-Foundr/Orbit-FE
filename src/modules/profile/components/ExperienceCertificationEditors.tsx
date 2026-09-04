@@ -14,10 +14,15 @@ import {
   Certification,
   emptyCertification,
   emptyWorkExperience,
+  findOverlappingPeriodIndices,
+  getWorkExperienceValidationError,
   MONTH_OPTIONS,
   WorkExperience,
+  workExperiencesToPeriods,
   YEAR_OPTIONS
 } from "@/modules/profile/schemas/experience";
+
+const isCompleteMonthYear = (value: string) => /^\d{4}-\d{2}$/.test(value);
 import { verificationApi } from "@/modules/verification/api";
 import { useToastStore } from "@/store/toastStore";
 
@@ -93,67 +98,101 @@ export const ExperienceEditor = ({
     onChange([current, ...rest]);
   };
 
+  const overlappingIndices = findOverlappingPeriodIndices(workExperiencesToPeriods(experiences));
+
   return (
     <View className="gap-3">
       <AppText size="sm" weight="medium">
         Work experience
       </AppText>
 
-      {experiences.map((entry, index) => (
-        <Card key={index}>
-          <CardContent className="gap-3 p-4">
-            <View className="flex-row items-center justify-between">
-              <AppText size="sm" tone="muted">
-                {entry.isCurrent ? "Current" : index === 0 ? "Most recent" : `Experience ${index + 1}`}
-              </AppText>
-              <Pressable accessibilityRole="button" onPress={() => removeEntry(index)} hitSlop={8}>
-                <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
-              </Pressable>
-            </View>
-            <AppTextInput
-              label="Company name"
-              value={entry.company}
-              onChangeText={(v) => updateEntry(index, { company: v })}
-            />
-            <AppTextInput
-              label="Designation"
-              value={entry.designation}
-              onChangeText={(v) => updateEntry(index, { designation: v })}
-              placeholder="e.g. Senior Software Engineer"
-            />
-            <AppTextInput
-              label="Location"
-              value={entry.location}
-              onChangeText={(v) => updateEntry(index, { location: v })}
-            />
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: entry.isCurrent }}
-              onPress={() => toggleCurrent(index)}
-              className="flex-row items-center gap-2"
-            >
-              <Feather
-                name={entry.isCurrent ? "check-square" : "square"}
-                size={iconSize.md}
-                color={entry.isCurrent ? colors.primary : colors.muted}
+      {experiences.map((entry, index) => {
+        // Don't flag a freshly-added blank card before the user has typed
+        // anything — errors only show once there's something to be wrong.
+        const touched = Boolean(entry.company.trim() || entry.designation.trim() || entry.startDate.trim());
+        const validationError = touched ? getWorkExperienceValidationError(entry) : null;
+        const hasOverlap = touched && !validationError && overlappingIndices.has(index);
+        // Once an end date is fully set, this is unambiguously a past role —
+        // hiding the checkbox avoids the contradictory "current" + end-date
+        // state. Clearing the end date brings the checkbox back.
+        const endDateSet = isCompleteMonthYear(entry.endDate);
+
+        return (
+          <Card key={index}>
+            <CardContent className="gap-3 p-4">
+              <View className="flex-row items-center justify-between">
+                <AppText size="sm" tone="muted">
+                  {entry.isCurrent ? "Current" : index === 0 ? "Most recent" : `Experience ${index + 1}`}
+                </AppText>
+                <Pressable accessibilityRole="button" onPress={() => removeEntry(index)} hitSlop={8}>
+                  <Feather name="trash-2" size={iconSize.md} color={colors.muted} />
+                </Pressable>
+              </View>
+              <AppTextInput
+                label="Company name"
+                value={entry.company}
+                onChangeText={(v) => updateEntry(index, { company: v })}
               />
-              <AppText size="sm">I currently work here</AppText>
-            </Pressable>
-            <MonthYearPicker
-              label="Start date"
-              value={entry.startDate}
-              onChange={(v) => updateEntry(index, { startDate: v })}
-            />
-            {!entry.isCurrent ? (
+              <AppTextInput
+                label="Designation"
+                value={entry.designation}
+                onChangeText={(v) => updateEntry(index, { designation: v })}
+                placeholder="e.g. Senior Software Engineer"
+              />
+              <AppTextInput
+                label="Location"
+                value={entry.location}
+                onChangeText={(v) => updateEntry(index, { location: v })}
+              />
+              {!endDateSet ? (
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: entry.isCurrent }}
+                  onPress={() => toggleCurrent(index)}
+                  className="flex-row items-center gap-2"
+                >
+                  <Feather
+                    name={entry.isCurrent ? "check-square" : "square"}
+                    size={iconSize.md}
+                    color={entry.isCurrent ? colors.primary : colors.muted}
+                  />
+                  <AppText size="sm">I currently work here</AppText>
+                </Pressable>
+              ) : null}
               <MonthYearPicker
-                label="End date"
-                value={entry.endDate}
-                onChange={(v) => updateEntry(index, { endDate: v })}
+                label="Start date"
+                value={entry.startDate}
+                onChange={(v) => updateEntry(index, { startDate: v })}
               />
-            ) : null}
-          </CardContent>
-        </Card>
-      ))}
+              {!entry.isCurrent ? (
+                <View className="gap-2">
+                  <MonthYearPicker
+                    label="End date"
+                    value={entry.endDate}
+                    onChange={(v) => updateEntry(index, { endDate: v })}
+                  />
+                  {endDateSet ? (
+                    <Pressable accessibilityRole="button" onPress={() => updateEntry(index, { endDate: "" })}>
+                      <AppText size="sm" tone="primary">
+                        Clear end date
+                      </AppText>
+                    </Pressable>
+                  ) : null}
+                </View>
+              ) : null}
+              {validationError ? (
+                <AppText size="sm" tone="danger">
+                  {validationError}
+                </AppText>
+              ) : hasOverlap ? (
+                <AppText size="sm" tone="danger">
+                  These dates overlap with another experience entry
+                </AppText>
+              ) : null}
+            </CardContent>
+          </Card>
+        );
+      })}
 
       <AppButton
         label="+ Add experience"

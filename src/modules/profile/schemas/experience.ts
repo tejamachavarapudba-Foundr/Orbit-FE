@@ -58,6 +58,31 @@ export const formatExperienceTimeline = (entry: WorkExperience): string => {
   return end ? `${start} - ${end}` : start;
 };
 
+/** Converts work-experience entries to plain date periods for reuse with
+ * calculateTotalExperienceLabel / findOverlappingPeriodIndices, which only
+ * care about the date range, not company/designation. */
+export const workExperiencesToPeriods = (experiences: WorkExperience[]): ExperiencePeriod[] =>
+  experiences.map((entry) => ({ startDate: entry.startDate, endDate: entry.endDate, isCurrent: entry.isCurrent }));
+
+/** Returns a human-readable reason this entry isn't complete/valid yet, or
+ * null if it's well-formed. Used both to show inline errors in the editor
+ * and to filter out incomplete entries from public display. */
+export const getWorkExperienceValidationError = (entry: WorkExperience): string | null => {
+  if (!entry.company.trim()) return "Add a company name";
+  if (!entry.designation.trim()) return "Add a designation";
+  if (toAbsoluteMonth(entry.startDate) === null) return "Add a start date";
+  if (!entry.isCurrent) {
+    const end = toAbsoluteMonth(entry.endDate);
+    if (end === null) return 'Add an end date, or check "I currently work here"';
+    const start = toAbsoluteMonth(entry.startDate) as number;
+    if (end < start) return "End date is before the start date";
+  }
+  return null;
+};
+
+export const isValidWorkExperience = (entry: WorkExperience): boolean =>
+  getWorkExperienceValidationError(entry) === null;
+
 export type Certification = {
   name: string;
   fileUrl: string;
@@ -92,7 +117,7 @@ const currentYearMonth = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 };
 
-const toAbsoluteMonth = (value: string): number | null => {
+export const toAbsoluteMonth = (value: string): number | null => {
   const [year, month] = value.split("-").map(Number);
   if (!year || !month) return null;
   return year * 12 + (month - 1);
