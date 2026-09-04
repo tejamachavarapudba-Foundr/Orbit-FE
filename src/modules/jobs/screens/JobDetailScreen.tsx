@@ -158,7 +158,8 @@ export const JobDetailScreen = ({ route }: Props) => {
   const skills = selectedJob.skills ?? [];
 
   const role = profile?.role;
-  const canManageJobs = role === "founder" || role === "co_founder" || role === "investor" || role === "hr";
+  const canManageJobs =
+    role === "founder" || role === "co_founder" || role === "investor" || role === "hr" || role === "service_provider";
   const isOwner = profile?.id === selectedJob.posterId;
   const myApplication = applications.find((application) => application.applicantId === profile?.id);
   const canApply = !canManageJobs && !isOwner && !myApplication;
