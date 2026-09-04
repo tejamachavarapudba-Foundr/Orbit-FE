@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -153,9 +153,11 @@ export const ProjectDetailScreen = ({ route }: Props) => {
             Edit project
           </AppText>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <ProjectComposer project={selectedProject} autoExpanded onDone={() => setIsEditing(false)} />
-        </ScrollView>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 160 }} keyboardShouldPersistTaps="handled">
+            <ProjectComposer project={selectedProject} autoExpanded onDone={() => setIsEditing(false)} />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </AppScreen>
     );
   }
