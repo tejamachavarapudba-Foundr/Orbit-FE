@@ -125,7 +125,10 @@ const emptyPayload: ProjectPayload = {
   lookingFor: [],
   isPublished: true,
   cinNumber: "",
-  dpiitNumber: ""
+  dpiitNumber: "",
+  incorporationDocUrl: "",
+  incorporationDocKey: "",
+  incorporationReason: ""
 };
 
 // The full Project object also carries relations, timestamps, and other
@@ -288,6 +291,7 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
       websiteUrl: values.websiteUrl.trim(),
       cinNumber: values.cinNumber.trim(),
       dpiitNumber: values.dpiitNumber.trim(),
+      incorporationReason: values.incorporationReason.trim(),
       askAmount: values.askAmount.trim(),
       equityPercent: values.equityPercent.trim(),
       industryTags: csvToArray(values.industryTagsText),
@@ -312,7 +316,11 @@ export const useProjectForm = (existingProject?: import("@/modules/project/types
     submit,
     isSubmitting,
     isEditing,
-    canSubmit: Boolean(values.name.trim() && values.description.trim())
+    canSubmit: Boolean(
+      values.name.trim() &&
+        values.description.trim() &&
+        (values.incorporationDocUrl.trim() || values.incorporationReason.trim())
+    )
   };
 };
 

@@ -126,18 +126,25 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
                   </AppText>
                 ) : null}
               </Pressable>
-              {isInvestor ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={isSaved ? "Unsave startup" : "Save startup"}
-                  onPress={(event) => {
-                    event.stopPropagation?.();
-                    toggleSaveStartup(project.id);
-                  }}
-                >
-                  <Feather name="bookmark" size={18} color={isSaved ? colors.primary : colors.muted} />
-                </Pressable>
-              ) : null}
+              <View className="items-center gap-1">
+                {isInvestor ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={isSaved ? "Unsave startup" : "Save startup"}
+                    onPress={(event) => {
+                      event.stopPropagation?.();
+                      toggleSaveStartup(project.id);
+                    }}
+                  >
+                    <Feather name="bookmark" size={18} color={isSaved ? colors.primary : colors.muted} />
+                  </Pressable>
+                ) : null}
+                {project.incorporationVerificationStatus === "approved" ? (
+                  <View accessible accessibilityLabel="Certificate of Incorporation verified">
+                    <Feather name="shield" size={22} color={colors.primary} />
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
 
