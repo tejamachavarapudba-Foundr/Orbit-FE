@@ -20,7 +20,13 @@ import {
   FOUNDER_STATUS_OPTIONS,
   STARTUP_STAGE_OPTIONS
 } from "@/modules/profile/schemas/founder";
-import { calculateTotalExperienceLabel, Certification, WorkExperience } from "@/modules/profile/schemas/experience";
+import {
+  calculateTotalExperienceLabel,
+  Certification,
+  isValidWorkExperience,
+  WorkExperience,
+  workExperiencesToPeriods
+} from "@/modules/profile/schemas/experience";
 import { CertificationEditor, ExperienceEditor } from "@/modules/profile/components/ExperienceCertificationEditors";
 import { ENGINEER_SPECIALIZATIONS } from "@/modules/profile/schemas/professional";
 import {
@@ -316,7 +322,9 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
     // experienceLevel ("3 yrs 4 mos") is no longer a manually-entered field —
     // it's derived from the work-experience entries' own date ranges below,
     // using the same overlap-safe total-experience math the old date-range-
-    // only picker used, just fed from these entries' dates instead.
+    // only picker used, just fed from these entries' dates instead. Only
+    // entries valid enough to show publicly are counted, so the summary
+    // never includes a still-incomplete draft entry.
     const setExperiences = (experiences: WorkExperience[]) =>
       onChange({
         role: roleProfile.role,
@@ -324,11 +332,7 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
           ...data,
           experiences,
           experienceLevel: calculateTotalExperienceLabel(
-            experiences.map((entry) => ({
-              startDate: entry.startDate,
-              endDate: entry.endDate,
-              isCurrent: entry.isCurrent
-            }))
+            workExperiencesToPeriods(experiences.filter(isValidWorkExperience))
           )
         }
       });
