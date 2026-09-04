@@ -31,6 +31,10 @@ export type Project = {
   isPublished: boolean;
   cinNumber: string;
   dpiitNumber: string;
+  incorporationDocUrl: string;
+  incorporationDocKey: string;
+  incorporationReason: string;
+  incorporationVerificationStatus: "pending" | "approved" | "rejected" | null;
   createdAt: string;
   updatedAt: string;
   founderVerified?: boolean;
@@ -129,6 +133,9 @@ export type ProjectPayload = {
   isPublished: boolean;
   cinNumber: string;
   dpiitNumber: string;
+  incorporationDocUrl: string;
+  incorporationDocKey: string;
+  incorporationReason: string;
 };
 
 export type ProjectMember = {

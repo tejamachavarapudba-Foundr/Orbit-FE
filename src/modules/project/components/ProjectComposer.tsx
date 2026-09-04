@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Modal, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { Video as VideoCompressor } from "react-native-compressor";
 
 import { AppButton } from "@/components/ui/AppButton";
@@ -20,6 +21,7 @@ import {
 } from "@/modules/project/hooks";
 import { useProjectStore } from "@/modules/project/store";
 import { Project } from "@/modules/project/types";
+import { verificationApi } from "@/modules/verification/api";
 import { isValidUrl } from "@/utils/validation";
 import { useToastStore } from "@/store/toastStore";
 
@@ -40,6 +42,7 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
   const [showPitchTip, setShowPitchTip] = useState(true);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isCompressingVideo, setIsCompressingVideo] = useState(false);
+  const [isUploadingCert, setIsUploadingCert] = useState(false);
   // Held locally until the project actually exists — a brand-new project has
   // no id yet, so the video can't be PATCHed up until right after creation.
   const [pendingVideo, setPendingVideo] = useState<{ uri: string; name: string; type: string } | null>(null);
@@ -107,6 +110,39 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
         title: "Couldn't open video library",
         message: error instanceof Error ? error.message : "Please try again."
       });
+    }
+  };
+
+  const pickIncorporationDoc = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "*/*",
+      copyToCacheDirectory: true,
+      multiple: false
+    });
+
+    const asset = result.assets?.[0];
+    if (result.canceled || !asset) return;
+
+    setIsUploadingCert(true);
+    try {
+      const formData = new FormData();
+      formData.append("type", "document");
+      formData.append(
+        "file",
+        {
+          uri: asset.uri,
+          name: asset.name,
+          type: asset.mimeType || "application/octet-stream"
+        } as any
+      );
+
+      const upload = await verificationApi.uploadDocument(formData);
+      setField("incorporationDocUrl", upload.url);
+      setField("incorporationDocKey", upload.path);
+    } catch {
+      showToast({ type: "error", title: "Upload failed" });
+    } finally {
+      setIsUploadingCert(false);
     }
   };
 
@@ -279,6 +315,46 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
             />
           </View>
         </View>
+        <View className="gap-2">
+          <AppText size="sm" weight="medium">
+            Certificate of Incorporation
+            <AppText tone="danger"> *</AppText>
+          </AppText>
+          <AppText tone="muted" size="xs">
+            Upload the certificate, or explain why you don&apos;t have one yet — one of the two is required to
+            publish. This gets reviewed after publishing.
+          </AppText>
+          <AppButton
+            label={
+              isUploadingCert
+                ? "Uploading…"
+                : values.incorporationDocUrl.trim()
+                  ? "Replace file"
+                  : "Upload file"
+            }
+            variant={values.incorporationDocUrl.trim() ? "outline" : "primary"}
+            size="sm"
+            loading={isUploadingCert}
+            onPress={() => void pickIncorporationDoc()}
+            className="self-start"
+          />
+          {values.incorporationDocUrl.trim() ? (
+            <AppText tone="success" size="xs">
+              File attached ✓
+            </AppText>
+          ) : null}
+          <TextInput
+            value={values.incorporationReason}
+            onChangeText={(value) => setField("incorporationReason", value)}
+            placeholder="Or type a reason (e.g. incorporation in progress)"
+            placeholderTextColor={colors.muted}
+            selectionColor={colors.primary}
+            multiline
+            textAlignVertical="top"
+            className="min-h-16 rounded-md border border-input bg-background px-3 py-3 text-sm leading-5 text-text"
+          />
+        </View>
+
         <AppTextInput
           label="Website"
           value={values.websiteUrl}
