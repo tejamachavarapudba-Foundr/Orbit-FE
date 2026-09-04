@@ -1,29 +1,28 @@
-import { View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Image, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
-import { useThemeTokens } from "@/hooks/useThemeTokens";
-import { getShadowStyle } from "@/theme/shadows";
 
 type AppLogoProps = {
   compact?: boolean;
 };
 
 export const AppLogo = ({ compact = false }: AppLogoProps) => {
-  const colors = useThemeTokens();
   const markSize = compact ? 32 : 36;
 
   return (
     <View className="flex-row items-center gap-2">
-      <View
-        className="items-center justify-center rounded-lg bg-primary"
-        style={[{ width: markSize, height: markSize }, getShadowStyle("glow")]}
-      >
-        <Feather name="star" size={compact ? 14 : 16} color={colors.onPrimary} />
-      </View>
+      <Image
+        source={require("../../../assets/adaptive-icon.png")}
+        style={{ width: markSize, height: markSize }}
+        resizeMode="contain"
+      />
       {!compact ? (
-        <AppText family="display" weight="bold" size="lg" className="tracking-tight">
-          Orbit
+        <AppText
+          weight="medium"
+          size="lg"
+          style={{ fontFamily: "Orbitron_500Medium", letterSpacing: 2 }}
+        >
+          ORBIT
         </AppText>
       ) : null}
     </View>

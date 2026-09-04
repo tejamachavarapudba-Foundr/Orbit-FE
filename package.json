@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.2",
+    "@expo-google-fonts/orbitron": "^0.4.2",
     "@expo-google-fonts/sora": "^0.4.2",
     "@expo/metro-runtime": "~4.0.1",
     "@expo/prebuild-config": "8.2.0",
