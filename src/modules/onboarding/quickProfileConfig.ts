@@ -1,9 +1,5 @@
 import { OnboardingMemberRole } from "@/constants/memberRoles";
-import {
-  EXPERTISE_OPTIONS,
-  MENTORSHIP_EXPERIENCE_OPTIONS,
-  PROFESSIONAL_EXPERIENCE_OPTIONS
-} from "@/modules/profile/schemas/advisor";
+import { EXPERTISE_OPTIONS, MENTORSHIP_EXPERIENCE_OPTIONS } from "@/modules/profile/schemas/advisor";
 import {
   CURRENT_ROLE_OPTIONS,
   FOUNDER_STATUS_OPTIONS,
@@ -87,13 +83,6 @@ export const QUICK_PROFILE_FIELDS: Record<OnboardingMemberRole, QuickFieldConfig
       type: "multiSelectBottomSheet",
       options: EXPERTISE_OPTIONS,
       max: 5
-    },
-    {
-      key: "yearsExperience",
-      label: "Professional Experience",
-      required: true,
-      type: "bottomSheet",
-      options: PROFESSIONAL_EXPERIENCE_OPTIONS
     },
     {
       key: "mentorshipExperience",

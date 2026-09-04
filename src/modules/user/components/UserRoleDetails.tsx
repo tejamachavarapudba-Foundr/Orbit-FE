@@ -12,7 +12,20 @@ import {
   isValidWorkExperience,
   WorkExperience
 } from "@/modules/profile/schemas/experience";
-import { CURRENT_ROLE_OPTIONS, FOUNDER_STATUS_OPTIONS } from "@/modules/profile/schemas/founder";
+import {
+  CURRENT_ROLE_OPTIONS,
+  FOUNDER_INDUSTRY_OPTIONS,
+  FOUNDER_STATUS_OPTIONS,
+  STARTUP_STAGE_OPTIONS
+} from "@/modules/profile/schemas/founder";
+import { INDUSTRY_OPTIONS, INVESTMENT_RANGE_OPTIONS } from "@/modules/profile/schemas/investor";
+import {
+  EXPERTISE_OPTIONS,
+  INDUSTRY_EXPERIENCE_OPTIONS,
+  MENTORSHIP_AREAS_OPTIONS,
+  PROFESSIONAL_EXPERIENCE_OPTIONS
+} from "@/modules/profile/schemas/advisor";
+import { CLIENT_INDUSTRIES_OPTIONS, SERVICES_OFFERED_OPTIONS } from "@/modules/profile/schemas/serviceProvider";
 import { verificationApi } from "@/modules/verification/api";
 import { iconSize } from "@/theme/designTokens";
 
@@ -38,6 +51,26 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => {
 };
 
 const toCsv = (values: string[] | undefined) => (values?.length ? values.join(", ") : "");
+
+type Option = { readonly label: string; readonly value: string };
+
+// Every picker field stores its underscored option value (e.g. "11_15"),
+// not the human label ("11–15 years") — these map back to the label for
+// display, falling back to the raw value only for legacy/unmatched data.
+const mapToLabel = (value: string, options: readonly Option[]): string =>
+  options.find((o) => o.value === value)?.label ?? value;
+
+const mapToLabels = (
+  values: string[] | undefined,
+  options: readonly Option[],
+  otherValue?: string,
+  otherText?: string
+): string =>
+  toCsv(
+    (values ?? []).map((v) =>
+      otherValue && v === otherValue && otherText?.trim() ? otherText.trim() : mapToLabel(v, options)
+    )
+  );
 
 const ExperienceList = ({ experiences }: { experiences: WorkExperience[] | undefined }) => {
   // Only well-formed entries (company, designation, and a resolvable date
@@ -173,8 +206,8 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
           </AppText>
         ) : null}
         <DetailRow label="Startup" value={company} />
-        <DetailRow label="Stage" value={data.startupStage} />
-        <DetailRow label="Industry" value={toCsv(data.industry)} />
+        <DetailRow label="Stage" value={mapToLabel(data.startupStage, STARTUP_STAGE_OPTIONS)} />
+        <DetailRow label="Industry" value={mapToLabels(data.industry, FOUNDER_INDUSTRY_OPTIONS)} />
         <DetailRow label="Team size" value={data.teamSize} />
         <DetailRow label="Portfolio" value={toCsv(data.portfolio)} />
       </ProfileSection>
@@ -186,8 +219,8 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Company" value={data.fundName || profile.company} />
-        <DetailRow label="Investment range" value={data.investmentRange} />
-        <DetailRow label="Industries" value={toCsv(data.industries)} />
+        <DetailRow label="Investment range" value={mapToLabel(data.investmentRange, INVESTMENT_RANGE_OPTIONS)} />
+        <DetailRow label="Industries" value={mapToLabels(data.industries, INDUSTRY_OPTIONS)} />
         <DetailRow label="Portfolio" value={toCsv(data.portfolio)} />
       </ProfileSection>
     );
@@ -197,10 +230,10 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     const data = roleProfile.data;
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
-        <DetailRow label="Expertise" value={toCsv(data.expertise)} />
-        <DetailRow label="Experience" value={data.yearsExperience} />
-        <DetailRow label="Industries" value={toCsv(data.industries)} />
-        <DetailRow label="Mentorship" value={toCsv(data.mentorshipAreas)} />
+        <DetailRow label="Expertise" value={mapToLabels(data.expertise, EXPERTISE_OPTIONS, "other", data.expertiseOther)} />
+        <DetailRow label="Experience" value={mapToLabel(data.yearsExperience, PROFESSIONAL_EXPERIENCE_OPTIONS)} />
+        <DetailRow label="Industries" value={mapToLabels(data.industries, INDUSTRY_EXPERIENCE_OPTIONS)} />
+        <DetailRow label="Mentorship" value={mapToLabels(data.mentorshipAreas, MENTORSHIP_AREAS_OPTIONS)} />
         <ExperienceList experiences={data.experiences} />
         <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />
       </ProfileSection>
@@ -225,8 +258,8 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
     return (
       <ProfileSection title={title} isVerified={isRoleVerified}>
         <DetailRow label="Company" value={data.company || profile.company} />
-        <DetailRow label="Services" value={toCsv(data.services)} />
-        <DetailRow label="Client industries" value={toCsv(data.clientIndustries)} />
+        <DetailRow label="Services" value={mapToLabels(data.services, SERVICES_OFFERED_OPTIONS, "other", data.servicesOther)} />
+        <DetailRow label="Client industries" value={mapToLabels(data.clientIndustries, CLIENT_INDUSTRIES_OPTIONS)} />
       </ProfileSection>
     );
   }
