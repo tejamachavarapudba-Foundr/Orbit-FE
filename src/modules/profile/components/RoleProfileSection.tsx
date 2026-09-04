@@ -11,8 +11,7 @@ import {
   EXPERTISE_OPTIONS,
   INDUSTRY_EXPERIENCE_OPTIONS,
   MENTORSHIP_AREAS_OPTIONS,
-  MENTORSHIP_EXPERIENCE_OPTIONS,
-  PROFESSIONAL_EXPERIENCE_OPTIONS
+  MENTORSHIP_EXPERIENCE_OPTIONS
 } from "@/modules/profile/schemas/advisor";
 import {
   CURRENT_ROLE_OPTIONS,
@@ -244,6 +243,28 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
 
   if (memberRole === "advisor" && roleProfile.role === "advisor") {
     const data = roleProfile.data;
+
+    // yearsExperience ("3 yrs 4 mos") is no longer a manually-picked bracket
+    // — it's derived from the work-history entries' own dates below, same
+    // approach as professional's experienceLevel, reusing the same column.
+    const setExperiences = (experiences: WorkExperience[]) =>
+      onChange({
+        role: roleProfile.role,
+        data: {
+          ...data,
+          experiences,
+          yearsExperience: calculateTotalExperienceLabel(
+            workExperiencesToPeriods(experiences.filter(isValidWorkExperience))
+          )
+        }
+      });
+
+    const setCertifications = (certifications: Certification[]) =>
+      onChange({
+        role: roleProfile.role,
+        data: { ...data, certifications }
+      });
+
     return (
       <View className="gap-4">
         <View className="gap-2">
@@ -264,15 +285,10 @@ export const RoleProfileSection = ({ role, roleProfile, onChange }: RoleProfileS
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">
-            Professional experience
+            Experience
           </AppText>
-          <BottomSheetPicker
-            value={data.yearsExperience}
-            options={PROFESSIONAL_EXPERIENCE_OPTIONS}
-            onChange={(v) => setField("yearsExperience", v)}
-            placeholder="Select professional experience"
-            title="Professional experience"
-          />
+          <ExperienceEditor experiences={data.experiences} onChange={setExperiences} />
+          <CertificationEditor certifications={data.certifications} onChange={setCertifications} />
         </View>
         <View className="gap-2">
           <AppText size="sm" weight="medium" tone="muted">

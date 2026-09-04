@@ -22,8 +22,7 @@ import { INDUSTRY_OPTIONS, INVESTMENT_RANGE_OPTIONS } from "@/modules/profile/sc
 import {
   EXPERTISE_OPTIONS,
   INDUSTRY_EXPERIENCE_OPTIONS,
-  MENTORSHIP_AREAS_OPTIONS,
-  PROFESSIONAL_EXPERIENCE_OPTIONS
+  MENTORSHIP_AREAS_OPTIONS
 } from "@/modules/profile/schemas/advisor";
 import { CLIENT_INDUSTRIES_OPTIONS, SERVICES_OFFERED_OPTIONS } from "@/modules/profile/schemas/serviceProvider";
 import { verificationApi } from "@/modules/verification/api";
@@ -229,14 +228,18 @@ export const UserRoleDetails = ({ profile }: UserRoleDetailsProps) => {
   if (memberRole === "advisor" && roleProfile.role === "advisor") {
     const data = roleProfile.data;
     return (
-      <ProfileSection title={title} isVerified={isRoleVerified}>
-        <DetailRow label="Expertise" value={mapToLabels(data.expertise, EXPERTISE_OPTIONS, "other", data.expertiseOther)} />
-        <DetailRow label="Experience" value={mapToLabel(data.yearsExperience, PROFESSIONAL_EXPERIENCE_OPTIONS)} />
-        <DetailRow label="Industries" value={mapToLabels(data.industries, INDUSTRY_EXPERIENCE_OPTIONS)} />
-        <DetailRow label="Mentorship" value={mapToLabels(data.mentorshipAreas, MENTORSHIP_AREAS_OPTIONS)} />
-        <ExperienceList experiences={data.experiences} />
-        <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />
-      </ProfileSection>
+      <View className="gap-4">
+        <ProfileSection title={title}>
+          <DetailRow label="Expertise" value={mapToLabels(data.expertise, EXPERTISE_OPTIONS, "other", data.expertiseOther)} />
+          <DetailRow label="Industries" value={mapToLabels(data.industries, INDUSTRY_EXPERIENCE_OPTIONS)} />
+          <DetailRow label="Mentorship" value={mapToLabels(data.mentorshipAreas, MENTORSHIP_AREAS_OPTIONS)} />
+        </ProfileSection>
+        <ProfileSection title="Experience" isVerified={isRoleVerified}>
+          <DetailRow label="Total experience" value={data.yearsExperience} />
+          <ExperienceList experiences={data.experiences} />
+          <CertificationList certifications={data.certifications} isVerified={isRoleVerified} />
+        </ProfileSection>
+      </View>
     );
   }
 
