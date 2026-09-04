@@ -146,16 +146,24 @@ export const useForgotPasswordForm = () => {
   );
 };
 
-export const useResetPasswordForm = (token: string) => {
+export const useResetPasswordForm = (email: string) => {
   const showToast = useToastStore((state) => state.show);
+  const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors<{ newPassword: string; confirmPassword: string }>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    FieldErrors<{ code: string; newPassword: string; confirmPassword: string }>
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const validate = useCallback(() => {
-    const nextErrors: FieldErrors<{ newPassword: string; confirmPassword: string }> = {};
+    const nextErrors: FieldErrors<{ code: string; newPassword: string; confirmPassword: string }> = {};
+
+    if (code.trim().length !== 6) {
+      nextErrors.code = "Enter the 6-digit code.";
+    }
 
     if (!isStrongPassword(newPassword)) {
       nextErrors.newPassword = PASSWORD_REQUIREMENTS_MESSAGE;
@@ -167,7 +175,7 @@ export const useResetPasswordForm = (token: string) => {
 
     setFieldErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
-  }, [confirmPassword, newPassword]);
+  }, [code, confirmPassword, newPassword]);
 
   const submit = useCallback(async () => {
     if (!validate()) {
@@ -178,7 +186,7 @@ export const useResetPasswordForm = (token: string) => {
     setErrorMessage(null);
 
     try {
-      const response = await authApi.resetPassword({ token, newPassword });
+      const response = await authApi.resetPassword({ email, code: code.trim(), newPassword });
       showToast({ type: "success", title: "Password updated", message: response.message });
       setIsSubmitting(false);
       return true;
@@ -188,10 +196,37 @@ export const useResetPasswordForm = (token: string) => {
       setIsSubmitting(false);
       return false;
     }
-  }, [newPassword, showToast, token, validate]);
+  }, [code, email, newPassword, showToast, validate]);
+
+  const resendCode = useCallback(async () => {
+    setIsResending(true);
+    setErrorMessage(null);
+    try {
+      await authApi.forgotPassword({ email });
+      setCode("");
+      showToast({ type: "success", title: "New code sent" });
+    } catch (error) {
+      setErrorMessage(toAppError(error).message);
+    } finally {
+      setIsResending(false);
+    }
+  }, [email, showToast]);
 
   return useMemo(
-    () => ({ newPassword, confirmPassword, fieldErrors, isSubmitting, errorMessage, setNewPassword, setConfirmPassword, submit }),
-    [confirmPassword, errorMessage, fieldErrors, isSubmitting, newPassword, submit]
+    () => ({
+      code,
+      newPassword,
+      confirmPassword,
+      fieldErrors,
+      isSubmitting,
+      isResending,
+      errorMessage,
+      setCode,
+      setNewPassword,
+      setConfirmPassword,
+      submit,
+      resendCode
+    }),
+    [code, confirmPassword, errorMessage, fieldErrors, isResending, isSubmitting, newPassword, resendCode, submit]
   );
 };

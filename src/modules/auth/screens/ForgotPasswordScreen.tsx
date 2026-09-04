@@ -15,6 +15,13 @@ type ForgotPasswordScreenProps = NativeStackScreenProps<AuthStackParamList, "For
 export const ForgotPasswordScreen = ({ navigation }: ForgotPasswordScreenProps) => {
   const { values, fieldErrors, isSubmitting, errorMessage, setValue, submit } = useForgotPasswordForm();
 
+  const handleSubmit = async () => {
+    const success = await submit();
+    if (success) {
+      navigation.navigate("ResetPassword", { email: values.email.trim() });
+    }
+  };
+
   return (
     <AppScreen withHorizontalPadding={false}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
@@ -22,7 +29,7 @@ export const ForgotPasswordScreen = ({ navigation }: ForgotPasswordScreenProps) 
           <View className="min-h-full flex-grow px-4 pb-10 pt-2">
           <AuthHeader />
           <View className="flex-1 justify-center">
-            <AuthCard title="Reset password" subtitle="We will send recovery steps to your registered email.">
+            <AuthCard title="Reset password" subtitle="We'll email you a 6-digit code to reset your password.">
               <AuthErrorBanner message={errorMessage} />
               <AppTextInput
                 label="Email"
@@ -35,7 +42,7 @@ export const ForgotPasswordScreen = ({ navigation }: ForgotPasswordScreenProps) 
                 className="h-11 text-base"
                 onChangeText={(value) => setValue("email", value)}
               />
-              <AppButton label="Send reset link" loading={isSubmitting} onPress={() => void submit()} className="mt-1" />
+              <AppButton label="Send code" loading={isSubmitting} onPress={() => void handleSubmit()} className="mt-1" />
               <AppButton label="Back to sign in" variant="link" size="default" onPress={() => navigation.navigate("Login")} />
             </AuthCard>
           </View>

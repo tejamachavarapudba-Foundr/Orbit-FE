@@ -11,8 +11,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
           Welcome: "",
           Login: "login",
           Register: "register",
-          ForgotPassword: "forgot-password",
-          ResetPassword: "reset-password"
+          ForgotPassword: "forgot-password"
         }
       },
       Main: {
