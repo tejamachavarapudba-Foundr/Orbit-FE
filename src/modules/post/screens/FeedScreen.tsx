@@ -19,6 +19,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileMenuButton } from "@/components/layout/ProfileMenuButton";
+import { AppLogo } from "@/components/brand/AppLogo";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
 import { CommentsSheet } from "@/modules/comments/components/CommentsSheet";
@@ -154,9 +155,7 @@ export const FeedScreen = () => {
               <View className="h-9 w-9" />
             )}
 
-            <AppText family="display" size="xl" weight="bold" className="tracking-tight">
-              Orbit
-            </AppText>
+            <AppLogo />
 
             {user ? <ProfileMenuButton /> : <View className="h-9 w-9" />}
           </View>

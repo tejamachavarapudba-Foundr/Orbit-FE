@@ -7,7 +7,7 @@ type AppLogoProps = {
 };
 
 export const AppLogo = ({ compact = false }: AppLogoProps) => {
-  const markSize = compact ? 32 : 36;
+  const markSize = compact ? 40 : 48;
 
   return (
     <View className="flex-row items-center gap-2">
