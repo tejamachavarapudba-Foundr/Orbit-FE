@@ -1,15 +1,19 @@
 import { AuthProfile } from "@/modules/auth/types";
 
+// Values match Prisma's MemberRole enum exactly (as stored on
+// profile.role) — these used to be hyphen/space-separated display-style
+// strings that never matched a real stored value, silently breaking the
+// Discover role filter for every multi-word role.
 export type UserRole =
   | "all"
   | "founder"
-  | "co-founder"
-  | "software engineer"
+  | "co_founder"
+  | "software_engineer"
   | "mentor"
-  | "policy maker"
+  | "policy_maker"
   | "investor"
   | "designer"
-  | "product manager"
+  | "product_manager"
   | "other";
 
 export type UserProfile = AuthProfile;
