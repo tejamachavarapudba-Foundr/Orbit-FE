@@ -69,6 +69,10 @@ export type AuthTokenResponse = {
   refreshToken: string;
 };
 
+export type AuthTokenWithUserResponse = AuthTokenResponse & {
+  user: AuthMeResponse;
+};
+
 export type AuthMeResponse = {
   id: string;
   email: string;

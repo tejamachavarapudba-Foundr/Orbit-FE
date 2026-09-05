@@ -72,7 +72,7 @@ export const useConnectedProfiles = (userId: string | undefined) => {
 
 // Shared across every screen that shows the incoming-invitations list or
 // just needs its count (MainNavigator primes it, ProfileMenuButton reads
-// the badge count, InvitationsScreen renders it, and every profile card's
+// the badge count, IncomingRequestsSection renders it, and every profile card's
 // useConnectionAction checks it for an incoming request from that profile)
 // — React Query dedupes these into one cached list instead of each needing
 // its own imperative load call in the right order.

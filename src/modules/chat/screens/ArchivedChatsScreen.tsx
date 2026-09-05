@@ -73,6 +73,10 @@ export const ArchivedChatsScreen = () => {
           data={archivedChats}
           keyExtractor={(item) => item.id}
           renderItem={renderChat}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={9}
+          updateCellsBatchingPeriod={50}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
           ListHeaderComponent={
             <View className="w-full max-w-2xl self-center pb-2">

@@ -73,6 +73,10 @@ export const NotificationsScreen = () => {
       <FlatList
         data={visible}
         keyExtractor={(item) => item.id}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isLoading}
         renderItem={({ item }) => (
           <NotificationCard notification={item} onPress={() => markRead.mutate(item.id)} />

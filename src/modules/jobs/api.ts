@@ -9,9 +9,17 @@ import {
   UpdateJobPayload
 } from "@/modules/jobs/types";
 
+type JobsPage = { jobs: Job[]; totalCount: number; hasMore: boolean };
+
 export const jobsApi = {
   getJobs: async () => {
     const response = await apiClient.get<Job[]>("/jobs");
+    return response.data;
+  },
+  browseJobs: async (page: number, limit: number, filters: { query: string; role: string }) => {
+    const response = await apiClient.get<JobsPage>("/jobs/browse", {
+      params: { page, limit, query: filters.query || undefined, role: filters.role !== "all" ? filters.role : undefined }
+    });
     return response.data;
   },
   getJob: async (id: string) => {

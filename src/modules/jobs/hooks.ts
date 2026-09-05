@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient, QueryClient } from "@tanstack/react-query";
 
 import { jobsApi } from "@/modules/jobs/api";
 import { CreateJobPayload, Job, JobApplicationStatus, UpdateJobPayload } from "@/modules/jobs/types";
@@ -18,28 +18,81 @@ export const jobRoleOptions = [
   "mentor"
 ] as const;
 
-const JOBS_LIST_KEY = ["jobs", "list"] as const;
-const jobDetailKey = (id: string) => ["jobs", "detail", id] as const;
+type JobsPage = { jobs: Job[]; totalCount: number; hasMore: boolean };
+type JobsQueryKey = readonly ["jobs", "browse", { query: string; role: string }];
 
-const upsertJob = (jobs: Job[], job: Job) => {
+const JOBS_BROWSE_PREFIX = ["jobs", "browse"] as const;
+const jobDetailKey = (id: string) => ["jobs", "detail", id] as const;
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 400;
+
+const useDebouncedValue = <T,>(value: T, delayMs: number) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+};
+
+const upsertJobInPage = (jobs: Job[], job: Job) => {
   const exists = jobs.some((item) => item.id === job.id);
-  return exists ? jobs.map((item) => (item.id === job.id ? job : item)) : [job, ...jobs];
+  return exists ? jobs.map((item) => (item.id === job.id ? job : item)) : jobs;
+};
+
+// Every cached browse query (one per distinct filter combo the user has
+// searched) gets patched, not just whichever one happens to be active —
+// otherwise switching back to an earlier filter would show stale data
+// for a job that was just edited/deleted/applied to.
+const updateAllBrowsePages = (
+  queryClient: QueryClient,
+  updater: (jobs: Job[]) => Job[]
+) => {
+  queryClient.setQueriesData<InfiniteData<JobsPage, number>>(
+    { queryKey: JOBS_BROWSE_PREFIX },
+    (old: InfiniteData<JobsPage, number> | undefined) => {
+      if (!old) return old;
+      return { ...old, pages: old.pages.map((page: JobsPage) => ({ ...page, jobs: updater(page.jobs) })) };
+    }
+  );
+};
+
+const findJobInBrowseCache = (queryClient: QueryClient, id: string): Job | undefined => {
+  const queries = queryClient.getQueriesData<InfiniteData<JobsPage, number>>({ queryKey: JOBS_BROWSE_PREFIX });
+  for (const [, data] of queries) {
+    const found = data?.pages.flatMap((page) => page.jobs).find((job) => job.id === id);
+    if (found) return found;
+  }
+  return undefined;
 };
 
 export const useJobs = () => {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ query: "", role: "all" });
+  const debouncedQuery = useDebouncedValue(filters.query, SEARCH_DEBOUNCE_MS);
+  const effectiveFilters = useMemo(() => ({ query: debouncedQuery, role: filters.role }), [debouncedQuery, filters.role]);
 
-  const { data, isLoading, isRefetching, error, refetch } = useQuery({
-    queryKey: JOBS_LIST_KEY,
-    queryFn: jobsApi.getJobs
+  const { data, isLoading, isRefetching, isFetchingNextPage, hasNextPage, error, refetch, fetchNextPage } = useInfiniteQuery({
+    queryKey: [...JOBS_BROWSE_PREFIX, effectiveFilters] as JobsQueryKey,
+    queryFn: ({ pageParam }) => jobsApi.browseJobs(pageParam, PAGE_SIZE, effectiveFilters),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => (lastPage.hasMore ? allPages.length + 1 : undefined)
   });
-  const jobs: Job[] = data ?? [];
+
+  const jobs: Job[] = useMemo(() => (data?.pages ?? []).flatMap((page) => page.jobs), [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateJobPayload) => jobsApi.createJob(payload),
     onSuccess: (job) => {
-      queryClient.setQueryData<Job[]>(JOBS_LIST_KEY, (old: Job[] | undefined) => [job, ...(old ?? [])]);
+      queryClient.setQueriesData<InfiniteData<JobsPage, number>>(
+        { queryKey: JOBS_BROWSE_PREFIX },
+        (old: InfiniteData<JobsPage, number> | undefined) => {
+          if (!old || old.pages.length === 0) return old;
+          const firstPage = old.pages[0] as JobsPage;
+          return { ...old, pages: [{ ...firstPage, jobs: [job, ...firstPage.jobs] }, ...old.pages.slice(1)] };
+        }
+      );
       useToastStore.getState().show({ type: "success", title: "Job posted" });
     },
     onError: (error) => {
@@ -50,17 +103,9 @@ export const useJobs = () => {
   const setQuery = useCallback((query: string) => setFilters((current) => ({ ...current, query })), []);
   const setRole = useCallback((role: string) => setFilters((current) => ({ ...current, role })), []);
 
-  const filteredJobs = useMemo(() => {
-    const query = filters.query.trim().toLowerCase();
-
-    return jobs.filter((job) => {
-      const matchesRole = filters.role === "all" || job.role.toLowerCase() === filters.role;
-      const haystack = [job.heading, job.startupName, job.role, job.experience, job.description, ...job.skills]
-        .join(" ")
-        .toLowerCase();
-      return matchesRole && (!query || haystack.includes(query));
-    });
-  }, [filters.query, filters.role, jobs]);
+  const loadMore = useCallback(() => {
+    if (hasNextPage) void fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
 
   const createJob = useCallback(
     async (payload: CreateJobPayload) => {
@@ -75,17 +120,20 @@ export const useJobs = () => {
   );
 
   return {
-    jobs: filteredJobs,
-    totalCount: jobs.length,
+    jobs,
+    totalCount,
+    hasMore: hasNextPage ?? false,
     filters,
     isLoading,
     isRefreshing: isRefetching,
+    isLoadingMore: isFetchingNextPage,
     isCreating: createMutation.isPending,
     errorMessage: error ? toAppError(error).message : null,
     setQuery,
     setRole,
     loadJobs: refetch,
     refreshJobs: refetch,
+    loadMore,
     createJob
   };
 };
@@ -100,7 +148,7 @@ export const useJobMutations = () => {
   const showToast = useToastStore((state) => state.show);
 
   const syncJob = (job: Job) => {
-    queryClient.setQueryData<Job[]>(JOBS_LIST_KEY, (old: Job[] | undefined) => (old ? upsertJob(old, job) : old));
+    updateAllBrowsePages(queryClient, (jobs) => upsertJobInPage(jobs, job));
     queryClient.setQueryData<Job>(jobDetailKey(job.id), job);
   };
 
@@ -118,7 +166,7 @@ export const useJobMutations = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => jobsApi.deleteJob(id),
     onSuccess: (_data, id) => {
-      queryClient.setQueryData<Job[]>(JOBS_LIST_KEY, (old: Job[] | undefined) => old?.filter((job) => job.id !== id));
+      updateAllBrowsePages(queryClient, (jobs) => jobs.filter((job) => job.id !== id));
       queryClient.removeQueries({ queryKey: jobDetailKey(id) });
       showToast({ type: "success", title: "Job deleted" });
     },
@@ -131,8 +179,8 @@ export const useJobMutations = () => {
     mutationFn: ({ id, message }: { id: string; message: string }) => jobsApi.applyJob(id, { message }),
     onSuccess: (application, variables) => {
       const appendApplication = (job: Job) => ({ ...job, applications: [...(job.applications ?? []), application] });
-      queryClient.setQueryData<Job[]>(JOBS_LIST_KEY, (old: Job[] | undefined) =>
-        old?.map((job) => (job.id === variables.id ? appendApplication(job) : job))
+      updateAllBrowsePages(queryClient, (jobs) =>
+        jobs.map((job) => (job.id === variables.id ? appendApplication(job) : job))
       );
       queryClient.setQueryData<Job>(jobDetailKey(variables.id), (old: Job | undefined) =>
         old ? appendApplication(old) : old
@@ -152,8 +200,8 @@ export const useJobMutations = () => {
         ...job,
         applications: (job.applications ?? []).map((item) => (item.id === variables.appId ? application : item))
       });
-      queryClient.setQueryData<Job[]>(JOBS_LIST_KEY, (old: Job[] | undefined) =>
-        old?.map((job) => (job.id === variables.jobId ? patchApplication(job) : job))
+      updateAllBrowsePages(queryClient, (jobs) =>
+        jobs.map((job) => (job.id === variables.jobId ? patchApplication(job) : job))
       );
       queryClient.setQueryData<Job>(jobDetailKey(variables.jobId), (old: Job | undefined) =>
         old ? patchApplication(old) : old
@@ -230,7 +278,7 @@ export const useJobDetail = (id: string) => {
   const { data: selectedJob, isLoading, error, refetch } = useQuery<Job | undefined>({
     queryKey: jobDetailKey(id),
     queryFn: () => jobsApi.getJob(id),
-    initialData: () => queryClient.getQueryData<Job[]>(JOBS_LIST_KEY)?.find((job) => job.id === id)
+    initialData: () => findJobInBrowseCache(queryClient, id)
   });
 
   return {

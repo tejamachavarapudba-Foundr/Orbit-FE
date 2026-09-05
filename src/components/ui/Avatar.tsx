@@ -1,5 +1,6 @@
-import { Image, View } from "react-native";
+import { View } from "react-native";
 
+import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 
 type AvatarSize = "sm" | "md" | "lg" | "xl";
@@ -34,7 +35,7 @@ export const Avatar = ({ name, imageUrl = "", size = "md", fallback = "mesh", sh
 
   if (imageUrl.trim()) {
     return (
-      <Image
+      <AppImage
         source={{ uri: imageUrl }}
         accessibilityLabel={name}
         className={`${shapeClass} ${sizeClass[size]} ${className}`}

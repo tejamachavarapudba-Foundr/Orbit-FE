@@ -29,12 +29,14 @@ export const JobsScreen = () => {
   const {
     jobs,
     totalCount,
+    hasMore,
     filters,
     isLoading,
     isRefreshing,
     errorMessage,
     loadJobs,
     refreshJobs,
+    loadMore,
     setQuery,
     setRole
   } = useJobs();
@@ -70,8 +72,14 @@ export const JobsScreen = () => {
         data={activeTab === "browse" ? jobs : []}
         keyExtractor={(item) => item.id}
         renderItem={renderJob}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshJobs()}
+        onEndReached={activeTab === "browse" && hasMore ? loadMore : undefined}
+        onEndReachedThreshold={0.4}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
         ListHeaderComponent={
           <View className="w-full max-w-2xl self-center pb-2 pt-4">

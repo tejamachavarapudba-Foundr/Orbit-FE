@@ -14,11 +14,13 @@ export const eventFilters: { label: string; value: EventFilter }[] = [
 
 export const useEvents = () => {
   const events = useEventsStore((state) => state.events);
+  const hasMore = useEventsStore((state) => state.hasMore);
   const rsvpStatusByEventId = useEventsStore((state) => state.rsvpStatusByEventId);
   const query = useEventsStore((state) => state.query);
   const filter = useEventsStore((state) => state.filter);
   const isLoading = useEventsStore((state) => state.isLoading);
   const isRefreshing = useEventsStore((state) => state.isRefreshing);
+  const isLoadingMore = useEventsStore((state) => state.isLoadingMore);
   const isCreating = useEventsStore((state) => state.isCreating);
   const mutatingId = useEventsStore((state) => state.mutatingId);
   const errorMessage = useEventsStore((state) => state.errorMessage);
@@ -26,6 +28,7 @@ export const useEvents = () => {
   const setFilter = useEventsStore((state) => state.setFilter);
   const loadEvents = useEventsStore((state) => state.loadEvents);
   const refreshEvents = useEventsStore((state) => state.refreshEvents);
+  const loadMoreEvents = useEventsStore((state) => state.loadMoreEvents);
   const createEvent = useEventsStore((state) => state.createEvent);
   const selectEvent = useEventsStore((state) => state.selectEvent);
   const rsvpEvent = useEventsStore((state) => state.rsvpEvent);
@@ -50,11 +53,13 @@ export const useEvents = () => {
 
   return {
     events: filteredEvents,
+    hasMore,
     rsvpStatusByEventId,
     query,
     filter,
     isLoading,
     isRefreshing,
+    isLoadingMore,
     isCreating,
     mutatingId,
     errorMessage,
@@ -62,6 +67,7 @@ export const useEvents = () => {
     setFilter,
     loadEvents,
     refreshEvents,
+    loadMore: loadMoreEvents,
     createEvent,
     selectEvent,
     rsvpEvent

@@ -1,128 +1,76 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
-import { useAuthStore } from "@/modules/auth/store"; // 👈 Import auth store
-import { UserRole, UserSummary } from "@/modules/user/types";
+import { UserFilters, UserRole, UserSummary } from "@/modules/user/types";
+import { userApi } from "@/modules/user/api";
 import { useUserStore } from "@/modules/user/store";
+import { toAppError } from "@/utils/errors";
 
 export const userRoleFilters: { label: string; value: UserRole }[] = [
   { label: "All roles", value: "all" },
   { label: "Founder", value: "founder" },
-  { label: "Co-Founder", value: "co-founder" },
-  { label: "Software Engineer", value: "software engineer" },
+  { label: "Co-Founder", value: "co_founder" },
+  { label: "Software Engineer", value: "software_engineer" },
   { label: "Mentor", value: "mentor" },
-  { label: "Policy Maker", value: "policy maker" },
+  { label: "Policy Maker", value: "policy_maker" },
   { label: "Investor", value: "investor" },
   { label: "Designer", value: "designer" },
-  { label: "Product Manager", value: "product manager" },
+  { label: "Product Manager", value: "product_manager" },
   { label: "Other", value: "other" }
 ];
 
-const pageSize = 10;
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 400;
 
-const normalise = (value: string) => value.trim().toLowerCase();
+// Delays turning typed input into an actual query-key change (and
+// therefore a request) until the user pauses — without this, every
+// keystroke in Discover's search box would fire its own API call.
+const useDebouncedValue = <T,>(value: T, delayMs: number) => {
+  const [debounced, setDebounced] = useState(value);
 
-const matchesSearch = (user: UserSummary, query: string) => {
-  const needle = normalise(query);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
 
-  if (!needle) {
-    return true;
-  }
-
-  const profile = user.profile;
-  return [
-    profile.fullName,
-    profile.headline,
-    profile.company,
-    profile.location,
-    profile.role,
-    ...profile.skills,
-    ...profile.lookingFor
-  ]
-    .map(normalise)
-    .some((value) => value.includes(needle));
-};
-
-const matchesRole = (user: UserSummary, role: UserRole) => {
-  if (role === "all") {
-    return true;
-  }
-
-  return normalise(user.profile.role) === role;
+  return debounced;
 };
 
 export const useDiscoverUsers = () => {
-  // 1. Get the current logged-in user's ID
-  const currentUserId = useAuthStore((state) => state.user?.profile.id);
+  const [filters, setFilters] = useState<UserFilters>({ query: "", role: "all" });
+  const debouncedQuery = useDebouncedValue(filters.query, SEARCH_DEBOUNCE_MS);
+  const effectiveFilters = useMemo(() => ({ query: debouncedQuery, role: filters.role }), [debouncedQuery, filters.role]);
 
-  const users = useUserStore((state) => state.users);
-  const filters = useUserStore((state) => state.filters);
-  const isLoading = useUserStore((state) => state.isLoading);
-  const isRefreshing = useUserStore((state) => state.isRefreshing);
-  const errorMessage = useUserStore((state) => state.errorMessage);
-  const loadUsers = useUserStore((state) => state.loadUsers);
-  const refreshUsers = useUserStore((state) => state.refreshUsers);
-  const setQuery = useUserStore((state) => state.setQuery);
-  const setRole = useUserStore((state) => state.setRole);
-  const [visibleCount, setVisibleCount] = useState(pageSize);
-  const hasRequestedRef = useRef(false);
+  const { data, isLoading, isRefetching, isFetchingNextPage, hasNextPage, error, refetch, fetchNextPage } = useInfiniteQuery({
+    queryKey: ["users", "discover", effectiveFilters],
+    queryFn: ({ pageParam }) => userApi.discoverUsers(pageParam, PAGE_SIZE, effectiveFilters),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => (lastPage.hasMore ? allPages.length + 1 : undefined)
+  });
 
-  // Fires once per mount — gating on "users.length === 0" instead would
-  // never converge when the directory is genuinely empty, since every load
-  // resolves back to length 0 and re-triggers the request forever.
-  useEffect(() => {
-    if (hasRequestedRef.current || isLoading) {
-      return;
-    }
-    hasRequestedRef.current = true;
-    void loadUsers();
-  }, [isLoading, loadUsers]);
-
-  // 2. Filter out both search targets AND your own profile record
-  const filteredUsers = useMemo(
-    () =>
-      users.filter(
-        (user) =>
-          user.id !== currentUserId && // 👈 Hard boundary: Omit yourself
-          matchesSearch(user, filters.query) &&
-          matchesRole(user, filters.role)
-      ),
-    [filters.query, filters.role, users, currentUserId]
-  );
-
-  const visibleUsers = useMemo(() => filteredUsers.slice(0, visibleCount), [filteredUsers, visibleCount]);
+  const users: UserSummary[] = useMemo(() => (data?.pages ?? []).flatMap((page) => page.users), [data]);
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
 
   const loadMore = useCallback(() => {
-    setVisibleCount((current) => Math.min(current + pageSize, filteredUsers.length));
-  }, [filteredUsers.length]);
+    if (hasNextPage) void fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
 
-  const updateQuery = useCallback(
-    (query: string) => {
-      setVisibleCount(pageSize);
-      setQuery(query);
-    },
-    [setQuery]
-  );
-
-  const updateRole = useCallback(
-    (role: UserRole) => {
-      setVisibleCount(pageSize);
-      setRole(role);
-    },
-    [setRole]
-  );
+  const setQuery = useCallback((query: string) => setFilters((current) => ({ ...current, query })), []);
+  const setRole = useCallback((role: UserRole) => setFilters((current) => ({ ...current, role })), []);
 
   return {
-    users: visibleUsers,
-    totalCount: filteredUsers.length,
-    hasMore: visibleUsers.length < filteredUsers.length,
+    users,
+    totalCount,
+    hasMore: hasNextPage ?? false,
     filters,
     isLoading,
-    isRefreshing,
-    errorMessage,
-    loadUsers,
-    refreshUsers,
-    setQuery: updateQuery,
-    setRole: updateRole,
+    isRefreshing: isRefetching,
+    isLoadingMore: isFetchingNextPage,
+    errorMessage: error ? toAppError(error).message : null,
+    loadUsers: refetch,
+    refreshUsers: refetch,
+    setQuery,
+    setRole,
     loadMore
   };
 };

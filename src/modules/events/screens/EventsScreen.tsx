@@ -26,17 +26,19 @@ export const EventsScreen = () => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const {
     events,
+    hasMore,
     rsvpStatusByEventId,
     query,
     filter,
     isLoading,
     isRefreshing,
-    mutatingId,
     errorMessage,
     setQuery,
     setFilter,
     loadEvents,
     refreshEvents,
+    loadMore,
+    mutatingId,
     rsvpEvent
   } = useEvents();
 
@@ -64,8 +66,14 @@ export const EventsScreen = () => {
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={renderEvent}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshEvents()}
+        onEndReached={hasMore ? () => void loadMore() : undefined}
+        onEndReachedThreshold={0.4}
         contentContainerStyle={{ gap: 16, paddingHorizontal: 20, paddingBottom: 40 }}
         ListHeaderComponent={
           <View className="w-full max-w-2xl self-center pt-6">

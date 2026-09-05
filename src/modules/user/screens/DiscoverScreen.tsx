@@ -84,6 +84,10 @@ export const DiscoverScreen = () => {
         data={users}
         keyExtractor={keyExtractor}
         renderItem={renderUser}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshUsers()}
         onEndReached={hasMore ? loadMore : undefined}

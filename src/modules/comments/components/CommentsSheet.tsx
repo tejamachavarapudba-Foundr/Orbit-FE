@@ -125,6 +125,10 @@ export const CommentsSheet = () => {
             <FlatList
               data={threadedComments}
               keyExtractor={(item) => item.comment.id}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={9}
+              updateCellsBatchingPeriod={50}
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ padding: 16, gap: 12, flexGrow: 1 }}
               ListEmptyComponent={

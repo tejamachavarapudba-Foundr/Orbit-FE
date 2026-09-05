@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
+import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { iconSize } from "@/theme/designTokens";
@@ -89,6 +90,10 @@ export const ReelCommentsSheet = ({ visible, projectId, onClose, onCommentPosted
             <FlatList
               data={comments}
               keyExtractor={(item) => item.id}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={9}
+              updateCellsBatchingPeriod={50}
               contentContainerStyle={{ padding: 16, gap: 14 }}
               ListEmptyComponent={
                 <AppText tone="muted" size="sm" className="text-center mt-6">
@@ -99,7 +104,7 @@ export const ReelCommentsSheet = ({ visible, projectId, onClose, onCommentPosted
                 <View className="flex-row gap-3">
                   <View className="h-8 w-8 overflow-hidden rounded-full bg-muted-bg">
                     {item.author?.avatarUrl ? (
-                      <Image source={{ uri: item.author.avatarUrl }} style={{ width: "100%", height: "100%" }} />
+                      <AppImage source={{ uri: item.author.avatarUrl }} style={{ width: "100%", height: "100%" }} />
                     ) : null}
                   </View>
                   <View className="flex-1">

@@ -1,9 +1,10 @@
 import { memo, useState } from "react";
-import { Image, Linking, Pressable, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { useProjectStore } from "@/modules/project/store";
 import { useAuthStore } from "@/modules/auth/store";
+import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -56,7 +57,7 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
     <Pressable accessibilityRole="button" onPress={() => onPress(project.id)} className="mb-6">
       <Card className="overflow-hidden">
         {project.coverUrl ? (
-          <Image
+          <AppImage
             source={{ uri: project.coverUrl }}
             style={{ width: "100%", height: compact ? 64 : 96 }}
             resizeMode="cover"
@@ -73,7 +74,7 @@ export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onVi
             }
           >
             {project.logoUrl ? (
-              <Image source={{ uri: project.logoUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+              <AppImage source={{ uri: project.logoUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
             ) : (
               <View className="flex-1 items-center justify-center">
                 <AppText weight="bold" size={compact ? "base" : "xl"} tone="primary">

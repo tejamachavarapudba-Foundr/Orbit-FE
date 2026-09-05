@@ -176,6 +176,10 @@ const filteredChats = useMemo(() => {
           data={filteredChats}
           keyExtractor={(item) => item.id}
           renderItem={renderChat}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={9}
+          updateCellsBatchingPeriod={50}
           refreshing={isRefreshing}
           onRefresh={() => void refreshChats()}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}

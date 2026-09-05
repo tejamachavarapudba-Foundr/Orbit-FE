@@ -38,6 +38,10 @@ export const InvestmentWatchlistScreen = () => {
         <FlatList
           data={savedStartups}
           keyExtractor={(item) => item.id}
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          updateCellsBatchingPeriod={50}
           refreshing={isRefreshing}
           onRefresh={() => void handleRefresh()}
           renderItem={({ item }) => (

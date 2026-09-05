@@ -92,6 +92,10 @@ export const ProjectsScreen = () => {
         data={projects}
         keyExtractor={(item) => item.id}
         renderItem={renderProject}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={7}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshProjects()}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
