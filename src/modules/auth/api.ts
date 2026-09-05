@@ -25,13 +25,18 @@ const toAuthUser = (response: AuthMeResponse): AuthUser => {
 };
 
 export const authApi = {
+  // user is left undefined here (rather than fetched via a fallback me()
+  // call right away) when the backend hasn't deployed the merged response
+  // yet — a me() call needs the access token already in secure storage,
+  // which the caller only writes *after* this resolves, so the store
+  // handles the fallback itself once tokens are actually persisted.
   login: async (payload: LoginPayload) => {
     const response = await apiClient.post<AuthTokenWithUserResponse>("/auth/login", payload);
-    return { ...response.data, user: toAuthUser(response.data.user) };
+    return { ...response.data, user: response.data.user ? toAuthUser(response.data.user) : undefined };
   },
   register: async (payload: RegisterPayload) => {
     const response = await apiClient.post<AuthTokenWithUserResponse>("/auth/register", payload);
-    return { ...response.data, user: toAuthUser(response.data.user) };
+    return { ...response.data, user: response.data.user ? toAuthUser(response.data.user) : undefined };
   },
   forgotPassword: async (payload: ForgotPasswordPayload) => {
     const response = await apiClient.post<{ message: string }>("/auth/forgot-password", payload);
