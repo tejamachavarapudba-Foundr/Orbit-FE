@@ -16,14 +16,26 @@ export const normalizeEvent = (event: RawStartupEvent) => ({
   isAttending: event.isAttending ?? Boolean(event.attendees?.length)
 });
 
+type EventsPage = { events: RawStartupEvent[]; totalCount: number; hasMore: boolean };
+
 export const eventsApi = {
   getEvents: async () => {
     const response = await apiClient.get<RawStartupEvent[]>("/events");
     return response.data.map(normalizeEvent);
   },
+  browseEvents: async (page: number, limit: number) => {
+    const response = await apiClient.get<EventsPage>("/events/browse", { params: { page, limit } });
+    return { ...response.data, events: response.data.events.map(normalizeEvent) };
+  },
   getCommunityEvents: async (communityId: string) => {
     const response = await apiClient.get<RawStartupEvent[]>(`/events/community/${communityId}`);
     return response.data.map(normalizeEvent);
+  },
+  browseCommunityEvents: async (communityId: string, page: number, limit: number) => {
+    const response = await apiClient.get<EventsPage>(`/events/community/${communityId}/browse`, {
+      params: { page, limit }
+    });
+    return { ...response.data, events: response.data.events.map(normalizeEvent) };
   },
   getEvent: async (id: string) => {
     const response = await apiClient.get<RawStartupEvent>(`/events/${id}`);

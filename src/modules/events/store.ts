@@ -12,8 +12,12 @@ import {
 import { useToastStore } from "@/store/toastStore";
 import { toAppError } from "@/utils/errors";
 
+const PAGE_SIZE = 20;
+
 type EventsState = {
   events: StartupEvent[];
+  page: number;
+  hasMore: boolean;
   selectedEvent: StartupEvent | null;
   attendeesByEventId: Record<string, EventAttendee[]>;
   rsvpStatusByEventId: Record<string, EventRsvpStatus>;
@@ -21,6 +25,7 @@ type EventsState = {
   filter: EventFilter;
   isLoading: boolean;
   isRefreshing: boolean;
+  isLoadingMore: boolean;
   isCreating: boolean;
   isLoadingDetail: boolean;
   mutatingId: string | null;
@@ -29,6 +34,7 @@ type EventsState = {
   setFilter: (filter: EventFilter) => void;
   loadEvents: () => Promise<void>;
   refreshEvents: () => Promise<void>;
+  loadMoreEvents: () => Promise<void>;
   selectEvent: (id: string) => Promise<void>;
   clearSelectedEvent: () => void;
   createEvent: (payload: CreateEventPayload) => Promise<boolean>;
@@ -43,8 +49,10 @@ const upsertEvent = (events: StartupEvent[], event: StartupEvent) => {
   return exists ? events.map((item) => (item.id === event.id ? { ...item, ...event } : item)) : [event, ...events];
 };
 
-export const useEventsStore = create<EventsState>((set) => ({
+export const useEventsStore = create<EventsState>((set, get) => ({
   events: [],
+  page: 1,
+  hasMore: true,
   selectedEvent: null,
   attendeesByEventId: {},
   rsvpStatusByEventId: {},
@@ -52,6 +60,7 @@ export const useEventsStore = create<EventsState>((set) => ({
   filter: "all",
   isLoading: false,
   isRefreshing: false,
+  isLoadingMore: false,
   isCreating: false,
   isLoadingDetail: false,
   mutatingId: null,
@@ -62,8 +71,8 @@ export const useEventsStore = create<EventsState>((set) => ({
     set({ isLoading: true, errorMessage: null });
 
     try {
-      const events = await eventsApi.getEvents();
-      set({ events, isLoading: false });
+      const { events, hasMore } = await eventsApi.browseEvents(1, PAGE_SIZE);
+      set({ events, page: 1, hasMore, isLoading: false });
     } catch (error) {
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isLoading: false });
@@ -73,11 +82,30 @@ export const useEventsStore = create<EventsState>((set) => ({
     set({ isRefreshing: true, errorMessage: null });
 
     try {
-      const events = await eventsApi.getEvents();
-      set({ events, isRefreshing: false });
+      const { events, hasMore } = await eventsApi.browseEvents(1, PAGE_SIZE);
+      set({ events, page: 1, hasMore, isRefreshing: false });
     } catch (error) {
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isRefreshing: false });
+    }
+  },
+  loadMoreEvents: async () => {
+    if (get().isLoadingMore || !get().hasMore) return;
+
+    set({ isLoadingMore: true, errorMessage: null });
+
+    try {
+      const nextPage = get().page + 1;
+      const { events, hasMore } = await eventsApi.browseEvents(nextPage, PAGE_SIZE);
+      set((state) => ({
+        events: [...state.events, ...events],
+        page: nextPage,
+        hasMore,
+        isLoadingMore: false
+      }));
+    } catch (error) {
+      const appError = toAppError(error);
+      set({ errorMessage: appError.message, isLoadingMore: false });
     }
   },
   selectEvent: async (id) => {
