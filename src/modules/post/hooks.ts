@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { InfiniteData, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/modules/auth/store";
-import { usePostStore } from "@/modules/post/store";
 import { useSavedPostsStore } from "@/modules/post/savedPostsStore";
-import { CreatePostPayload, PostCategory, PostFormValues, PostMediaType } from "@/modules/post/types";
+import { postApi } from "@/modules/post/api";
+import { CreatePostPayload, Post, PostCategory, PostFormValues, PostMediaType, UpdatePostPayload } from "@/modules/post/types";
+import { useToastStore } from "@/store/toastStore";
+import { toAppError } from "@/utils/errors";
+
+const PAGE_SIZE = 10;
+const FEED_QUERY_KEY = ["posts", "feed"] as const;
 
 export const postCategoryOptions: { label: string; value: PostCategory }[] = [
   { label: "Update", value: "Update" },
@@ -15,7 +21,7 @@ export const postCategoryOptions: { label: string; value: PostCategory }[] = [
   { label: "Query", value: "Query" },
   { label: "Service", value: "Service" },
   { label: "Marketing", value: "Marketing" },
-  { label: "Other", value: "Other" }, 
+  { label: "Other", value: "Other" },
   { label: "Funding", value: "Funding" }
 ];
 
@@ -46,36 +52,38 @@ const toPayload = (values: PostFormValues): CreatePostPayload => ({
   projectId: null
 });
 
+const sortPosts = (posts: Post[]) =>
+  [...posts].sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime());
+
+/** Applies a page-preserving edit to the feed's cached pages — used by every
+ * mutation below so create/update/delete stay in sync with whatever's
+ * currently paginated in, without refetching the whole feed. */
+const updateFeedCache = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  updater: (pages: Post[][]) => Post[][]
+) => {
+  queryClient.setQueryData<InfiniteData<Post[], number>>(FEED_QUERY_KEY, (old: InfiniteData<Post[], number> | undefined) => {
+    if (!old) return old;
+    return { ...old, pages: updater(old.pages) };
+  });
+};
+
 export const useFeed = () => {
-  const posts = usePostStore((state) => state.posts);
-  const hasMorePosts = usePostStore((state) => state.hasMore);
-  const isLoading = usePostStore((state) => state.isLoading);
-  const isRefreshing = usePostStore((state) => state.isRefreshing);
-  const isLoadingMore = usePostStore((state) => state.isLoadingMore);
-  const errorMessage = usePostStore((state) => state.errorMessage);
-  const loadPosts = usePostStore((state) => state.loadPosts);
-  const loadMorePosts = usePostStore((state) => state.loadMorePosts);
-  const refreshPosts = usePostStore((state) => state.refreshPosts);
   const user = useAuthStore((state) => state.user);
   const isSavedPostsLoading = useSavedPostsStore((state) => state.isLoading);
   const loadSavedPosts = useSavedPostsStore((state) => state.loadSavedPosts);
   const [activeCategory, setActiveCategory] = useState<PostCategory | "all">("all");
-  const hasRequestedPostsRef = useRef(false);
   const requestedSavedPostsForUserRef = useRef<string | null>(null);
 
-  // Fires once per mount — gating on "posts.length === 0" instead would
-  // never converge when the feed is genuinely empty, since every load
-  // resolves back to length 0 and re-triggers the request forever.
-  useEffect(() => {
-    if (hasRequestedPostsRef.current || isLoading) {
-      return;
-    }
-    hasRequestedPostsRef.current = true;
-    void loadPosts();
-  }, [isLoading, loadPosts]);
+  const { data, isLoading, isRefetching, isFetchingNextPage, hasNextPage, error, refetch, fetchNextPage } = useInfiniteQuery({
+    queryKey: FEED_QUERY_KEY,
+    queryFn: ({ pageParam }) => postApi.getPosts(pageParam, PAGE_SIZE),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => (lastPage.length === PAGE_SIZE ? allPages.length + 1 : undefined)
+  });
 
-  // Same fix, keyed per signed-in user: an account with zero saved posts
-  // would otherwise re-trigger this fetch forever (this was hammering
+  // Same fix as before, keyed per signed-in user: an account with zero saved
+  // posts would otherwise re-trigger this fetch forever (this was hammering
   // /api/posts/saved continuously in practice).
   useEffect(() => {
     if (!user || requestedSavedPostsForUserRef.current === user.id || isSavedPostsLoading) {
@@ -85,26 +93,28 @@ export const useFeed = () => {
     void loadSavedPosts();
   }, [isSavedPostsLoading, loadSavedPosts, user]);
 
+  const posts = useMemo(() => sortPosts((data?.pages ?? []).flat()), [data]);
+
   const filteredPosts = useMemo(
     () => (activeCategory === "all" ? posts : posts.filter((post) => post.category === activeCategory)),
     [activeCategory, posts]
   );
 
   const loadMore = useCallback(() => {
-    void loadMorePosts();
-  }, [loadMorePosts]);
+    if (hasNextPage) void fetchNextPage();
+  }, [hasNextPage, fetchNextPage]);
 
   return {
     posts: filteredPosts,
     totalCount: filteredPosts.length,
-    hasMore: hasMorePosts,
+    hasMore: hasNextPage ?? false,
     activeCategory,
     isLoading,
-    isRefreshing,
-    isLoadingMore,
-    errorMessage,
-    loadPosts,
-    refreshPosts,
+    isRefreshing: isRefetching,
+    isLoadingMore: isFetchingNextPage,
+    errorMessage: error ? toAppError(error).message : null,
+    loadPosts: refetch,
+    refreshPosts: refetch,
     loadMore,
     setActiveCategory
   };
@@ -112,37 +122,103 @@ export const useFeed = () => {
 
 export const usePostComposer = () => {
   const [values, setValues] = useState<PostFormValues>(initialForm);
-  const isSubmitting = usePostStore((state) => state.isSubmitting);
-  const createPost = usePostStore((state) => state.createPost);
+  const showToast = useToastStore((state) => state.show);
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: ({ payload, files }: { payload: CreatePostPayload; files: ImagePicker.ImagePickerAsset[] }) =>
+      postApi.createPost(payload, files),
+    onSuccess: (newPost) => {
+      updateFeedCache(queryClient, (pages) => {
+        const [firstPage, ...rest] = pages;
+        return [[newPost, ...(firstPage ?? [])], ...rest];
+      });
+      showToast({ type: "success", title: "Post published" });
+    },
+    onError: (error) => {
+      showToast({ type: "error", title: "Post failed", message: toAppError(error).message });
+    }
+  });
 
   const setField = useCallback(<Key extends keyof PostFormValues>(key: Key, value: PostFormValues[Key]) => {
     setValues((current) => ({ ...current, [key]: value }));
   }, []);
 
-  const submit = useCallback(async (files: ImagePicker.ImagePickerAsset[]) => {
-    const payload = toPayload(values);
+  const submit = useCallback(
+    async (files: ImagePicker.ImagePickerAsset[]) => {
+      const payload = toPayload(values);
+      if (!payload.content) return false;
 
-    if (!payload.content) {
-      return false;
-    }
+      try {
+        await createMutation.mutateAsync({ payload, files });
+        setValues(initialForm);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [createMutation, values]
+  );
 
-    const didSucceed = await createPost(payload, files);
-    if (didSucceed) {
-      setValues(initialForm);
-    }
-
-    return didSucceed;
-  }, [createPost, values]);
-
-  return { values, isSubmitting, setField, submit, canSubmit: values.content.trim().length > 0 };
+  return { values, isSubmitting: createMutation.isPending, setField, submit, canSubmit: values.content.trim().length > 0 };
 };
 
 export const usePostActions = () => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
-  const isSubmitting = usePostStore((state) => state.isSubmitting);
-  const deletingPostId = usePostStore((state) => state.deletingPostId);
-  const updatePost = usePostStore((state) => state.updatePost);
-  const deletePost = usePostStore((state) => state.deletePost);
+  const showToast = useToastStore((state) => state.show);
+  const queryClient = useQueryClient();
 
-  return { currentUserId, isSubmitting, deletingPostId, updatePost, deletePost };
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdatePostPayload }) => postApi.updatePost(id, payload),
+    onSuccess: (updatedPost) => {
+      updateFeedCache(queryClient, (pages) => pages.map((page) => page.map((p) => (p.id === updatedPost.id ? updatedPost : p))));
+      showToast({ type: "success", title: "Post updated" });
+    },
+    onError: (error) => {
+      showToast({ type: "error", title: "Update failed", message: toAppError(error).message });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => postApi.deletePost(id),
+    onSuccess: (_data, id) => {
+      updateFeedCache(queryClient, (pages) => pages.map((page) => page.filter((p) => p.id !== id)));
+      showToast({ type: "success", title: "Post deleted" });
+    },
+    onError: (error) => {
+      showToast({ type: "error", title: "Delete failed", message: toAppError(error).message });
+    }
+  });
+
+  const updatePost = useCallback(
+    async (id: string, payload: UpdatePostPayload) => {
+      try {
+        await updateMutation.mutateAsync({ id, payload });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [updateMutation]
+  );
+
+  const deletePost = useCallback(
+    async (id: string) => {
+      try {
+        await deleteMutation.mutateAsync(id);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [deleteMutation]
+  );
+
+  return {
+    currentUserId,
+    isSubmitting: updateMutation.isPending,
+    deletingPostId: deleteMutation.isPending ? (deleteMutation.variables ?? null) : null,
+    updatePost,
+    deletePost
+  };
 };
