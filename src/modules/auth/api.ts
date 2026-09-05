@@ -1,7 +1,7 @@
 import { apiClient } from "@/services/api/client";
 import {
   AuthMeResponse,
-  AuthTokenWithUserResponse,
+  AuthTokenResponse,
   AuthUser,
   ForgotPasswordPayload,
   LoginPayload,
@@ -26,12 +26,12 @@ const toAuthUser = (response: AuthMeResponse): AuthUser => {
 
 export const authApi = {
   login: async (payload: LoginPayload) => {
-    const response = await apiClient.post<AuthTokenWithUserResponse>("/auth/login", payload);
-    return { ...response.data, user: toAuthUser(response.data.user) };
+    const response = await apiClient.post<AuthTokenResponse>("/auth/login", payload);
+    return response.data;
   },
   register: async (payload: RegisterPayload) => {
-    const response = await apiClient.post<AuthTokenWithUserResponse>("/auth/register", payload);
-    return { ...response.data, user: toAuthUser(response.data.user) };
+    const response = await apiClient.post<AuthTokenResponse>("/auth/register", payload);
+    return response.data;
   },
   forgotPassword: async (payload: ForgotPasswordPayload) => {
     const response = await apiClient.post<{ message: string }>("/auth/forgot-password", payload);
