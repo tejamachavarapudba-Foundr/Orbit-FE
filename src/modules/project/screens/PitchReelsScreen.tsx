@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Pressable, Share, StatusBar, View, ViewToken } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, Share, StatusBar, View, ViewToken } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
+import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 import { iconSize } from "@/theme/designTokens";
 import { projectApi } from "@/modules/project/api";
@@ -130,7 +131,7 @@ export const PitchReelsScreen = () => {
           style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
         >
           <View style={{ width: 30, height: 30, borderRadius: 15, overflow: "hidden", backgroundColor: "#333" }}>
-            {item.logoUrl ? <Image source={{ uri: item.logoUrl }} style={{ width: "100%", height: "100%" }} /> : null}
+            {item.logoUrl ? <AppImage source={{ uri: item.logoUrl }} style={{ width: "100%", height: "100%" }} /> : null}
           </View>
           <AppText weight="semibold" style={{ color: "#fff" }}>
             {item.name}

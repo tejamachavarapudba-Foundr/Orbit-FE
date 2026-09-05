@@ -1,11 +1,12 @@
 import { memo, useRef, useState } from "react";
-import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Animated, { useAnimatedKeyboard, useAnimatedStyle } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/AppButton";
+import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -87,7 +88,7 @@ const MessageAttachment = ({
         onPress={() => onPressImage(message.attachmentUrl!)}
         className="mb-1.5"
       >
-        <Image
+        <AppImage
           source={{ uri: message.attachmentUrl }}
           // WhatsApp-style fixed square preview, not a stretched/oddly-cropped box.
           className="h-60 w-60 rounded-lg"
@@ -338,7 +339,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.92)", alignItems: "center", justifyContent: "center" }}
         >
           {viewerUrl ? (
-            <Image source={{ uri: viewerUrl }} style={{ width: "100%", height: "80%" }} resizeMode="contain" />
+            <AppImage source={{ uri: viewerUrl }} style={{ width: "100%", height: "80%" }} resizeMode="contain" />
           ) : null}
           <Pressable
             accessibilityRole="button"

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Alert, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 
 import { AppButton } from "@/components/ui/AppButton";
+import { AppImage } from "@/components/ui/AppImage";
 import { AppScreen } from "@/components/ui/AppScreen";
 import { AppText } from "@/components/ui/AppText";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -201,7 +202,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
           className="h-28 overflow-hidden rounded-xl"
         >
           {selectedProject.coverUrl ? (
-            <Image source={{ uri: selectedProject.coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+            <AppImage source={{ uri: selectedProject.coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
           ) : (
             <ProjectBannerGradient projectType={selectedProject.projectType} height={112} />
           )}
@@ -221,7 +222,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
             className="h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-border bg-card"
           >
             {selectedProject.logoUrl ? (
-              <Image source={{ uri: selectedProject.logoUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+              <AppImage source={{ uri: selectedProject.logoUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
             ) : (
               <AppText tone="primary" weight="bold" size="xl">
                 {selectedProject.name.charAt(0).toUpperCase()}

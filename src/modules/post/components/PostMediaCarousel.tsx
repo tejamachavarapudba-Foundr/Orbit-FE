@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
-import { FlatList, Image, LayoutChangeEvent, Pressable, View, ViewToken } from "react-native";
+import { FlatList, LayoutChangeEvent, Pressable, View, ViewToken } from "react-native";
 
+import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 import { PostMediaViewerModal } from "@/modules/post/components/PostMediaViewerModal";
 import { Post } from "@/modules/post/types";
@@ -45,7 +46,7 @@ export const PostMediaCarousel = ({ postId, media }: PostMediaCarouselProps) => 
             <PostVideo postId={postId} uri={item.url} width={item.width ?? null} height={item.height ?? null} />
           ) : (
             <Pressable accessibilityRole="imagebutton" onPress={() => setViewerIndex(0)} style={{ width: "100%", height: "100%" }}>
-              <Image source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+              <AppImage source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
             </Pressable>
           )}
         </View>
@@ -81,7 +82,7 @@ export const PostMediaCarousel = ({ postId, media }: PostMediaCarouselProps) => 
                   onPress={() => setViewerIndex(index)}
                   style={{ width: "100%", height: "100%" }}
                 >
-                  <Image source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
+                  <AppImage source={{ uri: item.url }} resizeMode="cover" style={{ width: "100%", height: "100%" }} />
                 </Pressable>
               )}
             </View>

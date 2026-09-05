@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { Dimensions, FlatList, Image, Modal, Pressable, View } from "react-native";
+import { Dimensions, FlatList, Modal, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
+import { AppImage } from "@/components/ui/AppImage";
 import { PostVideo } from "@/modules/post/components/PostVideo";
 import { Post } from "@/modules/post/types";
 import { iconSize } from "@/theme/designTokens";
@@ -36,7 +37,7 @@ export const PostMediaViewerModal = ({ visible, postId, media, initialIndex, onC
               {item.type === "VIDEO" ? (
                 <PostVideo postId={postId} uri={item.url} width={item.width ?? null} height={item.height ?? null} />
               ) : (
-                <Image source={{ uri: item.url }} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
+                <AppImage source={{ uri: item.url }} resizeMode="contain" style={{ width: "100%", height: "100%" }} />
               )}
             </View>
           )}
