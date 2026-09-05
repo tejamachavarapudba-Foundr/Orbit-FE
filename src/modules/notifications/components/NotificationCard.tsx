@@ -1,19 +1,20 @@
+import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 import { AppText } from '@/components/ui/AppText';
 import { Notification } from '../types';
 
 interface Props {
   notification: Notification;
-  onPress: () => void;
+  onPress: (id: string) => void;
 }
 
-export const NotificationCard = ({
+export const NotificationCard = memo(({
   notification,
   onPress,
 }: Props) => {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => onPress(notification.id)}
       className={`rounded-xl border p-4 ${
         notification.isRead
           ? 'border-border'
@@ -37,4 +38,4 @@ export const NotificationCard = ({
       </View>
     </Pressable>
   );
-};
+});

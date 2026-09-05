@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificationsApi } from './api';
+import { Notification } from './types';
 
 export const useNotifications = () => {
   return useQuery({
@@ -13,10 +14,14 @@ export const useMarkNotificationRead = () => {
 
   return useMutation({
     mutationFn: notificationsApi.markAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notifications'],
-      });
+    // Patches just the one row instead of invalidating the whole list —
+    // a refetch would hand back a fresh array with a new object reference
+    // for every notification, defeating NotificationCard's React.memo and
+    // re-rendering all ~200 rows for a single tap.
+    onSuccess: (_updated, id) => {
+      queryClient.setQueryData<Notification[]>(['notifications'], (old: Notification[] | undefined) =>
+        old?.map((notification: Notification) => (notification.id === id ? { ...notification, isRead: true } : notification))
+      );
     },
   });
 };
@@ -27,9 +32,9 @@ export const useMarkAllNotificationsRead = () => {
   return useMutation({
     mutationFn: notificationsApi.markAllAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notifications'],
-      });
+      queryClient.setQueryData<Notification[]>(['notifications'], (old: Notification[] | undefined) =>
+        old?.map((notification: Notification) => ({ ...notification, isRead: true }))
+      );
     },
   });
 };
@@ -44,10 +49,11 @@ export const useMarkNotificationsRead = () => {
 
   return useMutation({
     mutationFn: (ids: string[]) => Promise.all(ids.map((id) => notificationsApi.markAsRead(id))),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['notifications'],
-      });
+    onSuccess: (_updated, ids) => {
+      const idSet = new Set(ids);
+      queryClient.setQueryData<Notification[]>(['notifications'], (old: Notification[] | undefined) =>
+        old?.map((notification: Notification) => (idSet.has(notification.id) ? { ...notification, isRead: true } : notification))
+      );
     },
   });
 };
