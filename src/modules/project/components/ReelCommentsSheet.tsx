@@ -90,6 +90,10 @@ export const ReelCommentsSheet = ({ visible, projectId, onClose, onCommentPosted
             <FlatList
               data={comments}
               keyExtractor={(item) => item.id}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={9}
+              updateCellsBatchingPeriod={50}
               contentContainerStyle={{ padding: 16, gap: 14 }}
               ListEmptyComponent={
                 <AppText tone="muted" size="sm" className="text-center mt-6">

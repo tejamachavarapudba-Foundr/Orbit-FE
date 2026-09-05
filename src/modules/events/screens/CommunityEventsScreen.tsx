@@ -106,6 +106,10 @@ export const CommunityEventsScreen = () => {
         data={filteredEvents}
         keyExtractor={(item) => item.id}
         renderItem={renderEvent}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         contentContainerStyle={{ gap: 16, paddingHorizontal: 20, paddingBottom: 40 }}
         ListHeaderComponent={
           <View className="w-full max-w-2xl self-center pb-4">

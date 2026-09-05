@@ -199,6 +199,10 @@ export const NetworkScreen = () => {
         data={activeTab === "feed" ? [] : profiles}
         keyExtractor={keyExtractor}
         renderItem={renderProfile}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshingNetwork}
         onRefresh={handleRefresh}
         contentContainerStyle={{ gap: 12, paddingHorizontal: 20, paddingBottom: 32 }}

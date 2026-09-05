@@ -29,6 +29,10 @@ export const SavedPostsScreen = () => {
         keyExtractor={(item: Post) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
         ItemSeparatorComponent={() => <View className="h-2 bg-background" />}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={7}
+        updateCellsBatchingPeriod={50}
         refreshing={hasLoadedOnce && isLoading}
         onRefresh={() => void loadSavedPosts()}
         contentContainerStyle={{ paddingBottom: 32 }}

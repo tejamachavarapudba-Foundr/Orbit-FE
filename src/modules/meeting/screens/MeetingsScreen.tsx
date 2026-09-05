@@ -82,6 +82,10 @@ export const MeetingsScreen = () => {
           data={rows}
           keyExtractor={(item) => (item.type === "meeting" ? item.meeting.id : item.proposal.id)}
           renderItem={renderRow}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={9}
+          updateCellsBatchingPeriod={50}
           refreshing={isLoading}
           onRefresh={() => void reload()}
           contentContainerStyle={{ paddingBottom: 32, gap: 12 }}

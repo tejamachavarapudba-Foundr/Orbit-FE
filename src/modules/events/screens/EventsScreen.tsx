@@ -64,6 +64,10 @@ export const EventsScreen = () => {
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={renderEvent}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshEvents()}
         contentContainerStyle={{ gap: 16, paddingHorizontal: 20, paddingBottom: 40 }}

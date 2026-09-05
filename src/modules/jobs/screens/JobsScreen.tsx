@@ -70,6 +70,10 @@ export const JobsScreen = () => {
         data={activeTab === "browse" ? jobs : []}
         keyExtractor={(item) => item.id}
         renderItem={renderJob}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={9}
+        updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshJobs()}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
