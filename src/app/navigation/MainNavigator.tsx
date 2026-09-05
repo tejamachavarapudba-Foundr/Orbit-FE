@@ -11,7 +11,7 @@ import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { ChatsScreen } from "@/modules/chat/screens/ChatsScreen";
 import { ProjectsScreen } from "@/modules/project/screens/ProjectsScreen";
 
-import { useConnectionsStore } from "@/modules/connections/store";
+import { useIncomingConnectionRequests } from "@/modules/connections/hooks";
 import { useChatStore } from "@/modules/chat/store";
 import { useAuthStore } from "@/modules/auth/store";
 import { useNotifications } from "@/modules/notifications/hooks";
@@ -60,8 +60,8 @@ export const MainNavigator = () => {
   const isInvestor = useAuthStore((state) => state.user?.profile?.role?.toLowerCase() === "investor");
 
   // Connection invitations counter — shown on the "My network" menu item
-  // (ProfileMenuButton), not a tab, so it's loaded here but not used below.
-  const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
+  // (ProfileMenuButton), not a tab, so it's primed here but not used below.
+  useIncomingConnectionRequests({ enabled: Boolean(currentUserId) });
 
   // Unread chats: has a last message, it wasn't sent by me, and it hasn't
   // been marked read yet (backend field is `readAt`, not `isRead` — a
@@ -83,10 +83,9 @@ export const MainNavigator = () => {
 
   useEffect(() => {
     if (currentUserId) {
-      void loadIncomingRequests();
       void loadChats();
     }
-  }, [currentUserId, loadIncomingRequests, loadChats]);
+  }, [currentUserId, loadChats]);
 
   return (
     <Tab.Navigator

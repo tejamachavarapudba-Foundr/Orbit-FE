@@ -4,7 +4,7 @@ import { FollowProfile, NetworkTab } from "@/modules/follows/types";
 import { useFollowStore } from "@/modules/follows/store";
 import { buildNetworkSuggestions } from "@/modules/follows/suggestionEngine";
 import { useAuthStore } from "@/modules/auth/store";
-import { useConnectionsStore } from "@/modules/connections/store";
+import { useConnectedProfiles } from "@/modules/connections/hooks";
 import { useToastStore } from "@/store/toastStore";
 import { useUserStore } from "@/modules/user/store";
 
@@ -71,7 +71,7 @@ export const useNetworkSuggestions = () => {
   const viewer = useAuthStore((state) => state.user?.profile);
   const following = useFollowStore((state) => state.following);
   const followers = useFollowStore((state) => state.followers);
-  const connectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
+  const connectedProfiles = useConnectedProfiles(viewer?.id);
   const users = useUserStore((state) => state.users);
   const isLoadingUsers = useUserStore((state) => state.isLoading);
   const loadUsers = useUserStore((state) => state.loadUsers);

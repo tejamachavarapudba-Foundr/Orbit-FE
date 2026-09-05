@@ -7,7 +7,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { useAuthStore } from "@/modules/auth/store";
-import { useConnectionsStore } from "@/modules/connections/store";
+import { useIncomingConnectionRequests } from "@/modules/connections/hooks";
 import { EVENT_NOTIFICATION_TYPES, countUnreadByType } from "@/modules/notifications/categories";
 import { useNotifications } from "@/modules/notifications/hooks";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
@@ -43,7 +43,7 @@ export const ProfileMenuButton = ({ className = "" }: ProfileMenuButtonProps) =>
   const isAdmin = user?.role === "ADMIN";
   const isInvestor = user?.profile?.role?.toLowerCase() === "investor";
   const isFounder = user?.profile?.role?.toLowerCase() === "founder";
-  const pendingRequestsCount = useConnectionsStore((state) => state.incomingRequests.length);
+  const pendingRequestsCount = useIncomingConnectionRequests().incomingRequests.length;
   // Event reminders are excluded from the bell count (categories.ts routes
   // them here instead, same as Messages/Projects/Jobs) but nothing was ever
   // reading that category — every menu item except "My network" was hardcoded

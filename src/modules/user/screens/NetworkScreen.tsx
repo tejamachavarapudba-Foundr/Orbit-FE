@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FlatList, ListRenderItem, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -9,7 +9,7 @@ import { AppText } from "@/components/ui/AppText";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { IncomingRequestsSection } from "@/modules/connections/components/IncomingRequestsSection";
-import { useConnectionsStore } from "@/modules/connections/store";
+import { useConnectedProfiles } from "@/modules/connections/hooks";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { NetworkMemberRow } from "@/modules/follows/components/NetworkMemberRow";
 import { useNetwork, useNetworkSuggestions } from "@/modules/follows/hooks";
@@ -132,7 +132,6 @@ const FeedView = ({
 export const NetworkScreen = () => {
   const openUserProfile = useOpenUserProfile();
   const [activeTab, setActiveTab] = useState<NetworkTab>("feed");
-  const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
   const refreshUsers = useUserStore((state) => state.refreshUsers);
   const {
     currentUserId,
@@ -146,12 +145,9 @@ export const NetworkScreen = () => {
     refresh
   } = useNetwork(activeTab);
   const { suggestions, isLoadingSuggestions } = useNetworkSuggestions();
-
-  useEffect(() => {
-    if (currentUserId) {
-      void loadConnectedProfiles(currentUserId);
-    }
-  }, [currentUserId, loadConnectedProfiles]);
+  // Priming read only — warms the shared connections cache for chat/hooks.ts
+  // and follows/hooks.ts, which read the same query without triggering it.
+  useConnectedProfiles(currentUserId);
 
   const renderProfile = useCallback<ListRenderItem<FollowProfile>>(
     ({ item }) => <NetworkMemberRow profile={item} onPress={openUserProfile} />,
