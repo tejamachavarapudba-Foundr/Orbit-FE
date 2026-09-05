@@ -12,7 +12,7 @@ let refreshPromise: Promise<AuthTokens> | null = null;
 
 const refreshTokens = (refreshToken: string) => {
   refreshPromise ??= axios
-    .post<AuthTokens>(`${appConfig.apiBaseUrl}${appConfig.authRefreshPath}`, { refreshToken })
+    .post<AuthTokens>(`${appConfig.apiBaseUrl}${appConfig.authRefreshPath}`, { refreshToken }, { timeout: 20_000 })
     .then((response) => response.data)
     .finally(() => {
       refreshPromise = null;
