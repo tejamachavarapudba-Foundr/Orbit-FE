@@ -1,28 +1,19 @@
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { FlatList, View, ActivityIndicator } from "react-native";
-import { useConnectionsStore } from "@/modules/connections/store";
+import { useIncomingConnectionRequests } from "@/modules/connections/hooks";
 import { AppText } from "@/components/ui/AppText";
 import { AppButton } from "@/components/ui/AppButton";
 import { Card } from "@/components/ui/Card";
 import { UserAvatar } from "@/modules/user/components/UserAvatar";
 
 export const InvitationsScreen = () => {
-  const incomingRequests = useConnectionsStore((state) => state.incomingRequests);
-  const isLoading = useConnectionsStore((state) => state.isLoadingRequests);
-  const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
-  const acceptRequest = useConnectionsStore((state) => state.acceptRequest);
-  const declineRequest = useConnectionsStore((state) => state.declineRequest);
-  const isMutatingByUserId = useConnectionsStore((state) => state.isMutatingByUserId);
-
-  // Fetch the latest pending invitations from NestJS when screen mounts
-  useEffect(() => {
-    void loadIncomingRequests();
-  }, [loadIncomingRequests]);
+  const { incomingRequests, isLoadingRequests: isLoading, mutatingRequesterId, acceptRequest, declineRequest, reload } =
+    useIncomingConnectionRequests();
 
   const renderInvitation = useCallback(({ item }: { item: any }) => {
     // Gracefully handle your normalized requester payload fallback structure
     const requester = item.requester;
-    const isProcessing = isMutatingByUserId[item.requesterId] || false;
+    const isProcessing = mutatingRequesterId === item.requesterId;
 
     if (!requester) return null;
 
@@ -57,7 +48,7 @@ export const InvitationsScreen = () => {
         </View>
       </Card>
     );
-  }, [isMutatingByUserId, acceptRequest, declineRequest]);
+  }, [mutatingRequesterId, acceptRequest, declineRequest]);
 
   if (isLoading && incomingRequests.length === 0) {
     return (
@@ -78,7 +69,7 @@ export const InvitationsScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={renderInvitation}
         refreshing={isLoading}
-        onRefresh={() => void loadIncomingRequests()}
+        onRefresh={() => void reload()}
         ListEmptyComponent={
           <View className="py-10 items-center">
             <AppText tone="muted">No pending connection invitations.</AppText>

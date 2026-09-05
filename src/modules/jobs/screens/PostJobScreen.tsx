@@ -164,14 +164,14 @@ export const PostJobScreen = () => {
               value={location}
               onChangeText={setLocation}
               placeholder="Remote, Bengaluru..."
-              className="flex-1"
+              containerClassName="flex-1"
             />
             <AppTextInput
               label="Openings"
               value={openings}
               onChangeText={setOpenings}
               keyboardType="number-pad"
-              className="flex-1"
+              containerClassName="flex-1"
             />
           </View>
           <AppTextInput

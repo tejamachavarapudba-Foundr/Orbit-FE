@@ -9,15 +9,24 @@ type AppTextInputProps = TextInputProps & {
   required?: boolean | undefined;
   error?: string | undefined;
   className?: string;
+  containerClassName?: string;
   rightElement?: React.ReactNode;
 };
 
-export const AppTextInput = ({ label, required, error, className = "", rightElement, ...props }: AppTextInputProps) => {
+export const AppTextInput = ({
+  label,
+  required,
+  error,
+  className = "",
+  containerClassName = "",
+  rightElement,
+  ...props
+}: AppTextInputProps) => {
   const colors = useThemeTokens();
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <View className="gap-2">
+    <View className={`gap-2 ${containerClassName}`}>
       {label ? (
         <AppText size="sm" weight="medium">
           {label}

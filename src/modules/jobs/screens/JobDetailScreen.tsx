@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -18,7 +18,7 @@ import { useAuthStore } from "@/modules/auth/store";
 import { MainStackParamList } from "@/app/navigation/types";
 import { ApplicationStatusBadge } from "@/modules/jobs/components/ApplicationStatusBadge";
 import { useJobDetail } from "@/modules/jobs/hooks";
-import { useJobsStore } from "@/modules/jobs/store";
+import { JobApplication } from "@/modules/jobs/types";
 import { useProfileStore } from "@/modules/profile/store";
 import { useToastStore } from "@/store/toastStore";
 import { iconSize } from "@/theme/designTokens";
@@ -65,9 +65,7 @@ export const JobDetailScreen = ({ route }: Props) => {
   const updateResume = useProfileStore((state) => state.updateResume);
   const isResumeSaving = useProfileStore((state) => state.isResumeSaving);
   const showToast = useToastStore((state) => state.show);
-  const errorMessage = useJobsStore((state) => state.errorMessage);
-  const selectJob = useJobsStore((state) => state.selectJob);
-  const { selectedJob, mutatingId, clearSelectedJob, applyJob } = useJobDetail();
+  const { selectedJob, isLoading, errorMessage, mutatingId, selectJob, applyJob } = useJobDetail(id);
   const [applicationMessage, setApplicationMessage] = useState("");
 
   // Uploads straight into the shared profile resume (same field ProfileScreen's
@@ -99,15 +97,6 @@ export const JobDetailScreen = ({ route }: Props) => {
       showToast({ type: "error", title: "Resume upload failed" });
     }
   };
-
-  useEffect(() => {
-    void selectJob(id);
-    return () => clearSelectedJob();
-    // Only re-run if navigated to a different job id.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  const isLoading = mutatingId === id && selectedJob?.id !== id;
 
   const header = (
     <View className="flex-row items-center gap-2 px-4 pb-2 pt-2">
@@ -146,16 +135,16 @@ export const JobDetailScreen = ({ route }: Props) => {
       <AppScreen withHorizontalPadding={false}>
         {header}
         <View className="px-4">
-          <ErrorState message={errorMessage ?? "This job couldn't be found."} onRetry={() => void selectJob(id)} />
+          <ErrorState message={errorMessage ?? "This job couldn't be found."} onRetry={() => void selectJob()} />
         </View>
       </AppScreen>
     );
   }
 
   const isMutating = mutatingId === selectedJob.id;
-  const applications = selectedJob.applications ?? [];
+  const applications: JobApplication[] = selectedJob.applications ?? [];
   const applicationsCount = selectedJob.applicationsCount ?? applications.length;
-  const skills = selectedJob.skills ?? [];
+  const skills: string[] = selectedJob.skills ?? [];
 
   const role = profile?.role;
   const canManageJobs =

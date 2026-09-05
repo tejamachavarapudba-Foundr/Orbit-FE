@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { jobsApi } from "@/modules/jobs/api";
-import { useJobsStore } from "@/modules/jobs/store";
+import { useJobMutations } from "@/modules/jobs/hooks";
 import { Job, JobApplication } from "@/modules/jobs/types";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { iconSize } from "@/theme/designTokens";
@@ -128,8 +128,7 @@ type ApplicationRowProps = {
 };
 
 const ApplicationRow = ({ jobId, application, onChanged }: ApplicationRowProps) => {
-  const mutatingId = useJobsStore((state) => state.mutatingId);
-  const updateApplicationStatus = useJobsStore((state) => state.updateApplicationStatus);
+  const { mutatingId, updateApplicationStatus } = useJobMutations();
   const [isFetchingResume, setIsFetchingResume] = useState(false);
   const openUserProfile = useOpenUserProfile();
   const applicantName = application.applicant?.fullName ?? "Applicant";
@@ -211,9 +210,7 @@ type MyJobPostCardProps = {
 
 const MyJobPostCard = ({ post, statusFilter, onChanged }: MyJobPostCardProps) => {
   const colors = useThemeTokens();
-  const mutatingId = useJobsStore((state) => state.mutatingId);
-  const updateJob = useJobsStore((state) => state.updateJob);
-  const deleteJob = useJobsStore((state) => state.deleteJob);
+  const { mutatingId, updateJob, deleteJob } = useJobMutations();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editHeading, setEditHeading] = useState(post.heading);

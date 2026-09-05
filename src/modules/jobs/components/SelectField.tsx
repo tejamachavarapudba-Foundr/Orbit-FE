@@ -22,7 +22,7 @@ export const SelectField = ({ label, value, onPress, className = "" }: SelectFie
       <Pressable
         accessibilityRole="button"
         onPress={onPress}
-        className="min-h-[40px] flex-row items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 shadow-sm"
+        className="min-h-[44px] flex-row items-center justify-between rounded-t-lg border-b-2 border-input bg-surface-elevated px-3 py-2"
       >
         <AppText size="sm">{value}</AppText>
         <Feather name="chevron-down" size={16} color={colors.muted} />

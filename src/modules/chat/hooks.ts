@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAuthStore } from "@/modules/auth/store";
 import { Chat } from "@/modules/chat/types";
 import { useChatStore } from "@/modules/chat/store";
-import { useConnectionsStore } from "@/modules/connections/store";
+import { useConnectedProfiles, useIncomingConnectionRequests } from "@/modules/connections/hooks";
 import { useFollowStore } from "@/modules/follows/store";
 import { useUserStore } from "@/modules/user/store";
 
@@ -44,11 +44,8 @@ export const useChats = () => {
 
   const loadNetwork = useFollowStore((state) => state.loadNetwork);
 
-  const rawConnectedProfiles = useConnectionsStore((state) => state.connectedProfiles);
-  const connectedProfiles = useMemo(() => rawConnectedProfiles || [], [rawConnectedProfiles]);
-
-  const loadConnectedProfiles = useConnectionsStore((state) => state.loadConnectedProfiles);
-  const loadIncomingRequests = useConnectionsStore((state) => state.loadIncomingRequests);
+  const connectedProfiles = useConnectedProfiles(currentUserId);
+  useIncomingConnectionRequests({ enabled: Boolean(currentUserId) });
 
   // Chats are loaded once at the navigator level (MainNavigator), keyed off
   // currentUserId rather than "chats.length === 0" — the latter would never
@@ -66,13 +63,6 @@ export const useChats = () => {
       void loadNetwork(currentUserId);
     }
   }, [currentUserId, loadNetwork]);
-
-  useEffect(() => {
-    if (currentUserId) {
-      void loadConnectedProfiles(currentUserId);
-      void loadIncomingRequests();
-    }
-  }, [currentUserId, loadConnectedProfiles, loadIncomingRequests]);
 
   // Loaded once so the "Archived" row can show a count without the user
   // having to open the archived list first.
