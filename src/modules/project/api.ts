@@ -12,9 +12,27 @@ import {
   TrendingStartup
 } from "@/modules/project/types";
 
+type ProjectsPage = { projects: Project[]; totalCount: number; hasMore: boolean };
+
 export const projectApi = {
   getProjects: async () => {
     const response = await apiClient.get<Project[]>("/projects");
+    return response.data;
+  },
+  browseProjects: async (
+    page: number,
+    limit: number,
+    filters: { query: string; stage: string; projectType: string }
+  ) => {
+    const response = await apiClient.get<ProjectsPage>("/projects/browse", {
+      params: {
+        page,
+        limit,
+        query: filters.query || undefined,
+        stage: filters.stage !== "all" ? filters.stage : undefined,
+        projectType: filters.projectType !== "all" ? filters.projectType : undefined
+      }
+    });
     return response.data;
   },
   getStartups: async (page = 1, limit = 20) => {

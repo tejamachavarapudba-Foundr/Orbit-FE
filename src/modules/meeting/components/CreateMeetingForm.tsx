@@ -27,7 +27,16 @@ type Props = {
 
 export const CreateMeetingForm = ({ onSuccess, initialStartupId }: Props) => {
   const colors = useThemeTokens();
-  const { projects } = useProjects();
+  const { projects, hasMore, isLoadingMore, loadMore } = useProjects();
+  // This picker just lists every project with no search/pagination UI of
+  // its own — keep loading pages until there's nothing left, matching the
+  // "show everything" a flat picker list implies, instead of silently
+  // hiding startups past the first page.
+  useEffect(() => {
+    if (hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [hasMore, isLoadingMore, loadMore]);
   const isLoading = useMeetingsStore((state) => state.isLoading);
   const createProposal = useMeetingsStore((state) => state.createProposal);
 

@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { useProjectStore } from "@/modules/project/store";
+import { useProjectMutations } from "@/modules/project/hooks";
 import { useAuthStore } from "@/modules/auth/store";
 import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
@@ -39,9 +39,7 @@ const formatValue = (value: string) => value.replace(/_/g, " ").replace(/\b\w/g,
 
 export const ProjectCard = memo(({ project, onPress, onBookMeeting, onEdit, onViewFounder, compact = false, badge }: ProjectCardProps) => {
   const colors = useThemeTokens();
-  const savedStartupIds = useProjectStore((state) => state.savedStartupIds);
-  const toggleSaveStartup = useProjectStore((state) => state.toggleSaveStartup);
-  const toggleLikeStartup = useProjectStore((state) => state.toggleLikeStartup);
+  const { savedStartupIds, toggleSaveStartup, toggleLikeStartup } = useProjectMutations();
   const isSaved = savedStartupIds.includes(project.id);
   const isLiked = Boolean(project.isLikedByMe);
   const likeCount = project.likeCount ?? 0;
