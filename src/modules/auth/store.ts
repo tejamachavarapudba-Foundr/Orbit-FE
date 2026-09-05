@@ -74,8 +74,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken
       });
-      const user = response.user ?? (await authApi.me());
-      set({ isSubmitting: false, status: "authenticated", user });
+      set({ isSubmitting: false, status: "authenticated", user: response.user });
       return true;
     } catch (error) {
       const appError = toAppError(error);
@@ -92,8 +91,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken
       });
-      const user = response.user ?? (await authApi.me());
-      set({ isSubmitting: false, status: "authenticated", user });
+      set({ isSubmitting: false, status: "authenticated", user: response.user });
       return true;
     } catch (error) {
       const appError = toAppError(error);
