@@ -9,6 +9,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { UserCard } from "@/modules/user/components/UserCard";
 import { UserSkeletonList } from "@/modules/user/components/UserSkeletonList";
+import { usePrefetchConnectionInfo } from "@/modules/connections/hooks";
 import { useDiscoverUsers, userRoleFilters } from "@/modules/user/hooks";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 import { UserRole, UserSummary } from "@/modules/user/types";
@@ -31,6 +32,7 @@ export const DiscoverScreen = () => {
     loadMore
   } = useDiscoverUsers();
   const openUserProfile = useOpenUserProfile();
+  usePrefetchConnectionInfo(users.map((user) => user.id));
 
   const renderUser = useCallback<ListRenderItem<UserSummary>>(
     ({ item }) => <UserCard user={item} onPress={openUserProfile} showFollowButton />,

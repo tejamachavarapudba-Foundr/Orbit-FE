@@ -8,7 +8,7 @@ import { UserAvatar } from "@/modules/user/components/UserAvatar";
 import { useOpenUserProfile } from "@/modules/user/hooks/useOpenUserProfile";
 
 export const IncomingRequestsSection = () => {
-  const { incomingRequests, isLoadingRequests, acceptRequest, declineRequest } = useIncomingConnectionRequests();
+  const { incomingRequests, isLoadingRequests, acceptRequest } = useIncomingConnectionRequests();
   const openUserProfile = useOpenUserProfile();
 
   if (isLoadingRequests) {
@@ -67,10 +67,11 @@ export const IncomingRequestsSection = () => {
                   className="flex-1 rounded-full"
                 />
                 <AppButton
-                  label="Decline"
+                  label="View profile"
                   variant="outline"
                   size="sm"
-                  onPress={() => void declineRequest(request)}
+                  disabled={!requester?.id}
+                  onPress={() => requester?.id && openUserProfile(requester.id)}
                   className="flex-1 rounded-full"
                 />
               </View>

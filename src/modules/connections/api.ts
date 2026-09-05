@@ -80,6 +80,14 @@ export const connectionsApi = {
       return following.filter((profile) => followerIds.has(profile.id)).length;
     }
   },
+  getBulkInfo: async (userIds: string[]) => {
+    if (userIds.length === 0) return {};
+    const response = await apiClient.post<Record<string, ConnectionStatusResponse & { count: number }>>(
+      "/connections/bulk-info",
+      { userIds }
+    );
+    return response.data;
+  },
   getConnectedProfiles: async (userId: string) => {
     try {
       const response = await apiClient.get<FollowProfile[]>(`/connections/${userId}`);
