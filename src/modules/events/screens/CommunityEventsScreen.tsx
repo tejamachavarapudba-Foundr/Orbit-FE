@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, ListRenderItem, Pressable, TextInput, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -21,6 +21,20 @@ import { filterEvents, getIsJoined } from "@/modules/events/utils";
 import { iconSize } from "@/theme/designTokens";
 import { MainStackParamList } from "@/app/navigation/types";
 
+const COMMUNITY_EVENTS_PAGE_SIZE = 20;
+
+type CommunityCursor = { page: number; hasMore: boolean };
+
+// Merges by id (favoring the incoming copy) and re-sorts, since each
+// community's pages arrive independently and can interleave.
+const mergeEvents = (current: StartupEvent[], incoming: StartupEvent[]) => {
+  const byId = new Map(current.map((event) => [event.id, event]));
+  for (const event of incoming) {
+    byId.set(event.id, event);
+  }
+  return Array.from(byId.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+};
+
 export const CommunityEventsScreen = () => {
   const colors = useThemeTokens();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
@@ -30,7 +44,9 @@ export const CommunityEventsScreen = () => {
   const rsvpEvent = useEventsStore((state) => state.rsvpEvent);
 
   const [events, setEvents] = useState<StartupEvent[]>([]);
+  const [cursors, setCursors] = useState<Record<string, CommunityCursor>>({});
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<EventFilter>("all");
   const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -39,20 +55,31 @@ export const CommunityEventsScreen = () => {
     if (isLoadingCommunities) return;
     if (!communities.length) {
       setEvents([]);
+      setCursors({});
       setIsLoadingEvents(false);
       return;
     }
 
     let cancelled = false;
     setIsLoadingEvents(true);
-    Promise.all(communities.map((community) => eventsApi.getCommunityEvents(community.id)))
-      .then((lists) => {
+    Promise.all(communities.map((community) => eventsApi.browseCommunityEvents(community.id, 1, COMMUNITY_EVENTS_PAGE_SIZE)))
+      .then((results) => {
         if (cancelled) return;
-        const merged = lists.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const nextCursors: Record<string, CommunityCursor> = {};
+        let merged: StartupEvent[] = [];
+        communities.forEach((community, index) => {
+          const page = results[index]!;
+          nextCursors[community.id] = { page: 1, hasMore: page.hasMore };
+          merged = mergeEvents(merged, page.events);
+        });
+        setCursors(nextCursors);
         setEvents(merged);
       })
       .catch(() => {
-        if (!cancelled) setEvents([]);
+        if (!cancelled) {
+          setEvents([]);
+          setCursors({});
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoadingEvents(false);
@@ -61,6 +88,36 @@ export const CommunityEventsScreen = () => {
       cancelled = true;
     };
   }, [communities, isLoadingCommunities]);
+
+  const hasMore = Object.values(cursors).some((cursor) => cursor.hasMore);
+
+  const loadMore = useCallback(() => {
+    if (isLoadingMore || isLoadingEvents) return;
+    const targets = communities.filter((community) => cursors[community.id]?.hasMore);
+    if (!targets.length) return;
+
+    setIsLoadingMore(true);
+    Promise.all(
+      targets.map((community) =>
+        eventsApi.browseCommunityEvents(community.id, (cursors[community.id]?.page ?? 1) + 1, COMMUNITY_EVENTS_PAGE_SIZE)
+      )
+    )
+      .then((results) => {
+        setCursors((prev) => {
+          const next = { ...prev };
+          targets.forEach((community, index) => {
+            const page = results[index]!;
+            next[community.id] = { page: (prev[community.id]?.page ?? 1) + 1, hasMore: page.hasMore };
+          });
+          return next;
+        });
+        setEvents((prev) => mergeEvents(prev, results.flatMap((page) => page.events)));
+      })
+      .catch(() => {
+        // Leave cursors untouched — the next onEndReached retries the same pages.
+      })
+      .finally(() => setIsLoadingMore(false));
+  }, [communities, cursors, isLoadingEvents, isLoadingMore]);
 
   const filteredEvents = useMemo(
     () => filterEvents(events, filter, query, rsvpStatusByEventId),
@@ -110,6 +167,15 @@ export const CommunityEventsScreen = () => {
         maxToRenderPerBatch={8}
         windowSize={9}
         updateCellsBatchingPeriod={50}
+        onEndReached={hasMore ? loadMore : undefined}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View className="items-center py-4">
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+          ) : null
+        }
         contentContainerStyle={{ gap: 16, paddingHorizontal: 20, paddingBottom: 40 }}
         ListHeaderComponent={
           <View className="w-full max-w-2xl self-center pb-4">

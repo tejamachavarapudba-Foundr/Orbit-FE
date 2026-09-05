@@ -17,7 +17,7 @@ import {
 import { Orbitron_500Medium, useFonts as useOrbitronFonts } from "@expo-google-fonts/orbitron";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { getCrashlytics, recordError, setCrashlyticsCollectionEnabled } from "@react-native-firebase/crashlytics";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useFonts as useExpoFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -27,6 +27,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { vars } from "nativewind";
 import { RootNavigator } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/services/api/queryClient";
+import { asyncStoragePersister, QUERY_CACHE_MAX_AGE_MS } from "@/services/api/queryPersister";
 import { useAuthStore } from "@/modules/auth/store";
 import { startPushNotifications } from "@/modules/notifications/pushNotifications";
 import { useThemeStore } from "@/store/themeStore";
@@ -113,10 +114,20 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className={colorScheme === "dark" ? "dark" : ""} style={[{ flex: 1 }, themeVarsStyle]}>
         <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
+          <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{
+              persister: asyncStoragePersister,
+              maxAge: QUERY_CACHE_MAX_AGE_MS,
+              buster: userId ?? "anon",
+              dehydrateOptions: {
+                shouldDehydrateQuery: (query) => query.state.status === "success"
+              }
+            }}
+          >
             <RootNavigator />
             <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-          </QueryClientProvider>
+          </PersistQueryClientProvider>
         </SafeAreaProvider>
       </View>
     </GestureHandlerRootView>
