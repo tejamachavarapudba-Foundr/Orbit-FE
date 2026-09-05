@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useIsFocused } from "@react-navigation/native";
 
 import { useAuthStore } from "@/modules/auth/store";
 import { Chat } from "@/modules/chat/types";
@@ -9,6 +10,11 @@ import { useUserStore } from "@/modules/user/store";
 
 export const getOtherParticipantId = (chat: Chat, currentUserId?: string) =>
   chat.userAId === currentUserId ? chat.userBId : chat.userAId;
+
+// Coarser than the open-thread poll (useConversationMessages) — this only
+// needs to keep last-message previews/unread badges fresh, not every
+// keystroke of an active conversation.
+const CHATS_POLL_INTERVAL_MS = 6000;
 
 export const useChats = () => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
@@ -25,6 +31,7 @@ export const useChats = () => {
   const detailErrorMessage = useChatStore((state) => state.detailErrorMessage);
   const loadChats = useChatStore((state) => state.loadChats);
   const refreshChats = useChatStore((state) => state.refreshChats);
+  const pollChats = useChatStore((state) => state.pollChats);
   const loadArchivedChats = useChatStore((state) => state.loadArchivedChats);
   const setArchived = useChatStore((state) => state.setArchived);
   const selectChat = useChatStore((state) => state.selectChat);
@@ -46,6 +53,19 @@ export const useChats = () => {
 
   const connectedProfiles = useConnectedProfiles(currentUserId);
   useIncomingConnectionRequests({ enabled: Boolean(currentUserId) });
+
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (!isFocused || !currentUserId) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      void pollChats();
+    }, CHATS_POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [currentUserId, isFocused, pollChats]);
 
   // Chats are loaded once at the navigator level (MainNavigator), keyed off
   // currentUserId rather than "chats.length === 0" — the latter would never

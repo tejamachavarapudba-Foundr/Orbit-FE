@@ -20,6 +20,7 @@ type ChatState = {
   detailErrorMessage: string | null;
   loadChats: () => Promise<void>;
   refreshChats: () => Promise<void>;
+  pollChats: () => Promise<void>;
   loadArchivedChats: () => Promise<void>;
   setArchived: (id: string, archived: boolean) => Promise<boolean>;
   createChat: (participantId: string) => Promise<boolean>;
@@ -66,6 +67,16 @@ export const useChatStore = create<ChatState>((set) => ({
     } catch (error) {
       const appError = toAppError(error);
       set({ errorMessage: appError.message, isRefreshing: false });
+    }
+  },
+  // Background tick for the chat list — same fetch as refreshChats but
+  // never touches isRefreshing, so it can't flash the pull-to-refresh spinner.
+  pollChats: async () => {
+    try {
+      const chats = await chatApi.getChats(false);
+      set({ chats: sortChats(chats) });
+    } catch {
+      // Silent — next tick retries.
     }
   },
   loadArchivedChats: async () => {

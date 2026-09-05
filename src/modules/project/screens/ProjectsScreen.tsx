@@ -25,12 +25,14 @@ export const ProjectsScreen = () => {
     projects,
     badgesByProjectId,
     totalCount,
+    hasMore,
     filters,
     isLoading,
     isRefreshing,
     errorMessage,
     loadProjects,
     refreshProjects,
+    loadMore,
     setQuery,
     setStage,
     setProjectType
@@ -98,6 +100,8 @@ export const ProjectsScreen = () => {
         updateCellsBatchingPeriod={50}
         refreshing={isRefreshing}
         onRefresh={() => void refreshProjects()}
+        onEndReached={hasMore ? loadMore : undefined}
+        onEndReachedThreshold={0.4}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
         ListHeaderComponent={
           <View className="w-full max-w-2xl self-center pb-2 pt-4">

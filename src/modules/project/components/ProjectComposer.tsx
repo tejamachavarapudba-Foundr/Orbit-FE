@@ -16,9 +16,9 @@ import {
   FUNDING_STAGE_OPTIONS,
   projectStageOptions,
   projectTypeOptions,
-  useProjectForm
+  useProjectForm,
+  useProjectMutations
 } from "@/modules/project/hooks";
-import { useProjectStore } from "@/modules/project/store";
 import { Project } from "@/modules/project/types";
 import { verificationApi } from "@/modules/verification/api";
 import { isValidUrl } from "@/utils/validation";
@@ -36,7 +36,7 @@ type ProjectComposerProps = {
 export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }: ProjectComposerProps) => {
   const colors = useThemeTokens();
   const showToast = useToastStore((state) => state.show);
-  const updatePitchVideo = useProjectStore((state) => state.updatePitchVideo);
+  const { updatePitchVideo } = useProjectMutations();
   const [isExpanded, setIsExpanded] = useState(autoExpanded || Boolean(project));
   const [showPitchTip, setShowPitchTip] = useState(true);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -90,12 +90,8 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
       if (project) {
         setIsUploadingVideo(true);
         try {
-          const didSucceed = await updatePitchVideo(project.id, preparedVideo);
-
-          if (didSucceed) {
-            const updated = useProjectStore.getState().projects.find((item) => item.id === project.id);
-            if (updated) setField("pitchVideoUrl", updated.pitchVideoUrl);
-          }
+          const updated = await updatePitchVideo(project.id, preparedVideo);
+          if (updated) setField("pitchVideoUrl", updated.pitchVideoUrl);
         } finally {
           setIsUploadingVideo(false);
         }
@@ -146,18 +142,15 @@ export const ProjectComposer = ({ project = null, onDone, autoExpanded = false }
   };
 
   const handleSubmit = async () => {
-    const didSucceed = await submit();
-    if (!didSucceed) return;
+    const submitted = await submit();
+    if (!submitted) return;
 
     if (!project && pendingVideo) {
-      const created = useProjectStore.getState().projects[0];
-      if (created) {
-        setIsUploadingVideo(true);
-        try {
-          await updatePitchVideo(created.id, pendingVideo);
-        } finally {
-          setIsUploadingVideo(false);
-        }
+      setIsUploadingVideo(true);
+      try {
+        await updatePitchVideo(submitted.id, pendingVideo);
+      } finally {
+        setIsUploadingVideo(false);
       }
       setPendingVideo(null);
     }

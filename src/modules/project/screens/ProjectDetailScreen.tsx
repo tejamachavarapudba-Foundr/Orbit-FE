@@ -19,8 +19,7 @@ import { useAuthStore } from "@/modules/auth/store";
 import { MainStackParamList } from "@/app/navigation/types";
 import { ProjectBannerGradient } from "@/modules/project/components/ProjectBannerGradient";
 import { ProjectComposer } from "@/modules/project/components/ProjectComposer";
-import { useProjectDetail } from "@/modules/project/hooks";
-import { useProjectStore } from "@/modules/project/store";
+import { useProjectDetail, useProjectMutations } from "@/modules/project/hooks";
 import { InvestorGateModal } from "@/modules/verification/components/InvestorGateModal";
 import { useVerificationStatus } from "@/modules/verification/hooks";
 import { iconSize } from "@/theme/designTokens";
@@ -35,9 +34,7 @@ export const ProjectDetailScreen = ({ route }: Props) => {
   const colors = useThemeTokens();
   const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
-  const updateLogo = useProjectStore((state) => state.updateLogo);
-  const updateCover = useProjectStore((state) => state.updateCover);
-  const isSubmitting = useProjectStore((state) => state.isSubmitting);
+  const { updateLogo, updateCover, isSubmitting } = useProjectMutations();
 
   const {
     currentUserId,

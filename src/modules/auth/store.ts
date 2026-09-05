@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { useProjectStore } from "@/modules/project/store";
+import { queryClient } from "@/services/api/queryClient";
 import { authApi } from "@/modules/auth/api";
 import { stopPushNotifications } from "@/modules/notifications/pushNotifications";
 import { withTrace } from "@/utils/perfTrace";
@@ -116,10 +116,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } finally {
       await tokenService.clear();
   
-      useProjectStore.setState({
-        savedStartupIds: [],
-        savedStartups: [],
-      });
+      queryClient.removeQueries({ queryKey: ["projects", "saved"] });
   
       set({
         status: "unauthenticated",

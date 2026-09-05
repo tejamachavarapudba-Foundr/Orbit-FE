@@ -7,7 +7,7 @@ import { AppImage } from "@/components/ui/AppImage";
 import { AppText } from "@/components/ui/AppText";
 import { iconSize } from "@/theme/designTokens";
 import { projectApi } from "@/modules/project/api";
-import { useProjectStore } from "@/modules/project/store";
+import { useProjectMutations } from "@/modules/project/hooks";
 import { ReelVideo } from "@/modules/project/components/ReelVideo";
 import { ReelCommentsSheet } from "@/modules/project/components/ReelCommentsSheet";
 import { useReelVisibilityStore } from "@/modules/project/reelVisibilityStore";
@@ -23,8 +23,7 @@ export const PitchReelsScreen = () => {
   // made getItemLayout's per-page math drift, so two reels' overlays ended
   // up partially visible on screen at once.
   const [pageHeight, setPageHeight] = useState(0);
-  const toggleLikeStartup = useProjectStore((state) => state.toggleLikeStartup);
-  const toggleSaveStartup = useProjectStore((state) => state.toggleSaveStartup);
+  const { toggleLikeStartup, toggleSaveStartup } = useProjectMutations();
   const setActiveReelId = useReelVisibilityStore((state) => state.setActiveReelId);
 
   const [reels, setReels] = useState<PitchReel[]>([]);

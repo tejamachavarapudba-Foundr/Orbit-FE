@@ -22,6 +22,7 @@ type MessageState = {
   readingMessageId: string | null;
   errorByConversationId: Record<string, string | null>;
   loadMessages: (conversationId: string) => Promise<void>;
+  refreshMessages: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, content: string, attachment?: PendingAttachment) => Promise<boolean>;
   markRead: (messageId: string, conversationId: string) => Promise<boolean>;
   markConversationRead: (conversationId: string, currentUserId: string) => Promise<boolean>;
@@ -59,6 +60,28 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         errorByConversationId: { ...state.errorByConversationId, [conversationId]: appError.message },
         isLoadingByConversationId: { ...state.isLoadingByConversationId, [conversationId]: false }
       }));
+    }
+  },
+  // Polling tick: unlike loadMessages, never flips isLoading (would flash
+  // the skeleton every few seconds) and never clobbers a message that was
+  // just optimistically added by sendMessage but hasn't round-tripped yet.
+  refreshMessages: async (conversationId) => {
+    try {
+      const serverMessages = await messagesApi.getMessages(conversationId);
+      set((state) => {
+        const pendingOptimistic = (state.messagesByConversationId[conversationId] ?? []).filter((item) =>
+          item.id.startsWith("optimistic-")
+        );
+        return {
+          messagesByConversationId: {
+            ...state.messagesByConversationId,
+            [conversationId]: sortMessages([...serverMessages, ...pendingOptimistic])
+          }
+        };
+      });
+    } catch {
+      // Silent — a failed background poll shouldn't surface an error or
+      // disturb whatever's currently on screen; the next tick retries.
     }
   },
   sendMessage: async (conversationId, content, attachment) => {

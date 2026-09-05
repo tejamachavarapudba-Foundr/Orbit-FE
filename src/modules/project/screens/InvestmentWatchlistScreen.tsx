@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { FlatList, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -9,23 +9,12 @@ import { ScreenHeader } from "@/components/layout/ScreenHeader";
 import { CreateMeetingModal } from "@/modules/meeting/components/CreateMeetingModal";
 import { ProjectCard } from "@/modules/project/components/ProjectCard";
 import { Project } from "@/modules/project/types";
-import { useProjectStore } from "@/modules/project/store";
+import { useSavedStartups } from "@/modules/project/hooks";
 
 export const InvestmentWatchlistScreen = () => {
   const navigation = useNavigation<any>();
-  const { savedStartups, loadSavedStartups } = useProjectStore();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { savedStartups, isRefreshing, refresh } = useSavedStartups();
   const [meetingProject, setMeetingProject] = useState<Project | null>(null);
-
-  useEffect(() => {
-    void loadSavedStartups();
-  }, [loadSavedStartups]);
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await loadSavedStartups();
-    setIsRefreshing(false);
-  }, [loadSavedStartups]);
 
   return (
     <AppScreen>
@@ -43,7 +32,7 @@ export const InvestmentWatchlistScreen = () => {
           windowSize={7}
           updateCellsBatchingPeriod={50}
           refreshing={isRefreshing}
-          onRefresh={() => void handleRefresh()}
+          onRefresh={() => void refresh()}
           renderItem={({ item }) => (
             <ProjectCard
               project={item}

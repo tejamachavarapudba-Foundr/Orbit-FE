@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 
 import { useAuthStore } from "@/modules/auth/store";
 import { Message } from "@/modules/messages/types";
@@ -6,6 +7,11 @@ import { useMessageStore } from "@/modules/messages/store";
 
 /** Stable fallback — never use `?? []` inline in Zustand selectors (new ref every render → infinite loop). */
 const EMPTY_MESSAGES: Message[] = [];
+
+// Lightweight polling: cheap enough to run every few seconds, no socket/
+// Firestore infra needed, and simple to reason about — chosen over a
+// real-time channel since chat isn't this app's primary surface.
+const POLL_INTERVAL_MS = 4000;
 
 export const useConversationMessages = (conversationId: string) => {
   const currentUserId = useAuthStore((state) => state.user?.profile.id);
@@ -16,14 +22,30 @@ export const useConversationMessages = (conversationId: string) => {
   const readingMessageId = useMessageStore((state) => state.readingMessageId);
   const errorMessage = useMessageStore((state) => state.errorByConversationId[conversationId] ?? null);
   const loadMessages = useMessageStore((state) => state.loadMessages);
+  const refreshMessages = useMessageStore((state) => state.refreshMessages);
   const sendMessage = useMessageStore((state) => state.sendMessage);
   const markConversationRead = useMessageStore((state) => state.markConversationRead);
   const deleteMessage = useMessageStore((state) => state.deleteMessage);
   const [draft, setDraft] = useState("");
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     void loadMessages(conversationId);
   }, [conversationId, loadMessages]);
+
+  // Only poll while this thread is the focused screen — no point refetching
+  // a conversation the user has navigated away from.
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      void refreshMessages(conversationId);
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [conversationId, isFocused, refreshMessages]);
 
   // Marks every unread message in this conversation as read in one request
   // instead of one PATCH per unread message — the optimistic update this
